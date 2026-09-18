@@ -138,15 +138,36 @@ class SupabaseBuyerRepository implements BuyerRepository {
     try {
       AppLogger.info('Submitting offer for produce: ${offer.produceId} by buyer: ${offer.buyerId}');
 
-      // Validate produce is still active
+      final currentUser = _client.auth.currentUser;
+      if (currentUser == null || currentUser.id != offer.buyerId) {
+        return left(const AuthFailure('You are not authorized to submit this offer.'));
+      }
+
+      // Validate produce is still active and bind the offer to the listing owner.
       final produceCheck = await _client
           .from('produce')
-          .select('status, quantity')
+          .select('status, quantity, farmer_id')
           .eq('id', offer.produceId)
           .maybeSingle();
 
       if (produceCheck == null) {
         return left(const DatabaseFailure('The requested produce listing no longer exists.'));
+      }
+
+      final produceFarmerId = produceCheck['farmer_id'] as String?;
+      if (produceFarmerId == null || produceFarmerId != offer.farmerId) {
+        return left(const DatabaseFailure('The produce seller does not match this offer.'));
+      }
+
+      final duplicate = await _client
+          .from('offers')
+          .select('id')
+          .eq('produce_id', offer.produceId)
+          .eq('buyer_id', currentUser.id)
+          .eq('status', 'pending')
+          .limit(1);
+      if ((duplicate as List).isNotEmpty) {
+        return left(const DatabaseFailure('You already have a pending offer for this produce listing.'));
       }
 
       final produceStatus = produceCheck['status'] as String?;
@@ -159,9 +180,10 @@ class SupabaseBuyerRepository implements BuyerRepository {
         return left(DatabaseFailure('Offered quantity (${offer.quantity}) exceeds available quantity ($availableQty).'));
       }
 
+      final safeOffer = offer.copyWith(buyerId: currentUser.id, farmerId: produceFarmerId);
       final response = await _client
           .from('offers')
-          .insert(offer.toMap())
+          .insert(safeOffer.toMap())
           .select('*, produce:produce_id(name, unit, category, expected_price, location), farmer_profile:farmer_id(full_name, district)')
           .single();
 
@@ -182,6 +204,10 @@ class SupabaseBuyerRepository implements BuyerRepository {
   Future<AppResult<OfferModel>> cancelOffer(String offerId, String buyerId) async {
     try {
       AppLogger.info('Cancelling offer id: $offerId by buyer: $buyerId');
+      final currentUser = _client.auth.currentUser;
+      if (currentUser == null || currentUser.id != buyerId) {
+        return left(const AuthFailure('You are not authorized to cancel this offer.'));
+      }
       final response = await _client
           .from('offers')
           .update({
