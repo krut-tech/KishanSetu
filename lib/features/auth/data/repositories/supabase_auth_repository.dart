@@ -247,9 +247,20 @@ class SupabaseAuthRepository implements AuthRepository {
   Future<AppResult<UserProfile>> updateUserProfile(UserProfile profile) async {
     try {
       final client = _effectiveClient;
+      final currentUser = client.auth.currentUser;
+      if (currentUser == null) {
+        return left(const AuthFailure('Your session has expired. Please sign in again.'));
+      }
+
+      // Never trust a caller-supplied profile id. The authenticated Supabase
+      // session is the source of truth for which profile may be written.
+      final safeProfile = profile.id == currentUser.id
+          ? profile
+          : profile.copyWith(id: currentUser.id);
+
       final updatedData = await client
           .from('profiles')
-          .upsert(profile.toMap())
+          .upsert(safeProfile.toMap())
           .select()
           .single();
 
