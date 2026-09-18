@@ -87,7 +87,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         }
       }
 
-      // Role-based cross-route separation guard
+      // Role-based cross-route separation guard. Farmer-only routes must not be
+      // reachable by a completed buyer through a direct URL/deep link.
+      if (location == RouteNames.addProduce && profile?.role != UserRole.farmer) {
+        return RouteNames.buyerHome;
+      }
+
       if (profile?.role == UserRole.farmer) {
         if (location == RouteNames.buyerHome || location == RouteNames.buyerProfile) {
           return RouteNames.farmerHome;
