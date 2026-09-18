@@ -1,0 +1,47 @@
+name: farmer_market_app
+description: "Farmer Market Linkage & Price Discovery Application"
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.1.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  intl: ^0.20.3
+
+  # State Management & Routing
+  flutter_riverpod: ^2.6.1
+  go_router: ^14.8.1
+
+  # Backend & Supabase
+  supabase_flutter: ^2.8.4
+
+  # UI, Fonts & Widgets
+  cupertino_icons: ^1.0.8
+  google_fonts: ^6.2.1
+  shimmer: ^3.0.0
+
+  # Utilities & Helpers
+  logger: ^2.5.0
+  fpdart: ^1.1.0
+  equatable: ^2.0.7
+  shared_preferences: ^2.5.2
+  flutter_dotenv: ^5.2.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+  generate: true
+
+  assets:
+    - .env.example
+    - .env
