@@ -56,6 +56,10 @@ class SupabaseFarmerRepository implements FarmerRepository {
   @override
   Future<AppResult<ProduceModel>> addProduce(ProduceModel produce) async {
     try {
+      final currentUser = _client.auth.currentUser;
+      if (currentUser == null || currentUser.id != produce.farmerId) {
+        return left(const AuthFailure('You are not authorized to create this produce listing.'));
+      }
       AppLogger.info('Adding new produce: ${produce.name} for farmer: ${produce.farmerId}');
       final response = await _client
           .from('produce')
@@ -81,10 +85,15 @@ class SupabaseFarmerRepository implements FarmerRepository {
   Future<AppResult<ProduceModel>> updateProduce(ProduceModel produce) async {
     try {
       AppLogger.info('Updating produce id: ${produce.id}');
+      final currentUser = _client.auth.currentUser;
+      if (currentUser == null) {
+        return left(const AuthFailure('Your session has expired. Please sign in again.'));
+      }
       final response = await _client
           .from('produce')
           .update(produce.toMap())
           .eq('id', produce.id)
+          .eq('farmer_id', currentUser.id)
           .select()
           .single();
 
@@ -104,8 +113,16 @@ class SupabaseFarmerRepository implements FarmerRepository {
   @override
   Future<AppResult<void>> deleteProduce(String produceId) async {
     try {
+      final currentUser = _client.auth.currentUser;
+      if (currentUser == null) {
+        return left(const AuthFailure('Your session has expired. Please sign in again.'));
+      }
       AppLogger.info('Deleting produce id: $produceId');
-      await _client.from('produce').delete().eq('id', produceId);
+      await _client
+          .from('produce')
+          .delete()
+          .eq('id', produceId)
+          .eq('farmer_id', currentUser.id);
       return right(null);
     } on SocketException catch (e) {
       AppLogger.error('Network error deleting produce', e);
@@ -203,13 +220,24 @@ class SupabaseFarmerRepository implements FarmerRepository {
   Future<AppResult<OfferModel>> updateOfferStatus(String offerId, String status) async {
     try {
       AppLogger.info('Updating offer status id: $offerId to $status');
+      final currentUser = _client.auth.currentUser;
+      if (currentUser == null) {
+        return left(const AuthFailure('Your session has expired. Please sign in again.'));
+      }
+      const allowedStatuses = {'accepted', 'rejected', 'countered'};
+      final normalizedStatus = status.toLowerCase();
+      if (!allowedStatuses.contains(normalizedStatus)) {
+        return left(const DatabaseFailure('Invalid offer status transition.'));
+      }
       final response = await _client
           .from('offers')
           .update({
-            'status': status.toLowerCase(),
+            'status': normalizedStatus,
             'updated_at': DateTime.now().toUtc().toIso8601String(),
           })
           .eq('id', offerId)
+          .eq('farmer_id', currentUser.id)
+          .eq('status', 'pending')
           .select('*, produce:produce_id(name, unit), buyer_profile:buyer_id(full_name, company_name)')
           .single();
 
