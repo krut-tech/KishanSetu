@@ -9,13 +9,6 @@ void main() {
 
   setUpAll(() async {
     SharedPreferences.setMockInitialValues({});
-    try {
-      await Supabase.initialize(
-        url: 'https://dpbuhtverikgcaieucdp.supabase.co',
-        publishableKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRwYnVodHZlcmlrZ2NhaWV1Y2RwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkxODcwMTUsImV4cCI6MjEwNDc2MzAxNX0.MfsPMFUMhUrNc46zwKpu_TEPhS5rLZShTiaXPgx6LoY',
-        authOptions: const FlutterAuthClientOptions(localStorage: EmptyLocalStorage()),
-      );
-    } catch (_) {}
   });
 
   testWidgets('App initializes successfully smoke test', (WidgetTester tester) async {
