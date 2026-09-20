@@ -98,7 +98,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           return RouteNames.farmerHome;
         }
       } else if (profile?.role == UserRole.buyer) {
-        if (location == RouteNames.farmerHome || location == RouteNames.farmerProfile) {
+        if (location == RouteNames.farmerHome ||
+            location == RouteNames.farmerProfile ||
+            location == RouteNames.addProduce) {
           return RouteNames.buyerHome;
         }
       }

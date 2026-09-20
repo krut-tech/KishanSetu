@@ -3,7 +3,7 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
 
     <application
-        android:label="farmer_market_app"
+        android:label="KisanSetu"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
@@ -35,10 +35,11 @@
                 <data android:scheme="io.supabase.flutter" android:host="login-callback"/>
             </intent-filter>
         </activity>
-        <!-- Enable Impeller on Android -->
+        <!-- Impeller is explicitly disabled here because it causes black screens on some Android devices -->
         <meta-data
             android:name="io.flutter.embedding.android.EnableImpeller"
-            android:value="true" />
+            android:value="false" />
+
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data

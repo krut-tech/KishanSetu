@@ -49,10 +49,10 @@ class AppBootstrapNotifier extends StateNotifier<AppBootstrapState> {
   Future<void> initialize() async {
     state = const AppBootstrapState(isLoading: true);
     try {
-      AppLogger.info('App bootstrap: Loading environment configuration...');
+      AppLogger.info('App bootstrap: Initializing EnvConfig...');
       await EnvConfig.init();
 
-      AppLogger.info('App bootstrap: Initializing Supabase backend...');
+      AppLogger.info('App bootstrap: Initializing SupabaseService...');
       await SupabaseService.init();
 
       // Refresh Riverpod network providers with initialized Supabase client

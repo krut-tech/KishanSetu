@@ -89,10 +89,19 @@ class AuthNotifier extends ChangeNotifier {
     return result.fold(
       (failure) {
         AppLogger.error('Failed to fetch profile: ${failure.message}');
+        // Preserve authenticated user session on network/server error instead of signing out
+        final fallbackProfile = _state.profile ??
+            UserProfile(
+              id: user.id,
+              fullName: user.userMetadata?['full_name'] as String? ??
+                  user.userMetadata?['name'] as String? ??
+                  'User',
+            );
+
         _updateState(_state.copyWith(
-          status: AuthStatus.unauthenticated,
-          user: null,
-          profile: null,
+          status: AuthStatus.authenticated,
+          user: user,
+          profile: fallbackProfile,
           isLoading: false,
           errorMessage: failure.message,
         ));

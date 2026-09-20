@@ -8,6 +8,8 @@ import 'package:farmer_market_app/core/bootstrap/app_bootstrap_provider.dart';
 import 'package:farmer_market_app/core/errors/failure.dart';
 import 'package:farmer_market_app/core/errors/result.dart';
 import 'package:farmer_market_app/core/routing/app_router.dart';
+import 'package:farmer_market_app/core/routing/route_names.dart';
+import 'package:go_router/go_router.dart';
 import 'package:farmer_market_app/core/widgets/inputs/app_text_field.dart';
 import 'package:farmer_market_app/features/auth/domain/models/user_profile.dart';
 import 'package:farmer_market_app/features/auth/domain/models/user_role.dart';
@@ -15,6 +17,7 @@ import 'package:farmer_market_app/features/auth/domain/repositories/auth_reposit
 import 'package:farmer_market_app/features/auth/presentation/controllers/auth_providers.dart';
 import 'package:farmer_market_app/features/auth/presentation/screens/login_screen.dart';
 import 'package:farmer_market_app/features/auth/presentation/screens/register_screen.dart';
+import 'package:farmer_market_app/features/home/presentation/buyer_home_screen.dart';
 import 'package:farmer_market_app/features/buyer/domain/models/buyer_dashboard_stats.dart';
 import 'package:farmer_market_app/features/buyer/domain/repositories/buyer_repository.dart';
 import 'package:farmer_market_app/features/buyer/presentation/controllers/buyer_providers.dart';
@@ -949,6 +952,46 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Google Sign-In failed. Please try again.'), findsWidgets);
+    });
+
+    testWidgets('21. Buyer user attempting to navigate to /add-produce is blocked and redirected to Buyer Dashboard', (tester) async {
+      final fakeUser = FakeUser(id: 'buyer-security-1');
+      fakeAuthRepository.signInResult = right(
+        supabase.AuthResponse(
+          session: supabase.Session(accessToken: 'tok', tokenType: 'bearer', user: fakeUser),
+          user: fakeUser,
+        ),
+      );
+      fakeAuthRepository.getProfileResult = right(
+        const UserProfile(
+          id: 'buyer-security-1',
+          fullName: 'Buyer Security Test',
+          role: UserRole.buyer,
+          isProfileComplete: true,
+        ),
+      );
+
+      await tester.pumpWidget(createFullAppTest());
+      await tester.pumpAndSettle();
+
+      // Login as Buyer
+      final fields = find.byType(TextField);
+      await tester.enterText(fields.at(0), 'buyer@example.com');
+      await tester.enterText(fields.at(1), 'Password123');
+      await tester.tap(find.widgetWithText(ElevatedButton, 'Login'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Buyer Dashboard'), findsOneWidget);
+
+      // Attempt to navigate to farmer /add-produce
+      final container = tester.element(find.byType(BuyerHomeScreen).first);
+      final router = GoRouter.of(container);
+      router.go(RouteNames.addProduce);
+      await tester.pumpAndSettle();
+
+      // Should be redirected back to Buyer Dashboard
+      expect(find.text('Buyer Dashboard'), findsOneWidget);
+      expect(find.text('Add Produce Listing'), findsNothing);
     });
   });
 }

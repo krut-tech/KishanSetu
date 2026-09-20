@@ -10,6 +10,8 @@ build/
 
 # Android
 android/.gradle/
+android/.kotlin/
+.kotlin/
 android/captures/
 android/gradleApp.setting
 android/local.properties
@@ -44,3 +46,4 @@ ios/Runner/GeneratedPluginRegistrant.*
 .DS_Store
 Thumbs.db
 *.log
+flutter_run_output.txt

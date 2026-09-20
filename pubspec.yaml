@@ -43,5 +43,5 @@ flutter:
   generate: true
 
   assets:
-    - .env.example
     - .env
+    - .env.example

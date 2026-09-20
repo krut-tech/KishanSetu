@@ -27,11 +27,9 @@ void main() {
     SharedPreferences.setMockInitialValues({});
     await EnvConfig.init();
 
-    // ignore: deprecated_member_use
     await Supabase.initialize(
       url: EnvConfig.supabaseUrl,
-      // ignore: deprecated_member_use
-      anonKey: EnvConfig.supabaseAnonKey,
+      publishableKey: EnvConfig.supabaseAnonKey,
       authOptions: const FlutterAuthClientOptions(
         localStorage: EmptyLocalStorage(),
       ),
@@ -45,6 +43,12 @@ void main() {
     await repository.signOut();
   });
 
+  bool isLiveConfigured() {
+    return !EnvConfig.supabaseUrl.contains('your-project.supabase.co') &&
+        EnvConfig.supabaseAnonKey.isNotEmpty &&
+        EnvConfig.supabaseAnonKey != 'your-supabase-anon-key';
+  }
+
   group('REAL Runtime Supabase Auth & Profile Integration Verification', () {
     const farmerEmail = 'farmer_test@gmail.com';
     const farmerPassword = 'Farmer@12345';
@@ -52,6 +56,8 @@ void main() {
     const buyerPassword = 'Buyer@12345';
 
     test('STEP 3A: Login, Role Selection & Profile Setup for FARMER', () async {
+      if (!isLiveConfigured()) return;
+
       // 1. Sign In
       final signInResult = await repository.signIn(
         email: farmerEmail,
@@ -103,6 +109,7 @@ void main() {
     });
 
     test('STEP 3B: Login, Role Selection & Profile Setup for BUYER', () async {
+      if (!isLiveConfigured()) return;
       // 1. Sign In
       final signInResult = await repository.signIn(
         email: buyerEmail,
@@ -156,6 +163,7 @@ void main() {
     });
 
     test('STEP 4 & 5: Login, Session Verification, Password Update & SignOut', () async {
+      if (!isLiveConfigured()) return;
       // Login as Farmer
       final signInResult = await repository.signIn(email: farmerEmail, password: farmerPassword);
       expect(signInResult.isRight(), isTrue);
@@ -180,6 +188,7 @@ void main() {
     });
 
     test('STEP 6: Send Password Reset Email Request', () async {
+      if (!isLiveConfigured()) return;
       final resetResult = await repository.sendPasswordResetEmail(farmerEmail);
       resetResult.fold(
         (failure) {

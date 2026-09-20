@@ -8,9 +8,14 @@ class EnvConfig {
   static Future<void> init() async {
     try {
       await dotenv.load(fileName: '.env');
-      AppLogger.info('Environment variables loaded successfully.');
+      AppLogger.info('Environment variables loaded successfully from .env.');
     } catch (e) {
-      AppLogger.warning('Failed to load .env file, using default values: $e');
+      try {
+        await dotenv.load(fileName: '.env.example');
+        AppLogger.info('Environment variables loaded from .env.example fallback.');
+      } catch (e2) {
+        AppLogger.warning('Failed to load environment configuration files, using default fallbacks: $e2');
+      }
     }
   }
 
