@@ -127,6 +127,39 @@ class BuyerOfferController extends StateNotifier<BuyerOfferState> {
     );
   }
 
+  Future<bool> updateOffer(OfferModel offer) async {
+    state = state.copyWith(isSubmitting: true, clearError: true, clearSuccess: true);
+
+    final result = await _repository.updateOffer(offer);
+
+    return result.fold(
+      (failure) {
+        state = state.copyWith(
+          isSubmitting: false,
+          errorMessage: failure.message,
+        );
+        return false;
+      },
+      (updatedOffer) {
+        final updatedList = state.offers.map((o) {
+          if (o.id == updatedOffer.id) return updatedOffer;
+          return o;
+        }).toList();
+
+        if (!state.offers.any((o) => o.id == updatedOffer.id)) {
+          updatedList.insert(0, updatedOffer);
+        }
+
+        state = state.copyWith(
+          isSubmitting: false,
+          offers: updatedList,
+          successMessage: 'Offer updated successfully!',
+        );
+        return true;
+      },
+    );
+  }
+
   Future<bool> cancelOffer(String offerId, String buyerId) async {
     state = state.copyWith(isSubmitting: true, clearError: true, clearSuccess: true);
 

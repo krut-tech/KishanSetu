@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:farmer_market_app/core/logging/app_logger.dart';
 import 'package:farmer_market_app/features/farmer/domain/models/offer_model.dart';
 import 'package:farmer_market_app/features/farmer/domain/repositories/farmer_repository.dart';
@@ -54,6 +55,7 @@ class OfferState extends Equatable {
 
 class OfferController extends StateNotifier<OfferState> {
   final FarmerRepository _repository;
+  RealtimeChannel? _offersChannel;
 
   OfferController(this._repository) : super(const OfferState());
 
@@ -84,6 +86,20 @@ class OfferController extends StateNotifier<OfferState> {
         );
       },
     );
+
+    _setupRealtime(farmerId);
+  }
+
+  void _setupRealtime(String farmerId) {
+    if (_offersChannel != null) return;
+    try {
+      _offersChannel = _repository.subscribeToFarmerOffers(farmerId, (_) {
+        AppLogger.info('Realtime offer event in OfferController -> refreshing');
+        fetchOffers(farmerId);
+      });
+    } catch (e) {
+      AppLogger.warning('Failed to subscribe in OfferController: $e');
+    }
   }
 
   Future<bool> respondToOffer(String offerId, String newStatus) async {
@@ -112,5 +128,11 @@ class OfferController extends StateNotifier<OfferState> {
         return true;
       },
     );
+  }
+
+  @override
+  void dispose() {
+    _offersChannel?.unsubscribe();
+    super.dispose();
   }
 }

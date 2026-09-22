@@ -28,6 +28,15 @@ abstract class BuyerRepository {
   /// Submit a new price offer to a farmer.
   Future<AppResult<OfferModel>> makeOffer(OfferModel offer);
 
+  /// Update an existing pending offer.
+  Future<AppResult<OfferModel>> updateOffer(OfferModel offer);
+
+  /// Get active/pending offer for a specific produce listing by buyer.
+  Future<AppResult<OfferModel?>> getExistingOfferForProduce(String buyerId, String produceId);
+
+  /// Get version history for a specific offer.
+  Future<AppResult<List<OfferHistoryModel>>> getOfferHistory(String offerId);
+
   /// Cancel a pending offer created by the buyer.
   Future<AppResult<OfferModel>> cancelOffer(String offerId, String buyerId);
 
@@ -38,5 +47,16 @@ abstract class BuyerRepository {
   RealtimeChannel subscribeToBuyerOffers(
     String buyerId,
     void Function(OfferModel offer) onOfferChange,
+  );
+
+  /// Subscribe to real-time changes on marketplace produce listings.
+  RealtimeChannel subscribeToMarketplaceProduce(
+    void Function() onChange,
+  );
+
+  /// Subscribe to real-time changes on a specific produce listing.
+  RealtimeChannel subscribeToProduceDetails(
+    String produceId,
+    void Function(ProduceModel? produce) onChange,
   );
 }

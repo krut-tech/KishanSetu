@@ -61,6 +61,8 @@ class BuyerDashboardNotifier extends StateNotifier<BuyerDashboardState> {
   final FarmerRepository _farmerRepository;
 
   RealtimeChannel? _offersChannel;
+  RealtimeChannel? _produceChannel;
+  RealtimeChannel? _pricesChannel;
   String? _currentBuyerId;
 
   BuyerDashboardNotifier(this._buyerRepository, this._farmerRepository)
@@ -121,13 +123,24 @@ class BuyerDashboardNotifier extends StateNotifier<BuyerDashboardState> {
   }
 
   void _setupRealtimeSubscription(String buyerId) {
-    if (_offersChannel != null && _currentBuyerId == buyerId) {
+    if (_offersChannel != null && _produceChannel != null && _pricesChannel != null && _currentBuyerId == buyerId) {
       return; // Already subscribed
     }
+    _cleanupRealtime();
+
     try {
-      _offersChannel?.unsubscribe();
       _offersChannel = _buyerRepository.subscribeToBuyerOffers(buyerId, (_) {
         AppLogger.info('Realtime offer event triggered -> refreshing buyer dashboard');
+        refreshDashboard();
+      });
+
+      _produceChannel = _buyerRepository.subscribeToMarketplaceProduce(() {
+        AppLogger.info('Realtime marketplace produce change event -> refreshing buyer dashboard');
+        refreshDashboard();
+      });
+
+      _pricesChannel = _farmerRepository.subscribeToMarketPrices(() {
+        AppLogger.info('Realtime market price change event -> refreshing buyer dashboard');
         refreshDashboard();
       });
     } catch (e) {
@@ -135,9 +148,20 @@ class BuyerDashboardNotifier extends StateNotifier<BuyerDashboardState> {
     }
   }
 
+  void _cleanupRealtime() {
+    _offersChannel?.unsubscribe();
+    _offersChannel = null;
+
+    _produceChannel?.unsubscribe();
+    _produceChannel = null;
+
+    _pricesChannel?.unsubscribe();
+    _pricesChannel = null;
+  }
+
   @override
   void dispose() {
-    _offersChannel?.unsubscribe();
+    _cleanupRealtime();
     super.dispose();
   }
 }

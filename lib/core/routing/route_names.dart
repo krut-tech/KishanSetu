@@ -13,5 +13,6 @@ class RouteNames {
   static const String farmerHome = '/farmer-home';
   static const String buyerHome = '/buyer-home';
   static const String addProduce = '/add-produce';
+  static const String notifications = '/notifications';
   static const String designSystem = '/design-system';
 }

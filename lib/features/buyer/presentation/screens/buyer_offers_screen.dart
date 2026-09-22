@@ -11,7 +11,9 @@ import 'package:farmer_market_app/core/widgets/states/shimmer_loading.dart';
 import 'package:farmer_market_app/features/auth/presentation/controllers/auth_providers.dart';
 import 'package:farmer_market_app/features/buyer/presentation/controllers/buyer_offer_controller.dart';
 import 'package:farmer_market_app/features/buyer/presentation/controllers/buyer_providers.dart';
+import 'package:farmer_market_app/features/buyer/presentation/screens/make_offer_dialog.dart';
 import 'package:farmer_market_app/features/farmer/domain/models/offer_model.dart';
+import 'package:farmer_market_app/features/farmer/domain/models/produce_model.dart';
 
 /// Screen displaying submitted offers created by the authenticated buyer.
 class BuyerOffersScreen extends ConsumerStatefulWidget {
@@ -222,7 +224,30 @@ class _BuyerOffersScreenState extends ConsumerState<BuyerOffersScreen> {
           quantity: '${offer.quantity} ${offer.produceUnit ?? "Units"}',
           status: _mapStatus(offer.status),
           expiresText: 'Status: ${offer.status.toUpperCase()}',
+          message: offer.message,
+          history: offer.history,
           onCancel: isPending ? () => _handleCancelOffer(offer) : null,
+          onEdit: isPending
+              ? () async {
+                  final produce = ProduceModel(
+                    id: offer.produceId,
+                    farmerId: offer.farmerId,
+                    name: offer.produceName ?? 'Produce Listing',
+                    category: offer.produceCategory ?? 'General',
+                    quantity: offer.quantity,
+                    unit: offer.produceUnit ?? 'units',
+                    expectedPrice: offer.produceExpectedPrice ?? offer.offeredPrice,
+                  );
+                  final updated = await MakeOfferDialog.show(
+                    context,
+                    produce,
+                    existingOffer: offer,
+                  );
+                  if (updated == true) {
+                    _fetchOffers();
+                  }
+                }
+              : null,
         );
       },
     );

@@ -21,6 +21,8 @@ class AuthNotifier extends ChangeNotifier {
   bool get isLoading => _state.isLoading;
   String? get errorMessage => _state.errorMessage;
 
+  RealtimeChannel? _profileChannel;
+
   Listenable get authRoutingListenable => _routingNotifier;
 
   AuthNotifier(this._repository) {
@@ -44,6 +46,23 @@ class AuthNotifier extends ChangeNotifier {
     _init();
   }
 
+  void _setupProfileRealtime(String userId) {
+    if (_profileChannel != null) return;
+    try {
+      _profileChannel = _repository.subscribeToProfile(userId, (updatedProfile) {
+        AppLogger.info('AuthNotifier received realtime profile update for ${updatedProfile.fullName}');
+        _updateState(_state.copyWith(profile: updatedProfile));
+      });
+    } catch (e) {
+      AppLogger.warning('Failed to subscribe to profile realtime updates: $e');
+    }
+  }
+
+  void _cleanupProfileRealtime() {
+    _profileChannel?.unsubscribe();
+    _profileChannel = null;
+  }
+
   void _init() {
     try {
       _authSubscription?.cancel();
@@ -54,6 +73,7 @@ class AuthNotifier extends ChangeNotifier {
             await _fetchProfileForUser(user);
           }
         } else {
+          _cleanupProfileRealtime();
           _updateState(_state.copyWith(
             status: AuthStatus.unauthenticated,
             user: null,
@@ -69,6 +89,7 @@ class AuthNotifier extends ChangeNotifier {
       if (currentUser != null) {
         _fetchProfileForUser(currentUser);
       } else {
+        _cleanupProfileRealtime();
         _updateState(_state.copyWith(
           status: AuthStatus.unauthenticated,
           isLoading: false,
@@ -76,6 +97,7 @@ class AuthNotifier extends ChangeNotifier {
       }
     } catch (e) {
       AppLogger.warning('AuthNotifier _init deferred or uninitialized: $e');
+      _cleanupProfileRealtime();
       _updateState(_state.copyWith(
         status: AuthStatus.unauthenticated,
         isLoading: false,
@@ -115,6 +137,7 @@ class AuthNotifier extends ChangeNotifier {
           isLoading: false,
           clearError: true,
         ));
+        _setupProfileRealtime(user.id);
         return true;
       },
     );
@@ -292,12 +315,14 @@ class AuthNotifier extends ChangeNotifier {
 
   Future<void> signOut() async {
     _updateState(_state.copyWith(isLoading: true));
+    _cleanupProfileRealtime();
     await _repository.signOut();
     _updateState(const AuthState(status: AuthStatus.unauthenticated));
   }
 
   @override
   void dispose() {
+    _cleanupProfileRealtime();
     _authSubscription?.cancel();
     _routingNotifier.dispose();
     super.dispose();

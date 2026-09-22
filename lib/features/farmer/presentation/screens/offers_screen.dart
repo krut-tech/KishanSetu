@@ -179,6 +179,8 @@ class _OffersScreenState extends ConsumerState<OffersScreen> {
             quantity: '${offer.quantity} ${offer.produceUnit ?? "units"}',
             status: statusBadgeType,
             expiresText: formattedTime,
+            message: offer.message,
+            history: offer.history,
             onAccept: () async {
               final ok = await ref
                   .read(offerControllerProvider.notifier)

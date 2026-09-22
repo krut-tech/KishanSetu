@@ -97,6 +97,11 @@ class MockFarmerRepository implements FarmerRepository {
   }
 
   @override
+  Future<AppResult<List<OfferHistoryModel>>> getOfferHistory(String offerId) async {
+    return right([]);
+  }
+
+  @override
   RealtimeChannel subscribeToFarmerOffers(
     String farmerId,
     void Function(OfferModel offer) onNewOffer,
@@ -107,6 +112,13 @@ class MockFarmerRepository implements FarmerRepository {
   @override
   RealtimeChannel subscribeToProduceChanges(
     String farmerId,
+    void Function() onChange,
+  ) {
+    return FakeRealtimeChannel();
+  }
+
+  @override
+  RealtimeChannel subscribeToMarketPrices(
     void Function() onChange,
   ) {
     return FakeRealtimeChannel();

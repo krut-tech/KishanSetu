@@ -273,4 +273,31 @@ class SupabaseAuthRepository implements AuthRepository {
       return left(const ServerFailure('Failed to update profile.'));
     }
   }
+
+  @override
+  RealtimeChannel subscribeToProfile(String userId, void Function(UserProfile profile) onProfileChange) {
+    AppLogger.info('Setting up Realtime subscription for profile: $userId');
+    final client = _effectiveClient;
+    final channel = client.channel('public:profiles:id=$userId');
+
+    channel.onPostgresChanges(
+      event: PostgresChangeEvent.all,
+      schema: 'public',
+      table: 'profiles',
+      filter: PostgresChangeFilter(
+        type: PostgresChangeFilterType.eq,
+        column: 'id',
+        value: userId,
+      ),
+      callback: (payload) {
+        AppLogger.info('Realtime profile change payload received for $userId');
+        final record = payload.newRecord.isNotEmpty ? payload.newRecord : payload.oldRecord;
+        if (record.isNotEmpty) {
+          onProfileChange(UserProfile.fromMap(record));
+        }
+      },
+    ).subscribe();
+
+    return channel;
+  }
 }

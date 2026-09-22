@@ -15,6 +15,18 @@ import 'package:farmer_market_app/core/errors/failure.dart';
 import 'package:farmer_market_app/core/errors/result.dart';
 import 'package:farmer_market_app/features/auth/presentation/screens/login_screen.dart';
 
+class FakeRealtimeChannel extends RealtimeChannel {
+  FakeRealtimeChannel() : super('fake_channel', RealtimeClient('https://fake.supabase.co'));
+
+  @override
+  RealtimeChannel subscribe([void Function(RealtimeSubscribeStatus status, Object? error)? callback, Duration? timeout]) {
+    return this;
+  }
+
+  @override
+  Future<String> unsubscribe([Duration? timeout]) async => 'ok';
+}
+
 class FakeAuthRepository implements AuthRepository {
   final _controller = StreamController<sb.AuthState>.broadcast();
 
@@ -68,6 +80,11 @@ class FakeAuthRepository implements AuthRepository {
   @override
   Future<AppResult<void>> resetPassword(String newPassword) async {
     return const Left(UnknownFailure('Not implemented in fake'));
+  }
+
+  @override
+  RealtimeChannel subscribeToProfile(String userId, void Function(UserProfile profile) onProfileChange) {
+    return FakeRealtimeChannel();
   }
 }
 

@@ -1,5 +1,55 @@
 import 'package:equatable/equatable.dart';
 
+/// Historical version entry for an edited offer.
+class OfferHistoryModel extends Equatable {
+  final String id;
+  final String offerId;
+  final double offeredPrice;
+  final double quantity;
+  final String? message;
+  final String status;
+  final int version;
+  final DateTime createdAt;
+
+  const OfferHistoryModel({
+    required this.id,
+    required this.offerId,
+    required this.offeredPrice,
+    required this.quantity,
+    this.message,
+    required this.status,
+    required this.version,
+    required this.createdAt,
+  });
+
+  factory OfferHistoryModel.fromMap(Map<String, dynamic> map) {
+    return OfferHistoryModel(
+      id: map['id'] as String,
+      offerId: map['offer_id'] as String,
+      offeredPrice: (map['offered_price'] as num?)?.toDouble() ?? 0.0,
+      quantity: (map['quantity'] as num?)?.toDouble() ?? 0.0,
+      message: map['message'] as String?,
+      status: (map['status'] as String?) ?? 'pending',
+      version: (map['version'] as num?)?.toInt() ?? 1,
+      createdAt: map['created_at'] != null
+          ? DateTime.parse(map['created_at'] as String).toLocal()
+          : DateTime.now(),
+    );
+  }
+
+  @override
+  List<Object?> get props => [
+        id,
+        offerId,
+        offeredPrice,
+        quantity,
+        message,
+        status,
+        version,
+        createdAt,
+      ];
+}
+
 /// Offer domain model mapping Supabase offers table.
 class OfferModel extends Equatable {
   final String id;
@@ -22,6 +72,7 @@ class OfferModel extends Equatable {
   final String? produceCategory;
   final double? produceExpectedPrice;
   final String? produceLocation;
+  final List<OfferHistoryModel>? history;
 
   const OfferModel({
     required this.id,
@@ -42,6 +93,7 @@ class OfferModel extends Equatable {
     this.produceCategory,
     this.produceExpectedPrice,
     this.produceLocation,
+    this.history,
   });
 
   factory OfferModel.fromMap(Map<String, dynamic> map) {
@@ -80,6 +132,17 @@ class OfferModel extends Equatable {
       pLocation = produceMap['location'] as String?;
     }
 
+    List<OfferHistoryModel>? historyList;
+    if (map['offer_history'] is List) {
+      historyList = (map['offer_history'] as List)
+          .map((item) => OfferHistoryModel.fromMap(item as Map<String, dynamic>))
+          .toList();
+    } else if (map['history'] is List) {
+      historyList = (map['history'] as List)
+          .map((item) => OfferHistoryModel.fromMap(item as Map<String, dynamic>))
+          .toList();
+    }
+
     return OfferModel(
       id: map['id'] as String,
       produceId: map['produce_id'] as String,
@@ -103,6 +166,7 @@ class OfferModel extends Equatable {
       produceCategory: pCategory ?? map['produce_category'] as String?,
       produceExpectedPrice: pExpectedPrice ?? (map['produce_expected_price'] as num?)?.toDouble(),
       produceLocation: pLocation ?? map['produce_location'] as String?,
+      history: historyList,
     );
   }
 
@@ -138,6 +202,7 @@ class OfferModel extends Equatable {
     String? produceCategory,
     double? produceExpectedPrice,
     String? produceLocation,
+    List<OfferHistoryModel>? history,
   }) {
     return OfferModel(
       id: id ?? this.id,
@@ -158,6 +223,7 @@ class OfferModel extends Equatable {
       produceCategory: produceCategory ?? this.produceCategory,
       produceExpectedPrice: produceExpectedPrice ?? this.produceExpectedPrice,
       produceLocation: produceLocation ?? this.produceLocation,
+      history: history ?? this.history,
     );
   }
 
@@ -181,5 +247,6 @@ class OfferModel extends Equatable {
         produceCategory,
         produceExpectedPrice,
         produceLocation,
+        history,
       ];
 }

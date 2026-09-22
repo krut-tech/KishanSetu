@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:farmer_market_app/core/logging/app_logger.dart';
+import 'package:farmer_market_app/features/notifications/presentation/widgets/notification_badge_icon.dart';
 import 'package:go_router/go_router.dart';
 import 'package:farmer_market_app/core/constants/app_constants.dart';
 import 'package:farmer_market_app/core/constants/app_spacing.dart';
@@ -81,6 +83,7 @@ class _FarmerHomeScreenState extends ConsumerState<FarmerHomeScreen> {
       appBar: AppBar(
         title: Text(context.l10n.farmerHomeTitle),
         actions: [
+          const NotificationBadgeIcon(),
           PopupMenuButton<String>(
             icon: const Icon(Icons.language),
             tooltip: context.l10n.selectLanguage,
@@ -222,7 +225,13 @@ class _FarmerHomeScreenState extends ConsumerState<FarmerHomeScreen> {
             FarmerHeader(
               profile: profile,
               onNotificationPressed: () {
-                AppSnackBar.show(context, message: 'No new notifications', type: SnackBarType.info);
+                AppLogger.info('NOTIFICATION BELL TAPPED');
+                AppLogger.info('NAVIGATING TO NOTIFICATION CENTER');
+                try {
+                  context.pushNamed('notifications');
+                } catch (e, stackTrace) {
+                  AppLogger.error('Failed to navigate to Notification Center', e, stackTrace);
+                }
               },
               onProfilePressed: () {
                 setState(() => _currentIndex = 4);

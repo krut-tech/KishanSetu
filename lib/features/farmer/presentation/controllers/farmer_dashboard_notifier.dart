@@ -65,6 +65,7 @@ class FarmerDashboardNotifier extends StateNotifier<FarmerDashboardState> {
   final FarmerRepository _repository;
   RealtimeChannel? _offersChannel;
   RealtimeChannel? _produceChannel;
+  RealtimeChannel? _pricesChannel;
   String? _currentFarmerId;
 
   FarmerDashboardNotifier(this._repository) : super(const FarmerDashboardState());
@@ -143,7 +144,7 @@ class FarmerDashboardNotifier extends StateNotifier<FarmerDashboardState> {
   }
 
   void _setupRealtime(String farmerId) {
-    if (_offersChannel != null && _produceChannel != null && _currentFarmerId == farmerId) {
+    if (_offersChannel != null && _produceChannel != null && _pricesChannel != null && _currentFarmerId == farmerId) {
       return; // Realtime channels already initialized
     }
     _cleanupRealtime();
@@ -158,6 +159,11 @@ class FarmerDashboardNotifier extends StateNotifier<FarmerDashboardState> {
         AppLogger.info('Realtime produce change notification received');
         refreshDashboard();
       });
+
+      _pricesChannel = _repository.subscribeToMarketPrices(() {
+        AppLogger.info('Realtime market price change notification received');
+        refreshDashboard();
+      });
     } catch (e) {
       AppLogger.warning('Failed to subscribe to realtime changes: $e');
     }
@@ -169,6 +175,9 @@ class FarmerDashboardNotifier extends StateNotifier<FarmerDashboardState> {
 
     _produceChannel?.unsubscribe();
     _produceChannel = null;
+
+    _pricesChannel?.unsubscribe();
+    _pricesChannel = null;
   }
 
   @override

@@ -170,6 +170,11 @@ class FakeAuthRepository implements AuthRepository {
     if (updateProfileResult != null) return updateProfileResult!;
     return right(profile);
   }
+
+  @override
+  supabase.RealtimeChannel subscribeToProfile(String userId, void Function(UserProfile profile) onProfileChange) {
+    return FakeRealtimeChannel();
+  }
 }
 
 class MockFarmerRepository implements FarmerRepository {
@@ -213,6 +218,9 @@ class MockFarmerRepository implements FarmerRepository {
   }) async => right([]);
 
   @override
+  Future<AppResult<List<OfferHistoryModel>>> getOfferHistory(String offerId) async => right([]);
+
+  @override
   supabase.RealtimeChannel subscribeToFarmerOffers(
     String farmerId,
     void Function(OfferModel offer) onNewOffer,
@@ -221,6 +229,11 @@ class MockFarmerRepository implements FarmerRepository {
   @override
   supabase.RealtimeChannel subscribeToProduceChanges(
     String farmerId,
+    void Function() onChange,
+  ) => FakeRealtimeChannel();
+
+  @override
+  supabase.RealtimeChannel subscribeToMarketPrices(
     void Function() onChange,
   ) => FakeRealtimeChannel();
 
@@ -312,7 +325,32 @@ class MockBuyerRepository implements BuyerRepository {
   }
 
   @override
+  Future<AppResult<OfferModel>> updateOffer(OfferModel offer) async {
+    return right(offer);
+  }
+
+  @override
+  Future<AppResult<OfferModel?>> getExistingOfferForProduce(String buyerId, String produceId) async {
+    return right(null);
+  }
+
+  @override
+  Future<AppResult<List<OfferHistoryModel>>> getOfferHistory(String offerId) async {
+    return right([]);
+  }
+
+  @override
   supabase.RealtimeChannel subscribeToBuyerOffers(String buyerId, void Function(OfferModel offer) onOfferChange) {
+    return FakeRealtimeChannel();
+  }
+
+  @override
+  supabase.RealtimeChannel subscribeToMarketplaceProduce(void Function() onChange) {
+    return FakeRealtimeChannel();
+  }
+
+  @override
+  supabase.RealtimeChannel subscribeToProduceDetails(String produceId, void Function(ProduceModel? produce) onChange) {
     return FakeRealtimeChannel();
   }
 }

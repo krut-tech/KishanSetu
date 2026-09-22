@@ -1,5 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:farmer_market_app/core/logging/app_logger.dart';
 import 'package:farmer_market_app/features/farmer/domain/models/market_price_model.dart';
 import 'package:farmer_market_app/features/farmer/domain/repositories/farmer_repository.dart';
 
@@ -57,6 +59,7 @@ class MarketPriceState extends Equatable {
 
 class MarketPriceController extends StateNotifier<MarketPriceState> {
   final FarmerRepository _repository;
+  RealtimeChannel? _marketPriceChannel;
 
   MarketPriceController(this._repository) : super(const MarketPriceState());
 
@@ -96,5 +99,25 @@ class MarketPriceController extends StateNotifier<MarketPriceState> {
         );
       },
     );
+
+    _setupRealtime();
+  }
+
+  void _setupRealtime() {
+    if (_marketPriceChannel != null) return;
+    try {
+      _marketPriceChannel = _repository.subscribeToMarketPrices(() {
+        AppLogger.info('Realtime market price change event in MarketPriceController -> refreshing');
+        fetchMarketPrices();
+      });
+    } catch (e) {
+      AppLogger.warning('Failed to subscribe in MarketPriceController: $e');
+    }
+  }
+
+  @override
+  void dispose() {
+    _marketPriceChannel?.unsubscribe();
+    super.dispose();
   }
 }

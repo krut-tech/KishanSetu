@@ -17,6 +17,7 @@ import 'package:farmer_market_app/features/design_system/presentation/design_sys
 import 'package:farmer_market_app/features/farmer/presentation/screens/add_produce_screen.dart';
 import 'package:farmer_market_app/features/home/presentation/buyer_home_screen.dart';
 import 'package:farmer_market_app/features/home/presentation/farmer_home_screen.dart';
+import 'package:farmer_market_app/features/notifications/presentation/screens/notification_screen.dart';
 import 'package:farmer_market_app/features/splash/presentation/splash_screen.dart';
 
 int _goRouterConstructionCount = 0;
@@ -177,6 +178,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: RouteNames.buyerHome,
         name: 'buyerHome',
         builder: (context, state) => const BuyerHomeScreen(),
+      ),
+      GoRoute(
+        path: RouteNames.notifications,
+        name: 'notifications',
+        builder: (context, state) => const NotificationScreen(),
       ),
       GoRoute(
         path: RouteNames.designSystem,

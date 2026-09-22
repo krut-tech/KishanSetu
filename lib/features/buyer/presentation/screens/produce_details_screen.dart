@@ -1,20 +1,65 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:farmer_market_app/core/constants/app_spacing.dart';
 import 'package:farmer_market_app/core/widgets/app_card.dart';
 import 'package:farmer_market_app/core/widgets/badges/app_status_badge.dart';
 import 'package:farmer_market_app/core/widgets/buttons/app_button.dart';
 import 'package:farmer_market_app/core/widgets/price/app_price_text.dart';
+import 'package:farmer_market_app/features/auth/presentation/controllers/auth_providers.dart';
+import 'package:farmer_market_app/features/buyer/presentation/controllers/buyer_providers.dart';
 import 'package:farmer_market_app/features/buyer/presentation/screens/make_offer_dialog.dart';
+import 'package:farmer_market_app/features/farmer/domain/models/offer_model.dart';
 import 'package:farmer_market_app/features/farmer/domain/models/produce_model.dart';
 
+import 'package:supabase_flutter/supabase_flutter.dart';
+
 /// Screen displaying complete details for a farmer's produce listing.
-class ProduceDetailsScreen extends StatelessWidget {
+class ProduceDetailsScreen extends ConsumerStatefulWidget {
   final ProduceModel produce;
 
   const ProduceDetailsScreen({
     super.key,
     required this.produce,
   });
+
+  @override
+  ConsumerState<ProduceDetailsScreen> createState() => _ProduceDetailsScreenState();
+}
+
+class _ProduceDetailsScreenState extends ConsumerState<ProduceDetailsScreen> {
+  late ProduceModel _produce;
+  RealtimeChannel? _detailsChannel;
+
+  @override
+  void initState() {
+    super.initState();
+    _produce = widget.produce;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final user = ref.read(authNotifierProvider).state.user;
+      if (user != null) {
+        ref.read(buyerOfferControllerProvider.notifier).fetchOffers(user.id);
+      }
+
+      final repo = ref.read(buyerRepositoryProvider);
+      _detailsChannel = repo.subscribeToProduceDetails(_produce.id, (updated) {
+        if (mounted) {
+          setState(() {
+            if (updated != null) {
+              _produce = updated;
+            } else {
+              _produce = _produce.copyWith(status: 'deleted');
+            }
+          });
+        }
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _detailsChannel?.unsubscribe();
+    super.dispose();
+  }
 
   AppStatusType _getStatusType(String status) {
     switch (status.toLowerCase()) {
@@ -32,6 +77,7 @@ class ProduceDetailsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final produce = _produce;
     final farmerName = produce.farmerName ?? 'Farmer';
     final locationText = produce.location ?? produce.farmerDistrict ?? 'Gujarat';
     final listingDateText = produce.createdAt != null
@@ -39,6 +85,17 @@ class ProduceDetailsScreen extends StatelessWidget {
         : 'Recently';
 
     final isActive = produce.status == 'active';
+
+    final buyerOffers = ref.watch(buyerOfferControllerProvider).offers;
+    OfferModel? existingOffer;
+    for (final o in buyerOffers) {
+      if (o.produceId == produce.id && (o.status.toLowerCase() == 'pending' || o.status.toLowerCase() == 'countered')) {
+        existingOffer = o;
+        break;
+      }
+    }
+
+    final hasActiveOffer = existingOffer != null;
 
     return Scaffold(
       appBar: AppBar(
@@ -53,6 +110,56 @@ class ProduceDetailsScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // Active Offer Info Banner
+                    if (hasActiveOffer) ...[
+                      AppCard(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Row(
+                                  children: [
+                                    Icon(Icons.info_outline, size: 18, color: colorScheme.primary),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      'You have an active offer',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 14,
+                                        color: colorScheme.primary,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const AppStatusBadge(type: AppStatusType.pending),
+                              ],
+                            ),
+                            const Divider(),
+                            Text(
+                              'Offered Price: ₹${existingOffer.offeredPrice.toStringAsFixed(2)} / ${produce.unit}',
+                              style: const TextStyle(fontWeight: FontWeight.w600),
+                            ),
+                            Text('Quantity: ${existingOffer.quantity} ${produce.unit}'),
+                            if (existingOffer.message != null && existingOffer.message!.trim().isNotEmpty)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 4),
+                                child: Text(
+                                  'Message: "${existingOffer.message}"',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    fontStyle: FontStyle.italic,
+                                    color: colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                    ],
+
                     // Top Title Card
                     AppCard(
                       child: Column(
@@ -231,14 +338,23 @@ class ProduceDetailsScreen extends StatelessWidget {
                 ],
               ),
               child: AppButton(
-                label: isActive ? 'Make Offer' : 'Produce Listing Inactive',
+                label: hasActiveOffer
+                    ? 'Edit Offer'
+                    : (isActive ? 'Make Offer' : 'Produce Listing Inactive'),
                 style: AppButtonStyle.secondary,
-                icon: Icons.local_offer_rounded,
+                icon: hasActiveOffer ? Icons.edit_outlined : Icons.local_offer_rounded,
                 onPressed: isActive
                     ? () async {
-                        final submitted = await MakeOfferDialog.show(context, produce);
+                        final submitted = await MakeOfferDialog.show(
+                          context,
+                          produce,
+                          existingOffer: existingOffer,
+                        );
                         if (submitted == true && context.mounted) {
-                          Navigator.of(context).pop();
+                          final user = ref.read(authNotifierProvider).state.user;
+                          if (user != null) {
+                            ref.read(buyerOfferControllerProvider.notifier).fetchOffers(user.id);
+                          }
                         }
                       }
                     : null,

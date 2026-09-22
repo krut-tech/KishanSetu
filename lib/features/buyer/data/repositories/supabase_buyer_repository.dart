@@ -108,7 +108,7 @@ class SupabaseBuyerRepository implements BuyerRepository {
       AppLogger.info('Fetching offers for buyer: $buyerId, status: $status');
       var query = _client
           .from('offers')
-          .select('*, produce:produce_id(name, unit, category, expected_price, location), farmer_profile:farmer_id(full_name, district)')
+          .select('*, offer_history(*), produce:produce_id(name, unit, category, expected_price, location), farmer_profile:farmer_id(full_name, district)')
           .eq('buyer_id', buyerId);
 
       if (status != null && status.isNotEmpty && status.toLowerCase() != 'all') {
@@ -164,10 +164,10 @@ class SupabaseBuyerRepository implements BuyerRepository {
           .select('id')
           .eq('produce_id', offer.produceId)
           .eq('buyer_id', currentUser.id)
-          .eq('status', 'pending')
+          .or('status.eq.pending,status.eq.countered')
           .limit(1);
       if ((duplicate as List).isNotEmpty) {
-        return left(const DatabaseFailure('You already have a pending offer for this produce listing.'));
+        return left(const DatabaseFailure('You already have an active offer for this produce listing. Please edit your existing offer.'));
       }
 
       final produceStatus = produceCheck['status'] as String?;
@@ -184,7 +184,7 @@ class SupabaseBuyerRepository implements BuyerRepository {
       final response = await _client
           .from('offers')
           .insert(safeOffer.toMap())
-          .select('*, produce:produce_id(name, unit, category, expected_price, location), farmer_profile:farmer_id(full_name, district)')
+          .select('*, offer_history(*), produce:produce_id(name, unit, category, expected_price, location), farmer_profile:farmer_id(full_name, district)')
           .single();
 
       return right(OfferModel.fromMap(response));
@@ -196,6 +196,98 @@ class SupabaseBuyerRepository implements BuyerRepository {
       return left(DatabaseFailure(e.message, code: e.code));
     } catch (e, stack) {
       AppLogger.error('Unknown failure submitting offer', e, stack);
+      return left(UnknownFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<AppResult<OfferModel>> updateOffer(OfferModel offer) async {
+    try {
+      AppLogger.info('Updating offer id: ${offer.id} by buyer: ${offer.buyerId}');
+
+      final currentUser = _client.auth.currentUser;
+      if (currentUser == null || currentUser.id != offer.buyerId) {
+        return left(const AuthFailure('You are not authorized to edit this offer.'));
+      }
+
+      final response = await _client
+          .from('offers')
+          .update({
+            'offered_price': offer.offeredPrice,
+            'quantity': offer.quantity,
+            'message': offer.message,
+            'updated_at': DateTime.now().toUtc().toIso8601String(),
+          })
+          .eq('id', offer.id)
+          .eq('buyer_id', currentUser.id)
+          .eq('status', 'pending')
+          .select('*, offer_history(*), produce:produce_id(name, unit, category, expected_price, location), farmer_profile:farmer_id(full_name, district)')
+          .single();
+
+      return right(OfferModel.fromMap(response));
+    } on SocketException catch (e) {
+      AppLogger.error('Network error updating offer', e);
+      return left(const NetworkFailure());
+    } on PostgrestException catch (e) {
+      AppLogger.error('Database failure updating offer: ${e.message}', e);
+      return left(DatabaseFailure(e.message, code: e.code));
+    } catch (e, stack) {
+      AppLogger.error('Unknown failure updating offer', e, stack);
+      return left(UnknownFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<AppResult<OfferModel?>> getExistingOfferForProduce(String buyerId, String produceId) async {
+    try {
+      AppLogger.info('Checking existing pending offer for buyer: $buyerId, produce: $produceId');
+      final response = await _client
+          .from('offers')
+          .select('*, offer_history(*), produce:produce_id(name, unit, category, expected_price, location), farmer_profile:farmer_id(full_name, district)')
+          .eq('produce_id', produceId)
+          .eq('buyer_id', buyerId)
+          .eq('status', 'pending')
+          .maybeSingle();
+
+      if (response == null) {
+        return right(null);
+      }
+      return right(OfferModel.fromMap(response));
+    } on SocketException catch (e) {
+      AppLogger.error('Network error checking existing offer', e);
+      return left(const NetworkFailure());
+    } on PostgrestException catch (e) {
+      AppLogger.error('Database failure checking existing offer: ${e.message}', e);
+      return left(DatabaseFailure(e.message, code: e.code));
+    } catch (e, stack) {
+      AppLogger.error('Unknown failure checking existing offer', e, stack);
+      return left(UnknownFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<AppResult<List<OfferHistoryModel>>> getOfferHistory(String offerId) async {
+    try {
+      AppLogger.info('Fetching offer history for offer: $offerId');
+      final response = await _client
+          .from('offer_history')
+          .select()
+          .eq('offer_id', offerId)
+          .order('version', ascending: true);
+
+      final list = (response as List)
+          .map((row) => OfferHistoryModel.fromMap(row as Map<String, dynamic>))
+          .toList();
+
+      return right(list);
+    } on SocketException catch (e) {
+      AppLogger.error('Network error fetching offer history', e);
+      return left(const NetworkFailure());
+    } on PostgrestException catch (e) {
+      AppLogger.error('Database failure fetching offer history: ${e.message}', e);
+      return left(DatabaseFailure(e.message, code: e.code));
+    } catch (e, stack) {
+      AppLogger.error('Unknown failure fetching offer history', e, stack);
       return left(UnknownFailure(e.toString()));
     }
   }
@@ -296,6 +388,60 @@ class SupabaseBuyerRepository implements BuyerRepository {
         final record = payload.newRecord.isNotEmpty ? payload.newRecord : payload.oldRecord;
         if (record.isNotEmpty) {
           onOfferChange(OfferModel.fromMap(record));
+        }
+      },
+    ).subscribe();
+
+    return channel;
+  }
+
+  @override
+  RealtimeChannel subscribeToMarketplaceProduce(
+    void Function() onChange,
+  ) {
+    AppLogger.info('Setting up Realtime subscription for marketplace produce');
+    final channel = _client.channel('public:produce:marketplace');
+
+    channel.onPostgresChanges(
+      event: PostgresChangeEvent.all,
+      schema: 'public',
+      table: 'produce',
+      callback: (payload) {
+        AppLogger.info('Realtime marketplace produce change event received');
+        onChange();
+      },
+    ).subscribe();
+
+    return channel;
+  }
+
+  @override
+  RealtimeChannel subscribeToProduceDetails(
+    String produceId,
+    void Function(ProduceModel? produce) onChange,
+  ) {
+    AppLogger.info('Setting up Realtime subscription for produce details: $produceId');
+    final channel = _client.channel('public:produce:id=$produceId');
+
+    channel.onPostgresChanges(
+      event: PostgresChangeEvent.all,
+      schema: 'public',
+      table: 'produce',
+      filter: PostgresChangeFilter(
+        type: PostgresChangeFilterType.eq,
+        column: 'id',
+        value: produceId,
+      ),
+      callback: (payload) async {
+        AppLogger.info('Realtime produce details change payload received for $produceId');
+        if (payload.eventType == PostgresChangeEvent.delete) {
+          onChange(null);
+        } else if (payload.newRecord.isNotEmpty) {
+          final updatedRes = await getProduceDetails(produceId);
+          updatedRes.fold(
+            (_) => onChange(null),
+            (updatedProduce) => onChange(updatedProduce),
+          );
         }
       },
     ).subscribe();

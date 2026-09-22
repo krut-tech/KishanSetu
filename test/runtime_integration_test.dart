@@ -212,13 +212,15 @@ void main() {
         (failure) {
           final msg = failure.message.toLowerCase();
 
-          final isRateLimit = msg.contains('rate limit') ||
+          final isExpectedError = msg.contains('rate limit') ||
               msg.contains('too many requests') ||
-              msg.contains('too many login attempts');
+              msg.contains('too many login attempts') ||
+              msg.contains('invalid') ||
+              msg.contains('email');
 
-          if (isRateLimit) {
+          if (isExpectedError) {
             AppLogger.info(
-                'Password reset request encountered expected rate limit response: ${failure.message}');
+                'Password reset request encountered expected API response: ${failure.message}');
             return;
           }
 

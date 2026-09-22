@@ -37,6 +37,9 @@ abstract class FarmerRepository {
     String? status,
   });
 
+  /// Fetch version history for a specific offer.
+  Future<AppResult<List<OfferHistoryModel>>> getOfferHistory(String offerId);
+
   /// Accept, reject, or counter an offer.
   Future<AppResult<OfferModel>> updateOfferStatus(String offerId, String status);
 
@@ -52,6 +55,11 @@ abstract class FarmerRepository {
   /// Subscribe to real-time changes on produce for farmer.
   RealtimeChannel subscribeToProduceChanges(
     String farmerId,
+    void Function() onChange,
+  );
+
+  /// Subscribe to real-time changes on market prices.
+  RealtimeChannel subscribeToMarketPrices(
     void Function() onChange,
   );
 }

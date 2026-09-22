@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:farmer_market_app/core/logging/app_logger.dart';
 import 'package:farmer_market_app/core/constants/app_constants.dart';
 import 'package:farmer_market_app/core/constants/app_spacing.dart';
 import 'package:farmer_market_app/core/localization/locale_controller.dart';
@@ -8,11 +10,11 @@ import 'package:farmer_market_app/core/theme/theme_controller.dart';
 import 'package:farmer_market_app/core/widgets/app_card.dart';
 import 'package:farmer_market_app/core/widgets/buttons/app_button.dart';
 import 'package:farmer_market_app/core/widgets/error_state_widget.dart';
-import 'package:farmer_market_app/core/widgets/snackbars/app_snack_bar.dart';
 import 'package:farmer_market_app/core/widgets/states/shimmer_loading.dart';
 import 'package:farmer_market_app/features/auth/domain/models/user_profile.dart';
 import 'package:farmer_market_app/features/auth/presentation/controllers/auth_providers.dart';
 import 'package:farmer_market_app/features/buyer/presentation/controllers/buyer_providers.dart';
+import 'package:farmer_market_app/features/notifications/presentation/widgets/notification_badge_icon.dart';
 import 'package:farmer_market_app/features/buyer/presentation/screens/buyer_offers_screen.dart';
 import 'package:farmer_market_app/features/buyer/presentation/screens/marketplace_screen.dart';
 import 'package:farmer_market_app/features/buyer/presentation/screens/produce_details_screen.dart';
@@ -80,6 +82,7 @@ class _BuyerHomeScreenState extends ConsumerState<BuyerHomeScreen> {
       appBar: AppBar(
         title: Text(context.l10n.buyerHomeTitle),
         actions: [
+          const NotificationBadgeIcon(),
           PopupMenuButton<String>(
             icon: const Icon(Icons.language),
             tooltip: context.l10n.selectLanguage,
@@ -222,7 +225,13 @@ class _BuyerHomeScreenState extends ConsumerState<BuyerHomeScreen> {
             BuyerHeader(
               profile: profile,
               onNotificationPressed: () {
-                AppSnackBar.show(context, message: 'No new notifications', type: SnackBarType.info);
+                AppLogger.info('NOTIFICATION BELL TAPPED');
+                AppLogger.info('NAVIGATING TO NOTIFICATION CENTER');
+                try {
+                  context.pushNamed('notifications');
+                } catch (e, stackTrace) {
+                  AppLogger.error('Failed to navigate to Notification Center', e, stackTrace);
+                }
               },
               onProfilePressed: () {
                 setState(() => _currentIndex = 4);

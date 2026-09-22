@@ -133,7 +133,40 @@ class MockBuyerRepository implements BuyerRepository {
   }
 
   @override
+  Future<AppResult<OfferModel>> updateOffer(OfferModel offer) async {
+    if (throwError) return left(const DatabaseFailure('Failed to update offer'));
+    final index = offersList.indexWhere((o) => o.id == offer.id);
+    if (index != -1) {
+      offersList[index] = offer;
+      return right(offer);
+    }
+    return left(const DatabaseFailure('Offer not found'));
+  }
+
+  @override
+  Future<AppResult<OfferModel?>> getExistingOfferForProduce(String buyerId, String produceId) async {
+    if (throwError) return left(const DatabaseFailure('Failed to check existing offer'));
+    final found = offersList.where((o) => o.buyerId == buyerId && o.produceId == produceId && o.status == 'pending').firstOrNull;
+    return right(found);
+  }
+
+  @override
+  Future<AppResult<List<OfferHistoryModel>>> getOfferHistory(String offerId) async {
+    return right([]);
+  }
+
+  @override
   RealtimeChannel subscribeToBuyerOffers(String buyerId, void Function(OfferModel offer) onOfferChange) {
+    return FakeRealtimeChannel();
+  }
+
+  @override
+  RealtimeChannel subscribeToMarketplaceProduce(void Function() onChange) {
+    return FakeRealtimeChannel();
+  }
+
+  @override
+  RealtimeChannel subscribeToProduceDetails(String produceId, void Function(ProduceModel? produce) onChange) {
     return FakeRealtimeChannel();
   }
 }
@@ -168,10 +201,16 @@ class MockFarmerRepoForBuyer implements FarmerRepository {
   Future<AppResult<List<OfferModel>>> getOffersForFarmer(String farmerId, {String? status}) async => right([]);
 
   @override
+  Future<AppResult<List<OfferHistoryModel>>> getOfferHistory(String offerId) async => right([]);
+
+  @override
   RealtimeChannel subscribeToFarmerOffers(String farmerId, void Function(OfferModel offer) onNewOffer) => FakeRealtimeChannel();
 
   @override
   RealtimeChannel subscribeToProduceChanges(String farmerId, void Function() onChange) => FakeRealtimeChannel();
+
+  @override
+  RealtimeChannel subscribeToMarketPrices(void Function() onChange) => FakeRealtimeChannel();
 
   @override
   Future<AppResult<OfferModel>> updateOfferStatus(String offerId, String status) async => right(OfferModel(id: offerId, produceId: 'p1', farmerId: 'f1', buyerId: 'b1', offeredPrice: 100, quantity: 10, status: status));

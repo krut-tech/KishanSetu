@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:farmer_market_app/core/logging/app_logger.dart';
 import 'package:farmer_market_app/features/farmer/domain/models/produce_model.dart';
 import 'package:farmer_market_app/features/farmer/domain/repositories/farmer_repository.dart';
@@ -60,10 +61,13 @@ class ProduceState extends Equatable {
 
 class ProduceController extends StateNotifier<ProduceState> {
   final FarmerRepository _repository;
+  RealtimeChannel? _produceChannel;
+  String? _currentFarmerId;
 
   ProduceController(this._repository) : super(const ProduceState());
 
   Future<void> fetchProduce(String farmerId, {String? status, String? query}) async {
+    _currentFarmerId = farmerId;
     state = state.copyWith(
       isLoading: true,
       selectedStatus: status ?? state.selectedStatus,
@@ -92,6 +96,22 @@ class ProduceController extends StateNotifier<ProduceState> {
         );
       },
     );
+
+    _setupRealtime(farmerId);
+  }
+
+  void _setupRealtime(String farmerId) {
+    if (_produceChannel != null) return;
+    try {
+      _produceChannel = _repository.subscribeToProduceChanges(farmerId, () {
+        AppLogger.info('Realtime produce change event in ProduceController -> refreshing');
+        if (_currentFarmerId != null) {
+          fetchProduce(_currentFarmerId!);
+        }
+      });
+    } catch (e) {
+      AppLogger.warning('Failed to subscribe in ProduceController: $e');
+    }
   }
 
   Future<bool> addProduce(ProduceModel produce) async {
@@ -170,5 +190,11 @@ class ProduceController extends StateNotifier<ProduceState> {
         return true;
       },
     );
+  }
+
+  @override
+  void dispose() {
+    _produceChannel?.unsubscribe();
+    super.dispose();
   }
 }

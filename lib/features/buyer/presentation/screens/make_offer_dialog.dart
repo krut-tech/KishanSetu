@@ -11,21 +11,30 @@ import 'package:farmer_market_app/features/buyer/presentation/controllers/buyer_
 import 'package:farmer_market_app/features/farmer/domain/models/offer_model.dart';
 import 'package:farmer_market_app/features/farmer/domain/models/produce_model.dart';
 
-/// Modal dialog / sheet allowing a buyer to submit a price offer for a produce listing.
+/// Modal dialog / sheet allowing a buyer to submit or edit a price offer for a produce listing.
 class MakeOfferDialog extends ConsumerStatefulWidget {
   final ProduceModel produce;
+  final OfferModel? existingOffer;
 
   const MakeOfferDialog({
     super.key,
     required this.produce,
+    this.existingOffer,
   });
 
-  static Future<bool?> show(BuildContext context, ProduceModel produce) {
+  static Future<bool?> show(
+    BuildContext context,
+    ProduceModel produce, {
+    OfferModel? existingOffer,
+  }) {
     return showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => MakeOfferDialog(produce: produce),
+      builder: (context) => MakeOfferDialog(
+        produce: produce,
+        existingOffer: existingOffer,
+      ),
     );
   }
 
@@ -42,13 +51,21 @@ class _MakeOfferDialogState extends ConsumerState<MakeOfferDialog> {
   @override
   void initState() {
     super.initState();
+    final initialPrice = widget.existingOffer != null
+        ? widget.existingOffer!.offeredPrice
+        : (widget.produce.expectedPrice > 0 ? widget.produce.expectedPrice : 0.0);
+    final initialQuantity = widget.existingOffer != null
+        ? widget.existingOffer!.quantity
+        : (widget.produce.quantity > 0 ? widget.produce.quantity : 0.0);
+    final initialMessage = widget.existingOffer?.message ?? '';
+
     _priceController = TextEditingController(
-      text: widget.produce.expectedPrice > 0 ? widget.produce.expectedPrice.toStringAsFixed(2) : '',
+      text: initialPrice > 0 ? initialPrice.toStringAsFixed(2) : '',
     );
     _quantityController = TextEditingController(
-      text: widget.produce.quantity > 0 ? widget.produce.quantity.toStringAsFixed(1) : '',
+      text: initialQuantity > 0 ? initialQuantity.toStringAsFixed(1) : '',
     );
-    _messageController = TextEditingController();
+    _messageController = TextEditingController(text: initialMessage);
   }
 
   @override
@@ -64,7 +81,7 @@ class _MakeOfferDialogState extends ConsumerState<MakeOfferDialog> {
 
     final user = ref.read(authNotifierProvider).state.user;
     if (user == null) {
-      AppSnackBar.show(context, message: 'You must be logged in to make an offer', type: SnackBarType.error);
+      AppSnackBar.show(context, message: 'You must be logged in to make or edit an offer', type: SnackBarType.error);
       return;
     }
 
@@ -91,8 +108,10 @@ class _MakeOfferDialogState extends ConsumerState<MakeOfferDialog> {
       return;
     }
 
+    final isEditing = widget.existingOffer != null;
+
     final offer = OfferModel(
-      id: '',
+      id: isEditing ? widget.existingOffer!.id : '',
       produceId: widget.produce.id,
       farmerId: widget.produce.farmerId,
       buyerId: user.id,
@@ -102,14 +121,25 @@ class _MakeOfferDialogState extends ConsumerState<MakeOfferDialog> {
       message: message.isNotEmpty ? message : null,
     );
 
-    final success = await ref
-        .read(buyerOfferControllerProvider.notifier)
-        .makeOffer(offer);
+    final bool success;
+    if (isEditing) {
+      success = await ref
+          .read(buyerOfferControllerProvider.notifier)
+          .updateOffer(offer);
+    } else {
+      success = await ref
+          .read(buyerOfferControllerProvider.notifier)
+          .makeOffer(offer);
+    }
 
     if (mounted) {
       if (success) {
         ref.read(buyerDashboardNotifierProvider.notifier).refreshDashboard();
-        AppSnackBar.show(context, message: 'Offer submitted successfully!', type: SnackBarType.success);
+        AppSnackBar.show(
+          context,
+          message: isEditing ? 'Offer updated successfully!' : 'Offer submitted successfully!',
+          type: SnackBarType.success,
+        );
         Navigator.of(context).pop(true);
       } else {
         final error = ref.read(buyerOfferControllerProvider).errorMessage ?? 'Failed to submit offer';
@@ -123,6 +153,7 @@ class _MakeOfferDialogState extends ConsumerState<MakeOfferDialog> {
     final offerState = ref.watch(buyerOfferControllerProvider);
     final colorScheme = Theme.of(context).colorScheme;
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+    final isEditing = widget.existingOffer != null;
 
     return Container(
       decoration: BoxDecoration(
@@ -150,7 +181,7 @@ class _MakeOfferDialogState extends ConsumerState<MakeOfferDialog> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Make an Offer',
+                          isEditing ? 'Edit Offer' : 'Make an Offer',
                           style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
@@ -255,7 +286,7 @@ class _MakeOfferDialogState extends ConsumerState<MakeOfferDialog> {
 
               // Submit Button
               AppButton(
-                label: 'Submit Offer',
+                label: isEditing ? 'Save / Update Offer' : 'Submit Offer',
                 style: AppButtonStyle.secondary,
                 isLoading: offerState.isSubmitting,
                 onPressed: _submitOffer,

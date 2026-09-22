@@ -1,5 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:farmer_market_app/core/logging/app_logger.dart';
 import 'package:farmer_market_app/features/buyer/domain/repositories/buyer_repository.dart';
 import 'package:farmer_market_app/features/farmer/domain/models/produce_model.dart';
 
@@ -69,6 +71,7 @@ class MarketplaceState extends Equatable {
 
 class MarketplaceController extends StateNotifier<MarketplaceState> {
   final BuyerRepository _repository;
+  RealtimeChannel? _marketplaceChannel;
 
   MarketplaceController(this._repository) : super(const MarketplaceState());
 
@@ -114,10 +117,30 @@ class MarketplaceController extends StateNotifier<MarketplaceState> {
         );
       },
     );
+
+    _setupRealtime();
+  }
+
+  void _setupRealtime() {
+    if (_marketplaceChannel != null) return;
+    try {
+      _marketplaceChannel = _repository.subscribeToMarketplaceProduce(() {
+        AppLogger.info('Realtime marketplace produce change event in MarketplaceController -> refreshing');
+        fetchProduce();
+      });
+    } catch (e) {
+      AppLogger.warning('Failed to subscribe in MarketplaceController: $e');
+    }
   }
 
   void resetFilters() {
     state = const MarketplaceState();
     fetchProduce();
+  }
+
+  @override
+  void dispose() {
+    _marketplaceChannel?.unsubscribe();
+    super.dispose();
   }
 }

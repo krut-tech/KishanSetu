@@ -191,7 +191,7 @@ class SupabaseFarmerRepository implements FarmerRepository {
       AppLogger.info('Fetching offers for farmer: $farmerId, status: $status');
       var query = _client
           .from('offers')
-          .select('*, produce:produce_id(name, unit), buyer_profile:buyer_id(full_name, company_name)')
+          .select('*, offer_history(*), produce:produce_id(name, unit), buyer_profile:buyer_id(full_name, company_name)')
           .eq('farmer_id', farmerId);
 
       if (status != null && status.isNotEmpty && status.toLowerCase() != 'all') {
@@ -212,6 +212,33 @@ class SupabaseFarmerRepository implements FarmerRepository {
       return left(DatabaseFailure(e.message, code: e.code));
     } catch (e, stack) {
       AppLogger.error('Unknown failure fetching offers', e, stack);
+      return left(UnknownFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<AppResult<List<OfferHistoryModel>>> getOfferHistory(String offerId) async {
+    try {
+      AppLogger.info('Fetching offer history for offer: $offerId');
+      final response = await _client
+          .from('offer_history')
+          .select()
+          .eq('offer_id', offerId)
+          .order('version', ascending: true);
+
+      final list = (response as List)
+          .map((row) => OfferHistoryModel.fromMap(row as Map<String, dynamic>))
+          .toList();
+
+      return right(list);
+    } on SocketException catch (e) {
+      AppLogger.error('Network error fetching offer history', e);
+      return left(const NetworkFailure());
+    } on PostgrestException catch (e) {
+      AppLogger.error('Database failure fetching offer history: ${e.message}', e);
+      return left(DatabaseFailure(e.message, code: e.code));
+    } catch (e, stack) {
+      AppLogger.error('Unknown failure fetching offer history', e, stack);
       return left(UnknownFailure(e.toString()));
     }
   }
@@ -307,7 +334,7 @@ class SupabaseFarmerRepository implements FarmerRepository {
     final channel = _client.channel('public:offers:farmer_id=$farmerId');
 
     channel.onPostgresChanges(
-      event: PostgresChangeEvent.insert,
+      event: PostgresChangeEvent.all,
       schema: 'public',
       table: 'offers',
       filter: PostgresChangeFilter(
@@ -316,10 +343,10 @@ class SupabaseFarmerRepository implements FarmerRepository {
         value: farmerId,
       ),
       callback: (payload) {
-        AppLogger.info('Realtime offer inserted payload received');
-        final newRecord = payload.newRecord;
-        if (newRecord.isNotEmpty) {
-          onNewOffer(OfferModel.fromMap(newRecord));
+        AppLogger.info('Realtime offer event payload received for farmer');
+        final record = payload.newRecord.isNotEmpty ? payload.newRecord : payload.oldRecord;
+        if (record.isNotEmpty) {
+          onNewOffer(OfferModel.fromMap(record));
         }
       },
     ).subscribe();
@@ -346,6 +373,26 @@ class SupabaseFarmerRepository implements FarmerRepository {
       ),
       callback: (payload) {
         AppLogger.info('Realtime produce change payload received');
+        onChange();
+      },
+    ).subscribe();
+
+    return channel;
+  }
+
+  @override
+  RealtimeChannel subscribeToMarketPrices(
+    void Function() onChange,
+  ) {
+    AppLogger.info('Setting up Realtime subscription for market prices');
+    final channel = _client.channel('public:market_prices');
+
+    channel.onPostgresChanges(
+      event: PostgresChangeEvent.all,
+      schema: 'public',
+      table: 'market_prices',
+      callback: (payload) {
+        AppLogger.info('Realtime market price change payload received');
         onChange();
       },
     ).subscribe();
