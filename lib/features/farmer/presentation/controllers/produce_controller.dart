@@ -101,7 +101,9 @@ class ProduceController extends StateNotifier<ProduceState> {
   }
 
   void _setupRealtime(String farmerId) {
-    if (_produceChannel != null) return;
+    if (_produceChannel != null && _currentFarmerId == farmerId) return;
+    _produceChannel?.unsubscribe();
+    _produceChannel = null;
     try {
       _produceChannel = _repository.subscribeToProduceChanges(farmerId, () {
         AppLogger.info('Realtime produce change event in ProduceController -> refreshing');
@@ -114,11 +116,20 @@ class ProduceController extends StateNotifier<ProduceState> {
     }
   }
 
+  void reset() {
+    _produceChannel?.unsubscribe();
+    _produceChannel = null;
+    _currentFarmerId = null;
+    state = const ProduceState();
+  }
+
   Future<bool> addProduce(ProduceModel produce) async {
     state = state.copyWith(isSubmitting: true, clearError: true, clearSuccess: true);
     AppLogger.info('ProduceController adding produce: ${produce.name}');
 
     final result = await _repository.addProduce(produce);
+
+    if (!mounted) return false;
 
     return result.fold(
       (failure) {
@@ -144,6 +155,8 @@ class ProduceController extends StateNotifier<ProduceState> {
     state = state.copyWith(isSubmitting: true, clearError: true, clearSuccess: true);
 
     final result = await _repository.updateProduce(produce);
+
+    if (!mounted) return false;
 
     return result.fold(
       (failure) {
@@ -171,6 +184,8 @@ class ProduceController extends StateNotifier<ProduceState> {
     state = state.copyWith(isSubmitting: true, clearError: true, clearSuccess: true);
 
     final result = await _repository.deleteProduce(produceId);
+
+    if (!mounted) return false;
 
     return result.fold(
       (failure) {

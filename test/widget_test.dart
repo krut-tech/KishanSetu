@@ -83,7 +83,7 @@ class FakeAuthRepository implements AuthRepository {
   }
 
   @override
-  RealtimeChannel subscribeToProfile(String userId, void Function(UserProfile profile) onProfileChange) {
+  RealtimeChannel subscribeToProfile(String userId, void Function(UserProfile? profile) onProfileChange) {
     return FakeRealtimeChannel();
   }
 }

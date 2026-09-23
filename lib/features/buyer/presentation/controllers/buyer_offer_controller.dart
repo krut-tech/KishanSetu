@@ -56,10 +56,12 @@ class BuyerOfferState extends Equatable {
 class BuyerOfferController extends StateNotifier<BuyerOfferState> {
   final BuyerRepository _repository;
   RealtimeChannel? _offersChannel;
+  String? _currentBuyerId;
 
   BuyerOfferController(this._repository) : super(const BuyerOfferState());
 
   Future<void> fetchOffers(String buyerId, {String? status}) async {
+    _currentBuyerId = buyerId;
     state = state.copyWith(
       isLoading: true,
       selectedStatus: status ?? state.selectedStatus,
@@ -91,21 +93,34 @@ class BuyerOfferController extends StateNotifier<BuyerOfferState> {
   }
 
   void _setupRealtime(String buyerId) {
-    if (_offersChannel != null) return;
+    if (_offersChannel != null && _currentBuyerId == buyerId) return;
+    _offersChannel?.unsubscribe();
+    _offersChannel = null;
     try {
       _offersChannel = _repository.subscribeToBuyerOffers(buyerId, (_) {
         AppLogger.info('Realtime offer event in BuyerOfferController -> refreshing');
-        fetchOffers(buyerId);
+        if (_currentBuyerId != null) {
+          fetchOffers(_currentBuyerId!);
+        }
       });
     } catch (e) {
       AppLogger.warning('Failed to subscribe in BuyerOfferController: $e');
     }
   }
 
+  void reset() {
+    _offersChannel?.unsubscribe();
+    _offersChannel = null;
+    _currentBuyerId = null;
+    state = const BuyerOfferState();
+  }
+
   Future<bool> makeOffer(OfferModel offer) async {
     state = state.copyWith(isSubmitting: true, clearError: true, clearSuccess: true);
 
     final result = await _repository.makeOffer(offer);
+
+    if (!mounted) return false;
 
     return result.fold(
       (failure) {
@@ -131,6 +146,8 @@ class BuyerOfferController extends StateNotifier<BuyerOfferState> {
     state = state.copyWith(isSubmitting: true, clearError: true, clearSuccess: true);
 
     final result = await _repository.updateOffer(offer);
+
+    if (!mounted) return false;
 
     return result.fold(
       (failure) {
@@ -164,6 +181,8 @@ class BuyerOfferController extends StateNotifier<BuyerOfferState> {
     state = state.copyWith(isSubmitting: true, clearError: true, clearSuccess: true);
 
     final result = await _repository.cancelOffer(offerId, buyerId);
+
+    if (!mounted) return false;
 
     return result.fold(
       (failure) {

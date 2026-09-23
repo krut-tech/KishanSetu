@@ -138,6 +138,12 @@ class MarketplaceController extends StateNotifier<MarketplaceState> {
     fetchProduce();
   }
 
+  void reset() {
+    _marketplaceChannel?.unsubscribe();
+    _marketplaceChannel = null;
+    state = const MarketplaceState();
+  }
+
   @override
   void dispose() {
     _marketplaceChannel?.unsubscribe();

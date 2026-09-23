@@ -47,17 +47,21 @@ class _MakeOfferDialogState extends ConsumerState<MakeOfferDialog> {
   late TextEditingController _priceController;
   late TextEditingController _quantityController;
   late TextEditingController _messageController;
+  OfferModel? _existingOffer;
+  bool _isSubmitting = false;
 
   @override
   void initState() {
     super.initState();
-    final initialPrice = widget.existingOffer != null
-        ? widget.existingOffer!.offeredPrice
+    _existingOffer = widget.existingOffer;
+
+    final initialPrice = _existingOffer != null
+        ? _existingOffer!.offeredPrice
         : (widget.produce.expectedPrice > 0 ? widget.produce.expectedPrice : 0.0);
-    final initialQuantity = widget.existingOffer != null
-        ? widget.existingOffer!.quantity
+    final initialQuantity = _existingOffer != null
+        ? _existingOffer!.quantity
         : (widget.produce.quantity > 0 ? widget.produce.quantity : 0.0);
-    final initialMessage = widget.existingOffer?.message ?? '';
+    final initialMessage = _existingOffer?.message ?? '';
 
     _priceController = TextEditingController(
       text: initialPrice > 0 ? initialPrice.toStringAsFixed(2) : '',
@@ -66,6 +70,46 @@ class _MakeOfferDialogState extends ConsumerState<MakeOfferDialog> {
       text: initialQuantity > 0 ? initialQuantity.toStringAsFixed(1) : '',
     );
     _messageController = TextEditingController(text: initialMessage);
+
+    if (_existingOffer == null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _checkExistingOffer());
+    }
+  }
+
+  Future<void> _checkExistingOffer() async {
+    final user = ref.read(authNotifierProvider).state.user;
+    if (user == null) return;
+
+    // First check in local controller list
+    final offers = ref.read(buyerOfferControllerProvider).offers;
+    for (final o in offers) {
+      if (o.produceId == widget.produce.id &&
+          (o.status.toLowerCase() == 'pending' || o.status.toLowerCase() == 'countered')) {
+        if (mounted) {
+          setState(() {
+            _existingOffer = o;
+            _priceController.text = o.offeredPrice.toStringAsFixed(2);
+            _quantityController.text = o.quantity.toStringAsFixed(1);
+            if (o.message != null) _messageController.text = o.message!;
+          });
+        }
+        return;
+      }
+    }
+
+    // Otherwise check backend repository directly
+    final repo = ref.read(buyerRepositoryProvider);
+    final res = await repo.getExistingOfferForProduce(user.id, widget.produce.id);
+    res.fold((_) => null, (existing) {
+      if (existing != null && mounted) {
+        setState(() {
+          _existingOffer = existing;
+          _priceController.text = existing.offeredPrice.toStringAsFixed(2);
+          _quantityController.text = existing.quantity.toStringAsFixed(1);
+          if (existing.message != null) _messageController.text = existing.message!;
+        });
+      }
+    });
   }
 
   @override
@@ -77,6 +121,8 @@ class _MakeOfferDialogState extends ConsumerState<MakeOfferDialog> {
   }
 
   Future<void> _submitOffer() async {
+    if (_isSubmitting || ref.read(buyerOfferControllerProvider).isSubmitting) return;
+
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
     final user = ref.read(authNotifierProvider).state.user;
@@ -108,10 +154,12 @@ class _MakeOfferDialogState extends ConsumerState<MakeOfferDialog> {
       return;
     }
 
-    final isEditing = widget.existingOffer != null;
+    setState(() => _isSubmitting = true);
+
+    final isEditing = _existingOffer != null;
 
     final offer = OfferModel(
-      id: isEditing ? widget.existingOffer!.id : '',
+      id: isEditing ? _existingOffer!.id : '',
       produceId: widget.produce.id,
       farmerId: widget.produce.farmerId,
       buyerId: user.id,
@@ -142,6 +190,7 @@ class _MakeOfferDialogState extends ConsumerState<MakeOfferDialog> {
         );
         Navigator.of(context).pop(true);
       } else {
+        setState(() => _isSubmitting = false);
         final error = ref.read(buyerOfferControllerProvider).errorMessage ?? 'Failed to submit offer';
         AppSnackBar.show(context, message: error, type: SnackBarType.error);
       }
@@ -153,7 +202,7 @@ class _MakeOfferDialogState extends ConsumerState<MakeOfferDialog> {
     final offerState = ref.watch(buyerOfferControllerProvider);
     final colorScheme = Theme.of(context).colorScheme;
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
-    final isEditing = widget.existingOffer != null;
+    final isEditing = _existingOffer != null;
 
     return Container(
       decoration: BoxDecoration(

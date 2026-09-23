@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:farmer_market_app/core/constants/app_colors.dart';
 import 'package:farmer_market_app/core/constants/app_spacing.dart';
 import 'package:farmer_market_app/core/routing/route_names.dart';
 import 'package:farmer_market_app/core/widgets/chips/app_chip.dart';
@@ -189,45 +188,34 @@ class _MyProduceScreenState extends ConsumerState<MyProduceScreen> {
 
         return Padding(
           padding: const EdgeInsets.only(bottom: AppSpacing.md),
-          child: Stack(
-            children: [
-              ProduceCard(
-                cropName: item.name,
-                grade: item.category,
-                quantity: '${item.quantity} ${item.unit}',
-                askingPrice: item.expectedPrice,
-                netRealizationPrice: netRealization,
-                location: item.location ?? 'Location not specified',
-                farmerName: farmerName,
-              ),
-              Positioned(
-                top: AppSpacing.sm,
-                right: AppSpacing.sm,
-                child: IconButton(
-                  icon: const Icon(Icons.delete_outline, color: AppColors.error),
-                  onPressed: () async {
-                    final confirmed = await AppDialogs.showConfirmDialog(
-                      context: context,
-                      title: 'Delete Produce Listing',
-                      message: 'Are you sure you want to delete ${item.name}?',
-                      confirmLabel: 'Delete',
-                      isDestructive: true,
-                    );
-                    if (confirmed == true) {
-                      final success = await ref
-                          .read(produceControllerProvider.notifier)
-                          .deleteProduce(item.id);
-                      if (success) {
-                        ref.read(farmerDashboardNotifierProvider.notifier).refreshDashboard();
-                        if (context.mounted) {
-                          AppSnackBar.show(context, message: 'Produce deleted', type: SnackBarType.info);
-                        }
-                      }
-                    }
-                  },
-                ),
-              ),
-            ],
+          child: ProduceCard(
+            cropName: item.name,
+            grade: item.category,
+            quantity: '${item.quantity} ${item.unit}',
+            askingPrice: item.expectedPrice,
+            netRealizationPrice: netRealization,
+            location: item.location ?? 'Location not specified',
+            farmerName: farmerName,
+            onDelete: () async {
+              final confirmed = await AppDialogs.showConfirmDialog(
+                context: context,
+                title: 'Delete Produce Listing',
+                message: 'Are you sure you want to delete ${item.name}?',
+                confirmLabel: 'Delete',
+                isDestructive: true,
+              );
+              if (confirmed == true) {
+                final success = await ref
+                    .read(produceControllerProvider.notifier)
+                    .deleteProduce(item.id);
+                if (success) {
+                  ref.read(farmerDashboardNotifierProvider.notifier).refreshDashboard();
+                  if (context.mounted) {
+                    AppSnackBar.show(context, message: 'Produce deleted', type: SnackBarType.info);
+                  }
+                }
+              }
+            },
           ),
         );
       },

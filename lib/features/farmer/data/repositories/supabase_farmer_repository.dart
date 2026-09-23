@@ -331,7 +331,8 @@ class SupabaseFarmerRepository implements FarmerRepository {
     void Function(OfferModel offer) onNewOffer,
   ) {
     AppLogger.info('Setting up Realtime subscription for farmer offers: $farmerId');
-    final channel = _client.channel('public:offers:farmer_id=$farmerId');
+    final uniqueId = DateTime.now().microsecondsSinceEpoch;
+    final channel = _client.channel('public:offers:farmer_id=${farmerId}_$uniqueId');
 
     channel.onPostgresChanges(
       event: PostgresChangeEvent.all,
@@ -360,7 +361,8 @@ class SupabaseFarmerRepository implements FarmerRepository {
     void Function() onChange,
   ) {
     AppLogger.info('Setting up Realtime subscription for produce: $farmerId');
-    final channel = _client.channel('public:produce:farmer_id=$farmerId');
+    final uniqueId = DateTime.now().microsecondsSinceEpoch;
+    final channel = _client.channel('public:produce:farmer_id=${farmerId}_$uniqueId');
 
     channel.onPostgresChanges(
       event: PostgresChangeEvent.all,
@@ -385,7 +387,8 @@ class SupabaseFarmerRepository implements FarmerRepository {
     void Function() onChange,
   ) {
     AppLogger.info('Setting up Realtime subscription for market prices');
-    final channel = _client.channel('public:market_prices');
+    final uniqueId = DateTime.now().microsecondsSinceEpoch;
+    final channel = _client.channel('public:market_prices_$uniqueId');
 
     channel.onPostgresChanges(
       event: PostgresChangeEvent.all,

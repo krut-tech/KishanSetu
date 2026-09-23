@@ -14,7 +14,9 @@ import 'package:farmer_market_app/core/widgets/inputs/app_text_field.dart';
 import 'package:farmer_market_app/features/auth/domain/models/user_profile.dart';
 import 'package:farmer_market_app/features/auth/domain/models/user_role.dart';
 import 'package:farmer_market_app/features/auth/domain/repositories/auth_repository.dart';
+import 'package:farmer_market_app/features/auth/presentation/controllers/auth_notifier.dart';
 import 'package:farmer_market_app/features/auth/presentation/controllers/auth_providers.dart';
+import 'package:farmer_market_app/features/auth/presentation/screens/forgot_password_screen.dart';
 import 'package:farmer_market_app/features/auth/presentation/screens/login_screen.dart';
 import 'package:farmer_market_app/features/auth/presentation/screens/register_screen.dart';
 import 'package:farmer_market_app/features/home/presentation/buyer_home_screen.dart';
@@ -172,7 +174,7 @@ class FakeAuthRepository implements AuthRepository {
   }
 
   @override
-  supabase.RealtimeChannel subscribeToProfile(String userId, void Function(UserProfile profile) onProfileChange) {
+  supabase.RealtimeChannel subscribeToProfile(String userId, void Function(UserProfile? profile) onProfileChange) {
     return FakeRealtimeChannel();
   }
 }
@@ -1032,4 +1034,258 @@ void main() {
       expect(find.text('Add Produce Listing'), findsNothing);
     });
   });
+
+  group('Auth Code Review Bug Fix Regression Tests', () {
+    test('1. AuthNotifier avoids duplicate getUserProfile fetch during startup', () async {
+      final repo = CountingAuthRepository();
+      repo.activeUserOverride = FakeUser(id: 'u-dedup-1');
+      repo.getProfileResult = right(const UserProfile(id: 'u-dedup-1', fullName: 'Dedup User'));
+
+      final notifier = AuthNotifier(repo);
+
+      // Emit initialSession event on onAuthStateChanges stream concurrently
+      repo.authStateController.add(
+        supabase.AuthState(
+          supabase.AuthChangeEvent.initialSession,
+          supabase.Session(
+            accessToken: 'tok',
+            tokenType: 'bearer',
+            user: FakeUser(id: 'u-dedup-1'),
+          ),
+        ),
+      );
+
+      await Future<void>.delayed(Duration.zero);
+
+      // Expect exactly 1 getUserProfile call, NOT 2
+      expect(repo.getUserProfileCallCount, equals(1));
+      notifier.dispose();
+      await repo.authStateController.close();
+    });
+
+    test('2. signInWithGoogle does not trigger premature profile fetch when currentUser is null on mobile OAuth launch', () async {
+      final repo = CountingAuthRepository();
+      repo.googleSignInWithoutUserMutation = true;
+      final notifier = AuthNotifier(repo);
+      await Future<void>.delayed(Duration.zero);
+
+      repo.getUserProfileCallCount = 0;
+      final result = await notifier.signInWithGoogle();
+
+      expect(result, isTrue);
+      expect(notifier.isLoading, isFalse);
+      expect(repo.getUserProfileCallCount, equals(0));
+      notifier.dispose();
+      await repo.authStateController.close();
+    });
+
+    test('3. UserRole.fromString returns null for invalid/unknown role string', () {
+      expect(UserRole.fromString('invalid_role'), isNull);
+      expect(UserRole.fromString('farmer'), equals(UserRole.farmer));
+      expect(UserRole.fromString('buyer'), equals(UserRole.buyer));
+    });
+
+    test('4. Profile DELETE event clears profile state and invalidates completed profile status', () async {
+      final repo = CountingAuthRepository();
+      repo.activeUserOverride = FakeUser(id: 'u-delete-1');
+      repo.getProfileResult = right(const UserProfile(
+        id: 'u-delete-1',
+        fullName: 'Active User',
+        role: UserRole.farmer,
+        isProfileComplete: true,
+      ));
+
+      final notifier = AuthNotifier(repo);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(notifier.state.profile, isNotNull);
+      expect(notifier.state.isProfileComplete, isTrue);
+
+      // Simulate Realtime profile DELETE event (null payload)
+      repo.lastProfileChangeCallback?.call(null);
+
+      expect(notifier.state.profile, isNull);
+      expect(notifier.state.isProfileComplete, isFalse);
+      expect(notifier.state.errorMessage, contains('deleted'));
+
+      notifier.dispose();
+      await repo.authStateController.close();
+    });
+
+    test('5. Profile realtime channel unsubscribes old user channel when user ID changes', () async {
+      final repo = CountingAuthRepository();
+      repo.activeUserOverride = FakeUser(id: 'user-A');
+      repo.getProfileResult = right(const UserProfile(id: 'user-A', fullName: 'User A'));
+
+      final notifier = AuthNotifier(repo);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(repo.lastSubscribedUserId, equals('user-A'));
+      expect(repo.subscribeToProfileCallCount, equals(1));
+
+      // Simulate switching user session to user-B
+      repo.activeUserOverride = FakeUser(id: 'user-B');
+      repo.getProfileResult = right(const UserProfile(id: 'user-B', fullName: 'User B'));
+
+      repo.authStateController.add(
+        supabase.AuthState(
+          supabase.AuthChangeEvent.signedIn,
+          supabase.Session(accessToken: 'tok', tokenType: 'bearer', user: FakeUser(id: 'user-B')),
+        ),
+      );
+      await Future<void>.delayed(Duration.zero);
+
+      expect(repo.channelUnsubscribeCount, equals(1));
+      expect(repo.lastSubscribedUserId, equals('user-B'));
+      expect(repo.subscribeToProfileCallCount, equals(2));
+
+      notifier.dispose();
+      await repo.authStateController.close();
+    });
+
+    test('6. signUp suppresses auth state change fetch to prevent race and profile overwrite', () async {
+      final repo = CountingAuthRepository();
+      final notifier = AuthNotifier(repo);
+      await Future<void>.delayed(Duration.zero);
+
+      repo.getUserProfileCallCount = 0;
+
+      repo.signUpResult = right(supabase.AuthResponse(
+        session: supabase.Session(accessToken: 'tok', tokenType: 'bearer', user: FakeUser(id: 'new-user-1')),
+        user: FakeUser(id: 'new-user-1'),
+      ));
+      repo.updateProfileResult = right(const UserProfile(
+        id: 'new-user-1',
+        fullName: 'New User',
+        role: UserRole.farmer,
+        isProfileComplete: true,
+      ));
+
+      final futureSignUp = notifier.signUp(
+        email: 'new@example.com',
+        password: 'Password123',
+        fullName: 'New User',
+        role: UserRole.farmer,
+      );
+
+      // Concurrently emit signedIn on onAuthStateChanges while signUp is in progress
+      repo.authStateController.add(
+        supabase.AuthState(
+          supabase.AuthChangeEvent.signedIn,
+          supabase.Session(accessToken: 'tok', tokenType: 'bearer', user: FakeUser(id: 'new-user-1')),
+        ),
+      );
+
+      final result = await futureSignUp;
+
+      expect(result, isTrue);
+      expect(repo.getUserProfileCallCount, equals(0));
+      expect(notifier.state.profile?.fullName, equals('New User'));
+
+      notifier.dispose();
+      await repo.authStateController.close();
+    });
+
+    testWidgets('7. ForgotPasswordScreen navigates to Login on successful reset request', (tester) async {
+      final repo = CountingAuthRepository();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            authRepositoryProvider.overrideWithValue(repo),
+            appBootstrapProvider.overrideWith((ref) => MockAppBootstrapNotifier(ref)),
+          ],
+          child: Consumer(
+            builder: (context, ref, child) {
+              final router = ref.watch(appRouterProvider);
+              return MaterialApp.router(
+                routerConfig: router,
+                localizationsDelegates: const [
+                  AppLocalizations.delegate,
+                  GlobalMaterialLocalizations.delegate,
+                  GlobalWidgetsLocalizations.delegate,
+                  GlobalCupertinoLocalizations.delegate,
+                ],
+                supportedLocales: const [Locale('en')],
+              );
+            },
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final container = tester.element(find.byType(LoginScreen).first);
+      final router = GoRouter.of(container);
+      router.go(RouteNames.forgotPassword);
+      await tester.pumpAndSettle();
+
+      expect(find.byType(ForgotPasswordScreen), findsOneWidget);
+
+      final emailField = find.widgetWithText(AppTextField, 'Email Address');
+      await tester.enterText(emailField, 'reset@example.com');
+
+      final sendBtn = find.widgetWithText(ElevatedButton, 'Send Reset Link');
+      await tester.tap(sendBtn);
+      await tester.pumpAndSettle();
+
+      expect(find.byType(LoginScreen), findsOneWidget);
+    });
+  });
+}
+
+class CountingAuthRepository extends FakeAuthRepository {
+  int getUserProfileCallCount = 0;
+  supabase.User? activeUserOverride;
+  bool googleSignInWithoutUserMutation = false;
+  final StreamController<supabase.AuthState> authStateController = StreamController<supabase.AuthState>.broadcast();
+
+  int subscribeToProfileCallCount = 0;
+  int channelUnsubscribeCount = 0;
+  String? lastSubscribedUserId;
+  void Function(UserProfile? profile)? lastProfileChangeCallback;
+
+  @override
+  supabase.User? get currentUser => activeUserOverride ?? super.currentUser;
+
+  @override
+  Stream<supabase.AuthState> get onAuthStateChanges => authStateController.stream;
+
+  @override
+  Future<AppResult<bool>> signInWithGoogle() async {
+    if (googleSignInWithoutUserMutation) {
+      return right(true);
+    }
+    return super.signInWithGoogle();
+  }
+
+  @override
+  Future<AppResult<UserProfile>> getUserProfile(String userId) async {
+    getUserProfileCallCount++;
+    return super.getUserProfile(userId);
+  }
+
+  @override
+  supabase.RealtimeChannel subscribeToProfile(String userId, void Function(UserProfile? profile) onProfileChange) {
+    subscribeToProfileCallCount++;
+    lastSubscribedUserId = userId;
+    lastProfileChangeCallback = onProfileChange;
+    return TestCountingRealtimeChannel(onUnsubscribe: () {
+      channelUnsubscribeCount++;
+    });
+  }
+}
+
+class TestCountingRealtimeChannel extends supabase.RealtimeChannel {
+  final VoidCallback onUnsubscribe;
+  TestCountingRealtimeChannel({required this.onUnsubscribe}) : super('fake_channel', supabase.RealtimeClient('https://fake.supabase.co'));
+
+  @override
+  supabase.RealtimeChannel subscribe([void Function(supabase.RealtimeSubscribeStatus status, Object? error)? callback, Duration? timeout]) {
+    return this;
+  }
+
+  @override
+  Future<String> unsubscribe([Duration? timeout]) async {
+    onUnsubscribe();
+    return 'ok';
+  }
 }

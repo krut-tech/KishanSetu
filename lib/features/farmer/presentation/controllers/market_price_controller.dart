@@ -115,6 +115,12 @@ class MarketPriceController extends StateNotifier<MarketPriceState> {
     }
   }
 
+  void reset() {
+    _marketPriceChannel?.unsubscribe();
+    _marketPriceChannel = null;
+    state = const MarketPriceState();
+  }
+
   @override
   void dispose() {
     _marketPriceChannel?.unsubscribe();

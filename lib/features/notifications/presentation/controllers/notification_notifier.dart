@@ -42,6 +42,7 @@ class NotificationNotifier extends StateNotifier<NotificationState> {
   final NotificationRepository _repository;
   final SupabaseClient? _supabaseClient;
   StreamSubscription<List<Map<String, dynamic>>>? _streamSubscription;
+  StreamSubscription<AuthState>? _authSubscription;
   String? _currentUserId;
 
   NotificationNotifier(this._repository, this._supabaseClient) : super(const NotificationState()) {
@@ -55,7 +56,8 @@ class NotificationNotifier extends StateNotifier<NotificationState> {
       _setupStream(initialUserId);
     }
 
-    _supabaseClient?.auth.onAuthStateChange.listen((event) {
+    _authSubscription = _supabaseClient?.auth.onAuthStateChange.listen((event) {
+      if (!mounted) return;
       final session = event.session;
       final userId = session?.user.id;
       
@@ -151,9 +153,17 @@ class NotificationNotifier extends StateNotifier<NotificationState> {
     );
   }
 
+  void reset() {
+    _streamSubscription?.cancel();
+    _streamSubscription = null;
+    _currentUserId = null;
+    state = const NotificationState();
+  }
+
   @override
   void dispose() {
     _streamSubscription?.cancel();
+    _authSubscription?.cancel();
     super.dispose();
   }
 }

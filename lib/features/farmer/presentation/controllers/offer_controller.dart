@@ -56,10 +56,12 @@ class OfferState extends Equatable {
 class OfferController extends StateNotifier<OfferState> {
   final FarmerRepository _repository;
   RealtimeChannel? _offersChannel;
+  String? _currentFarmerId;
 
   OfferController(this._repository) : super(const OfferState());
 
   Future<void> fetchOffers(String farmerId, {String? status}) async {
+    _currentFarmerId = farmerId;
     state = state.copyWith(
       isLoading: true,
       selectedStatus: status ?? state.selectedStatus,
@@ -91,15 +93,26 @@ class OfferController extends StateNotifier<OfferState> {
   }
 
   void _setupRealtime(String farmerId) {
-    if (_offersChannel != null) return;
+    if (_offersChannel != null && _currentFarmerId == farmerId) return;
+    _offersChannel?.unsubscribe();
+    _offersChannel = null;
     try {
       _offersChannel = _repository.subscribeToFarmerOffers(farmerId, (_) {
         AppLogger.info('Realtime offer event in OfferController -> refreshing');
-        fetchOffers(farmerId);
+        if (_currentFarmerId != null) {
+          fetchOffers(_currentFarmerId!);
+        }
       });
     } catch (e) {
       AppLogger.warning('Failed to subscribe in OfferController: $e');
     }
+  }
+
+  void reset() {
+    _offersChannel?.unsubscribe();
+    _offersChannel = null;
+    _currentFarmerId = null;
+    state = const OfferState();
   }
 
   Future<bool> respondToOffer(String offerId, String newStatus) async {
@@ -107,6 +120,8 @@ class OfferController extends StateNotifier<OfferState> {
     AppLogger.info('OfferController responding to offer $offerId with status: $newStatus');
 
     final result = await _repository.updateOfferStatus(offerId, newStatus);
+
+    if (!mounted) return false;
 
     return result.fold(
       (failure) {

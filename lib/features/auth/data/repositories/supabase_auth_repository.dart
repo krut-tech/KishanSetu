@@ -204,12 +204,16 @@ class SupabaseAuthRepository implements AuthRepository {
           userMeta?['name'] as String?;
       final googleAvatar = userMeta?['avatar_url'] as String? ??
           userMeta?['picture'] as String?;
+      final roleStr = userMeta?['role'] as String?;
+      final phoneStr = userMeta?['phone'] as String?;
 
       if (data == null) {
         final newProfile = UserProfile(
           id: userId,
           fullName: googleName ?? 'User',
           avatarUrl: googleAvatar,
+          phone: phoneStr,
+          role: roleStr != null ? UserRole.fromString(roleStr) : null,
         );
         return right(newProfile);
       }
@@ -275,10 +279,14 @@ class SupabaseAuthRepository implements AuthRepository {
   }
 
   @override
-  RealtimeChannel subscribeToProfile(String userId, void Function(UserProfile profile) onProfileChange) {
+  RealtimeChannel subscribeToProfile(
+    String userId,
+    void Function(UserProfile? profile) onProfileChange,
+  ) {
     AppLogger.info('Setting up Realtime subscription for profile: $userId');
     final client = _effectiveClient;
-    final channel = client.channel('public:profiles:id=$userId');
+    final uniqueId = DateTime.now().microsecondsSinceEpoch;
+    final channel = client.channel('public:profiles:id=${userId}_$uniqueId');
 
     channel.onPostgresChanges(
       event: PostgresChangeEvent.all,
@@ -291,9 +299,11 @@ class SupabaseAuthRepository implements AuthRepository {
       ),
       callback: (payload) {
         AppLogger.info('Realtime profile change payload received for $userId');
-        final record = payload.newRecord.isNotEmpty ? payload.newRecord : payload.oldRecord;
-        if (record.isNotEmpty) {
-          onProfileChange(UserProfile.fromMap(record));
+        if (payload.eventType == PostgresChangeEvent.delete || payload.newRecord.isEmpty) {
+          AppLogger.warning('Realtime profile DELETE event received for $userId');
+          onProfileChange(null);
+        } else if (payload.newRecord.isNotEmpty) {
+          onProfileChange(UserProfile.fromMap(payload.newRecord));
         }
       },
     ).subscribe();

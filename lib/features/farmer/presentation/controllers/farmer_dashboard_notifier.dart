@@ -169,6 +169,12 @@ class FarmerDashboardNotifier extends StateNotifier<FarmerDashboardState> {
     }
   }
 
+  void reset() {
+    _cleanupRealtime();
+    _currentFarmerId = null;
+    state = const FarmerDashboardState();
+  }
+
   void _cleanupRealtime() {
     _offersChannel?.unsubscribe();
     _offersChannel = null;

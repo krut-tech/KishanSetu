@@ -372,7 +372,8 @@ class SupabaseBuyerRepository implements BuyerRepository {
     void Function(OfferModel offer) onOfferChange,
   ) {
     AppLogger.info('Setting up Realtime subscription for buyer offers: $buyerId');
-    final channel = _client.channel('public:offers:buyer_id=$buyerId');
+    final uniqueId = DateTime.now().microsecondsSinceEpoch;
+    final channel = _client.channel('public:offers:buyer_id=${buyerId}_$uniqueId');
 
     channel.onPostgresChanges(
       event: PostgresChangeEvent.all,
@@ -400,7 +401,8 @@ class SupabaseBuyerRepository implements BuyerRepository {
     void Function() onChange,
   ) {
     AppLogger.info('Setting up Realtime subscription for marketplace produce');
-    final channel = _client.channel('public:produce:marketplace');
+    final uniqueId = DateTime.now().microsecondsSinceEpoch;
+    final channel = _client.channel('public:produce:marketplace_$uniqueId');
 
     channel.onPostgresChanges(
       event: PostgresChangeEvent.all,
@@ -421,7 +423,8 @@ class SupabaseBuyerRepository implements BuyerRepository {
     void Function(ProduceModel? produce) onChange,
   ) {
     AppLogger.info('Setting up Realtime subscription for produce details: $produceId');
-    final channel = _client.channel('public:produce:id=$produceId');
+    final uniqueId = DateTime.now().microsecondsSinceEpoch;
+    final channel = _client.channel('public:produce:id=${produceId}_$uniqueId');
 
     channel.onPostgresChanges(
       event: PostgresChangeEvent.all,

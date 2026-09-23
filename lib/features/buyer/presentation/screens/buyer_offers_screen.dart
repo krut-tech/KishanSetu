@@ -217,12 +217,14 @@ class _BuyerOffersScreenState extends ConsumerState<BuyerOffersScreen> {
         final isPending = offer.status.toLowerCase() == 'pending';
         final farmerIdDisplay = offer.farmerId.length > 6 ? offer.farmerId.substring(0, 6) : offer.farmerId;
 
+        final statusType = _mapStatus(offer.status);
+
         return OfferCard(
           cropName: offer.produceName ?? 'Produce Listing',
           buyerName: offer.farmerName != null ? 'Farmer: ${offer.farmerName}' : 'Farmer ID: $farmerIdDisplay',
           offerPrice: offer.offeredPrice,
           quantity: '${offer.quantity} ${offer.produceUnit ?? "Units"}',
-          status: _mapStatus(offer.status),
+          status: statusType,
           expiresText: 'Status: ${offer.status.toUpperCase()}',
           message: offer.message,
           history: offer.history,

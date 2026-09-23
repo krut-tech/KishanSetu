@@ -10,6 +10,7 @@ import 'package:farmer_market_app/features/auth/presentation/controllers/auth_st
 /// Central AuthNotifier managing authentication session, profile updates, and GoRouter refresh events.
 class AuthNotifier extends ChangeNotifier {
   final AuthRepository _repository;
+  final VoidCallback? onSignOutCallback;
   final ChangeNotifier _routingNotifier = ChangeNotifier();
   StreamSubscription<dynamic>? _authSubscription;
 
@@ -22,10 +23,15 @@ class AuthNotifier extends ChangeNotifier {
   String? get errorMessage => _state.errorMessage;
 
   RealtimeChannel? _profileChannel;
+  String? _subscribedUserId;
+
+  bool _isSignUpInProgress = false;
+  String? _inFlightFetchUserId;
+  Future<bool>? _inFlightFetchFuture;
 
   Listenable get authRoutingListenable => _routingNotifier;
 
-  AuthNotifier(this._repository) {
+  AuthNotifier(this._repository, {this.onSignOutCallback}) {
     _init();
   }
 
@@ -47,11 +53,25 @@ class AuthNotifier extends ChangeNotifier {
   }
 
   void _setupProfileRealtime(String userId) {
-    if (_profileChannel != null) return;
+    if (_subscribedUserId == userId && _profileChannel != null) {
+      return;
+    }
+    _cleanupProfileRealtime();
     try {
+      _subscribedUserId = userId;
       _profileChannel = _repository.subscribeToProfile(userId, (updatedProfile) {
-        AppLogger.info('AuthNotifier received realtime profile update for ${updatedProfile.fullName}');
-        _updateState(_state.copyWith(profile: updatedProfile));
+        AppLogger.info('AuthNotifier received realtime profile update for $userId');
+        if (_state.user?.id == userId) {
+          if (updatedProfile == null) {
+            AppLogger.warning('Profile deleted for active user $userId');
+            _updateState(_state.copyWith(
+              clearProfile: true,
+              errorMessage: 'Your profile has been deleted.',
+            ));
+          } else {
+            _updateState(_state.copyWith(profile: updatedProfile));
+          }
+        }
       });
     } catch (e) {
       AppLogger.warning('Failed to subscribe to profile realtime updates: $e');
@@ -59,8 +79,15 @@ class AuthNotifier extends ChangeNotifier {
   }
 
   void _cleanupProfileRealtime() {
-    _profileChannel?.unsubscribe();
-    _profileChannel = null;
+    if (_profileChannel != null) {
+      try {
+        _profileChannel?.unsubscribe();
+      } catch (e) {
+        AppLogger.warning('Error unsubscribing profile channel: $e');
+      }
+      _profileChannel = null;
+    }
+    _subscribedUserId = null;
   }
 
   void _init() {
@@ -69,7 +96,11 @@ class AuthNotifier extends ChangeNotifier {
       _authSubscription = _repository.onAuthStateChanges.listen((sbAuthState) async {
         final user = sbAuthState.session?.user;
         if (user != null) {
-          if (_state.user?.id != user.id || _state.status != AuthStatus.authenticated) {
+          if (_isSignUpInProgress) return;
+
+          final isSameUser = _state.user?.id == user.id;
+          final isAlreadyAuthenticated = _state.status == AuthStatus.authenticated && _state.profile != null;
+          if (!isSameUser || !isAlreadyAuthenticated) {
             await _fetchProfileForUser(user);
           }
         } else {
@@ -80,6 +111,7 @@ class AuthNotifier extends ChangeNotifier {
             profile: null,
             isLoading: false,
           ));
+          onSignOutCallback?.call();
         }
       }, onError: (e) {
         AppLogger.error('Auth state listener error: $e');
@@ -87,13 +119,20 @@ class AuthNotifier extends ChangeNotifier {
 
       final currentUser = _repository.currentUser;
       if (currentUser != null) {
-        _fetchProfileForUser(currentUser);
-      } else {
+        if (!_isSignUpInProgress) {
+          final isSameUser = _state.user?.id == currentUser.id;
+          final isAlreadyAuthenticated = _state.status == AuthStatus.authenticated && _state.profile != null;
+          if (!isSameUser || !isAlreadyAuthenticated) {
+            _fetchProfileForUser(currentUser);
+          }
+        }
+      } else if (_state.user == null) {
         _cleanupProfileRealtime();
         _updateState(_state.copyWith(
           status: AuthStatus.unauthenticated,
           isLoading: false,
         ));
+        onSignOutCallback?.call();
       }
     } catch (e) {
       AppLogger.warning('AuthNotifier _init deferred or uninitialized: $e');
@@ -102,16 +141,32 @@ class AuthNotifier extends ChangeNotifier {
         status: AuthStatus.unauthenticated,
         isLoading: false,
       ));
+      onSignOutCallback?.call();
     }
   }
 
-  Future<bool> _fetchProfileForUser(User user) async {
+  Future<bool> _fetchProfileForUser(User user) {
+    if (_inFlightFetchUserId == user.id && _inFlightFetchFuture != null) {
+      return _inFlightFetchFuture!;
+    }
+    _inFlightFetchUserId = user.id;
+    final future = _doFetchProfileForUser(user);
+    _inFlightFetchFuture = future;
+    future.whenComplete(() {
+      if (_inFlightFetchUserId == user.id) {
+        _inFlightFetchUserId = null;
+        _inFlightFetchFuture = null;
+      }
+    });
+    return future;
+  }
+
+  Future<bool> _doFetchProfileForUser(User user) async {
     _updateState(_state.copyWith(isLoading: true, user: user));
     final result = await _repository.getUserProfile(user.id);
     return result.fold(
       (failure) {
         AppLogger.error('Failed to fetch profile: ${failure.message}');
-        // Preserve authenticated user session on network/server error instead of signing out
         final fallbackProfile = _state.profile ??
             UserProfile(
               id: user.id,
@@ -179,7 +234,7 @@ class AuthNotifier extends ChangeNotifier {
       },
       (success) async {
         final currentUser = _repository.currentUser;
-        if (currentUser != null) {
+        if (currentUser != null && currentUser.id != _state.user?.id) {
           final profileSuccess = await _fetchProfileForUser(currentUser);
           if (!profileSuccess) return false;
         } else {
@@ -197,55 +252,61 @@ class AuthNotifier extends ChangeNotifier {
     required UserRole role,
     String? phone,
   }) async {
+    _isSignUpInProgress = true;
     _updateState(_state.copyWith(isLoading: true, clearError: true));
-    final result = await _repository.signUp(
-      email: email,
-      password: password,
-      fullName: fullName,
-      phone: phone,
-      role: role,
-    );
-    return result.fold(
-      (failure) {
-        _updateState(_state.copyWith(isLoading: false, errorMessage: failure.message));
-        return false;
-      },
-      (authResponse) async {
-        if (authResponse.session == null) {
-          _updateState(_state.copyWith(
-            isLoading: false,
-            errorMessage: 'Account created! Please check your email to confirm your account before logging in.',
-          ));
+    try {
+      final result = await _repository.signUp(
+        email: email,
+        password: password,
+        fullName: fullName,
+        phone: phone,
+        role: role,
+      );
+      return await result.fold(
+        (failure) async {
+          _updateState(_state.copyWith(isLoading: false, errorMessage: failure.message));
           return false;
-        }
-        if (authResponse.user != null) {
-          final profile = UserProfile(
-            id: authResponse.user!.id,
-            fullName: fullName,
-            phone: phone,
-            role: role,
-          );
-          final updateResult = await _repository.updateUserProfile(profile);
-          return updateResult.fold(
-            (failure) {
-              _updateState(_state.copyWith(isLoading: false, errorMessage: failure.message));
-              return false;
-            },
-            (savedProfile) {
-              _updateState(_state.copyWith(
-                status: AuthStatus.authenticated,
-                user: authResponse.user,
-                profile: savedProfile,
-                isLoading: false,
-                clearError: true,
-              ));
-              return true;
-            },
-          );
-        }
-        return true;
-      },
-    );
+        },
+        (authResponse) async {
+          if (authResponse.session == null) {
+            _updateState(_state.copyWith(
+              isLoading: false,
+              errorMessage: 'Account created! Please check your email to confirm your account before logging in.',
+            ));
+            return false;
+          }
+          if (authResponse.user != null) {
+            final profile = UserProfile(
+              id: authResponse.user!.id,
+              fullName: fullName,
+              phone: phone,
+              role: role,
+            );
+            final updateResult = await _repository.updateUserProfile(profile);
+            return updateResult.fold(
+              (failure) {
+                _updateState(_state.copyWith(isLoading: false, errorMessage: failure.message));
+                return false;
+              },
+              (savedProfile) {
+                _updateState(_state.copyWith(
+                  status: AuthStatus.authenticated,
+                  user: authResponse.user,
+                  profile: savedProfile,
+                  isLoading: false,
+                  clearError: true,
+                ));
+                _setupProfileRealtime(authResponse.user!.id);
+                return true;
+              },
+            );
+          }
+          return true;
+        },
+      );
+    } finally {
+      _isSignUpInProgress = false;
+    }
   }
 
   Future<bool> selectRole(UserRole role) async {

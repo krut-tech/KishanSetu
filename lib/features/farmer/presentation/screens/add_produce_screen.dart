@@ -30,6 +30,7 @@ class _AddProduceScreenState extends ConsumerState<AddProduceScreen> {
 
   String _selectedCategory = 'Cereals';
   String _selectedUnit = 'quintal';
+  bool _isSubmitting = false;
 
   static const List<String> _categories = [
     'Cereals',
@@ -77,6 +78,8 @@ class _AddProduceScreenState extends ConsumerState<AddProduceScreen> {
   }
 
   Future<void> _submitProduce() async {
+    if (_isSubmitting || ref.read(produceControllerProvider).isSubmitting) return;
+
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
     final user = ref.read(authNotifierProvider).profile;
@@ -84,6 +87,8 @@ class _AddProduceScreenState extends ConsumerState<AddProduceScreen> {
       AppSnackBar.show(context, message: 'Authentication required', type: SnackBarType.error);
       return;
     }
+
+    setState(() => _isSubmitting = true);
 
     final produce = ProduceModel(
       id: '',
@@ -109,6 +114,7 @@ class _AddProduceScreenState extends ConsumerState<AddProduceScreen> {
       AppSnackBar.show(context, message: 'Produce listed successfully!', type: SnackBarType.success);
       context.pop();
     } else {
+      setState(() => _isSubmitting = false);
       final error = ref.read(produceControllerProvider).errorMessage;
       if (error != null) {
         AppSnackBar.show(context, message: error, type: SnackBarType.error);

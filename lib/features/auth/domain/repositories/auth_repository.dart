@@ -33,5 +33,5 @@ abstract class AuthRepository {
 
   Future<AppResult<UserProfile>> updateUserProfile(UserProfile profile);
 
-  RealtimeChannel subscribeToProfile(String userId, void Function(UserProfile profile) onProfileChange);
+  RealtimeChannel subscribeToProfile(String userId, void Function(UserProfile? profile) onProfileChange);
 }

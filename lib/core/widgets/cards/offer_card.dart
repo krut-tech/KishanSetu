@@ -198,68 +198,76 @@ class _OfferCardState extends State<OfferCard> {
               ),
             ),
             if (_isHistoryExpanded) ...[
-              Container(
-                margin: const EdgeInsets.only(top: AppSpacing.xs),
-                padding: const EdgeInsets.all(AppSpacing.sm),
-                decoration: BoxDecoration(
-                  color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: widget.history!.map((ver) {
-                    final isLatest = ver.version == widget.history!.last.version;
-                    final formattedDate = DateFormat('dd MMM yyyy, hh:mm a').format(ver.createdAt);
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 4.0),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: isLatest ? colorScheme.primary : colorScheme.outlineVariant,
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: Text(
-                              'v${ver.version}',
-                              style: TextStyle(
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
-                                color: isLatest ? colorScheme.onPrimary : colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  '₹${ver.offeredPrice.toStringAsFixed(2)} / ${ver.quantity} units ${isLatest ? "(Current)" : ""}',
+              Builder(
+                builder: (context) {
+                  final sortedHistory = List<OfferHistoryModel>.from(widget.history!)
+                    ..sort((a, b) => a.version.compareTo(b.version));
+                  final maxVersion = sortedHistory.isNotEmpty ? sortedHistory.last.version : 1;
+
+                  return Container(
+                    margin: const EdgeInsets.only(top: AppSpacing.xs),
+                    padding: const EdgeInsets.all(AppSpacing.sm),
+                    decoration: BoxDecoration(
+                      color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: sortedHistory.map((ver) {
+                        final isLatest = ver.version == maxVersion;
+                        final formattedDate = DateFormat('dd MMM yyyy, hh:mm a').format(ver.createdAt);
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 4.0),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: isLatest ? colorScheme.primary : colorScheme.outlineVariant,
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Text(
+                                  'v${ver.version}',
                                   style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: isLatest ? FontWeight.bold : FontWeight.normal,
-                                    color: colorScheme.onSurface,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                    color: isLatest ? colorScheme.onPrimary : colorScheme.onSurfaceVariant,
                                   ),
                                 ),
-                                if (ver.message != null && ver.message!.isNotEmpty)
-                                  Text(
-                                    '"${ver.message}"',
-                                    style: TextStyle(fontSize: 11, fontStyle: FontStyle.italic, color: secondaryText),
-                                  ),
-                                Text(
-                                  formattedDate,
-                                  style: TextStyle(fontSize: 10, color: secondaryText),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      '₹${ver.offeredPrice.toStringAsFixed(2)} / ${ver.quantity} units ${isLatest ? "(Current)" : ""}',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: isLatest ? FontWeight.bold : FontWeight.normal,
+                                        color: colorScheme.onSurface,
+                                      ),
+                                    ),
+                                    if (ver.message != null && ver.message!.isNotEmpty)
+                                      Text(
+                                        '"${ver.message}"',
+                                        style: TextStyle(fontSize: 11, fontStyle: FontStyle.italic, color: secondaryText),
+                                      ),
+                                    Text(
+                                      formattedDate,
+                                      style: TextStyle(fontSize: 10, color: secondaryText),
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-                    );
-                  }).toList(),
-                ),
+                        );
+                      }).toList(),
+                    ),
+                  );
+                },
               ),
             ],
           ],

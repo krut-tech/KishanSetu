@@ -92,8 +92,10 @@ class NotificationScreen extends ConsumerWidget {
               if (!notification.isRead) {
                 ref.read(notificationNotifierProvider.notifier).markAsRead(notification.id);
               }
-              // Routing based on related_type could go here.
-              // e.g., if related_type == 'offer', context.pushNamed('offerDetails', extra: notification.relatedId)
+              // Navigate back or to home tab based on relatedType
+              if (Navigator.of(context).canPop()) {
+                Navigator.of(context).pop();
+              }
             },
           );
         },

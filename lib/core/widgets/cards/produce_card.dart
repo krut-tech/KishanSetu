@@ -15,6 +15,7 @@ class ProduceCard extends StatelessWidget {
   final String location;
   final String farmerName;
   final VoidCallback? onTap;
+  final VoidCallback? onDelete;
 
   const ProduceCard({
     super.key,
@@ -26,6 +27,7 @@ class ProduceCard extends StatelessWidget {
     required this.location,
     required this.farmerName,
     this.onTap,
+    this.onDelete,
   });
 
   @override
@@ -94,6 +96,16 @@ class ProduceCard extends StatelessWidget {
                             ),
                           ),
                         ),
+                        if (onDelete != null) ...[
+                          const SizedBox(width: AppSpacing.xs),
+                          IconButton(
+                            icon: const Icon(Icons.delete_outline, color: AppColors.error, size: 20),
+                            constraints: const BoxConstraints(),
+                            padding: const EdgeInsets.all(4),
+                            tooltip: 'Delete Produce',
+                            onPressed: onDelete,
+                          ),
+                        ],
                       ],
                     ),
                     const SizedBox(height: 2),

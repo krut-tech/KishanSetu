@@ -148,6 +148,12 @@ class BuyerDashboardNotifier extends StateNotifier<BuyerDashboardState> {
     }
   }
 
+  void reset() {
+    _cleanupRealtime();
+    _currentBuyerId = null;
+    state = const BuyerDashboardState();
+  }
+
   void _cleanupRealtime() {
     _offersChannel?.unsubscribe();
     _offersChannel = null;

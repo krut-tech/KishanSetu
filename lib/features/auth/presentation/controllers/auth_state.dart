@@ -32,6 +32,7 @@ class AuthState extends Equatable {
     AuthStatus? status,
     User? user,
     UserProfile? profile,
+    bool clearProfile = false,
     bool? isLoading,
     String? errorMessage,
     bool clearError = false,
@@ -39,7 +40,7 @@ class AuthState extends Equatable {
     return AuthState(
       status: status ?? this.status,
       user: user ?? this.user,
-      profile: profile ?? this.profile,
+      profile: clearProfile ? null : (profile ?? this.profile),
       isLoading: isLoading ?? this.isLoading,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
     );
