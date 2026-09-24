@@ -1,0 +1,42 @@
+name: Build and Release APK
+
+# Ye workflow tab chalega jab aap koi tag push karoge jo v se start hota ho
+# Example: git tag v1.0.1 && git push origin v1.0.1
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'   # apni project ke pubspec.yaml me jo Flutter version use ho raha hai wahi daalein
+          channel: 'stable'
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Build release APK
+        run: flutter build apk --release
+
+      # IMPORTANT: filename hamesha same rakha (app-release.apk)
+      # taaki /releases/latest/download/app-release.apk link hamesha kaam kare
+      - name: Rename APK to fixed name
+        run: cp build/app/outputs/flutter-apk/app-release.apk app-release.apk
+
+      - name: Create GitHub Release and upload APK
+        uses: softprops/action-gh-release@v2
+        with:
+          files: app-release.apk
+          name: Release ${{ github.ref_name }}
+          tag_name: ${{ github.ref_name }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
