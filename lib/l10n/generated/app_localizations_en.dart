@@ -9,13 +9,13 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
-  String get appName => 'Farmer Market Linkage';
+  String get appName => 'KisanSetu';
 
   @override
-  String get appTitle => 'Farmer Market Linkage & Price Discovery';
+  String get appTitle => 'KisanSetu — Farmer Market Linkage & Price Discovery';
 
   @override
-  String get welcomeMessage => 'Welcome to Farmer Market Linkage';
+  String get welcomeMessage => 'Welcome to KisanSetu';
 
   @override
   String get tagline =>

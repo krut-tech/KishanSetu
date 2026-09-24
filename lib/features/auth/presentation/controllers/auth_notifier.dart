@@ -2,6 +2,8 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' hide AuthState;
 import 'package:farmer_market_app/core/logging/app_logger.dart';
+import 'package:farmer_market_app/core/network/supabase_client_provider.dart';
+import 'package:farmer_market_app/core/notifications/push_notification_service.dart';
 import 'package:farmer_market_app/features/auth/domain/models/user_profile.dart';
 import 'package:farmer_market_app/features/auth/domain/models/user_role.dart';
 import 'package:farmer_market_app/features/auth/domain/repositories/auth_repository.dart';
@@ -31,8 +33,33 @@ class AuthNotifier extends ChangeNotifier {
 
   Listenable get authRoutingListenable => _routingNotifier;
 
-  AuthNotifier(this._repository, {this.onSignOutCallback}) {
+  final SupabaseClient? _supabaseClient;
+
+  AuthNotifier(this._repository, {SupabaseClient? supabaseClient, this.onSignOutCallback})
+      : _supabaseClient = supabaseClient {
     _init();
+  }
+
+  Future<void> _syncPushToken(String userId) async {
+    final client = _supabaseClient ?? SupabaseService.client;
+    if (client != null) {
+      try {
+        await PushNotificationService().syncDeviceToken(userId, client);
+      } catch (e, stack) {
+        AppLogger.error('Push token sync error: $e', e, stack);
+      }
+    }
+  }
+
+  Future<void> _deactivatePushToken(String userId) async {
+    final client = _supabaseClient ?? SupabaseService.client;
+    if (client != null) {
+      try {
+        await PushNotificationService().deactivateDeviceToken(userId, client);
+      } catch (e, stack) {
+        AppLogger.error('Push token deactivation error: $e', e, stack);
+      }
+    }
   }
 
   void _updateState(AuthState newState) {
@@ -48,8 +75,8 @@ class AuthNotifier extends ChangeNotifier {
     }
   }
 
-  void initSession() {
-    _init();
+  Future<void> initSession() async {
+    await _init();
   }
 
   void _setupProfileRealtime(String userId) {
@@ -90,7 +117,7 @@ class AuthNotifier extends ChangeNotifier {
     _subscribedUserId = null;
   }
 
-  void _init() {
+  Future<void> _init() async {
     try {
       _authSubscription?.cancel();
       _authSubscription = _repository.onAuthStateChanges.listen((sbAuthState) async {
@@ -123,7 +150,7 @@ class AuthNotifier extends ChangeNotifier {
           final isSameUser = _state.user?.id == currentUser.id;
           final isAlreadyAuthenticated = _state.status == AuthStatus.authenticated && _state.profile != null;
           if (!isSameUser || !isAlreadyAuthenticated) {
-            _fetchProfileForUser(currentUser);
+            await _fetchProfileForUser(currentUser);
           }
         }
       } else if (_state.user == null) {
@@ -193,6 +220,7 @@ class AuthNotifier extends ChangeNotifier {
           clearError: true,
         ));
         _setupProfileRealtime(user.id);
+        _syncPushToken(profile.id);
         return true;
       },
     );
@@ -375,8 +403,12 @@ class AuthNotifier extends ChangeNotifier {
   }
 
   Future<void> signOut() async {
+    final userId = _state.user?.id;
     _updateState(_state.copyWith(isLoading: true));
     _cleanupProfileRealtime();
+    if (userId != null) {
+      await _deactivatePushToken(userId);
+    }
     await _repository.signOut();
     _updateState(const AuthState(status: AuthStatus.unauthenticated));
   }

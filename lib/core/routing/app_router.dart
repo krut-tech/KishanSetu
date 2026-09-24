@@ -3,9 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:farmer_market_app/core/bootstrap/app_bootstrap_provider.dart';
 import 'package:farmer_market_app/core/logging/app_logger.dart';
+import 'package:farmer_market_app/core/notifications/push_notification_service.dart';
 import 'package:farmer_market_app/core/routing/route_names.dart';
 import 'package:farmer_market_app/features/auth/domain/models/user_role.dart';
 import 'package:farmer_market_app/features/auth/presentation/controllers/auth_providers.dart';
+import 'package:farmer_market_app/features/auth/presentation/controllers/auth_state.dart';
 import 'package:farmer_market_app/features/auth/presentation/screens/buyer_profile_screen.dart';
 import 'package:farmer_market_app/features/auth/presentation/screens/complete_profile_screen.dart';
 import 'package:farmer_market_app/features/auth/presentation/screens/farmer_profile_screen.dart';
@@ -31,7 +33,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
   final authNotifier = ref.read(authNotifierProvider);
   final bootstrapNotifier = ref.read(appBootstrapProvider.notifier);
 
-  return GoRouter(
+  final router = GoRouter(
     navigatorKey: rootNavigatorKey,
     initialLocation: RouteNames.splash,
     refreshListenable: Listenable.merge([
@@ -48,8 +50,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
       if (location == RouteNames.designSystem) return null;
 
-      // Ensure app bootstrap initialization is complete
-      if (!bootstrapState.isInitialized) {
+      // Ensure app bootstrap initialization is complete and auth session status is resolved
+      if (!bootstrapState.isInitialized ||
+          authState.status == AuthStatus.initial ||
+          (location == RouteNames.splash && authState.isLoading)) {
         return location == RouteNames.splash ? null : RouteNames.splash;
       }
 
@@ -106,7 +110,16 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         }
       }
 
-      // 3. Authenticated & Profile Complete -> Role-specific Dashboard
+      // 3. Authenticated & Profile Complete -> Check pending push notification route first
+      if (PushNotificationService.pendingInitialRoute != null &&
+          authState.isAuthenticated &&
+          authState.isProfileComplete) {
+        final pendingRoute = PushNotificationService.pendingInitialRoute!;
+        PushNotificationService.pendingInitialRoute = null;
+        AppLogger.info('Consuming pending push notification initial route: $pendingRoute');
+        return pendingRoute;
+      }
+
       final isAuthFlowScreen = location == RouteNames.login ||
           location == RouteNames.register ||
           location == RouteNames.splash ||
@@ -185,6 +198,26 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const NotificationScreen(),
       ),
       GoRoute(
+        path: '/offers',
+        name: 'offers',
+        builder: (context, state) => const NotificationScreen(),
+      ),
+      GoRoute(
+        path: '/buyer-offers',
+        name: 'buyerOffers',
+        builder: (context, state) => const NotificationScreen(),
+      ),
+      GoRoute(
+        path: '/my-produce',
+        name: 'myProduce',
+        builder: (context, state) => const NotificationScreen(),
+      ),
+      GoRoute(
+        path: '/market-prices',
+        name: 'marketPrices',
+        builder: (context, state) => const NotificationScreen(),
+      ),
+      GoRoute(
         path: RouteNames.designSystem,
         name: 'designSystem',
         builder: (context, state) => const DesignSystemGalleryScreen(),
@@ -196,4 +229,16 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
     ),
   );
+
+  PushNotificationService.onNavigate = (targetRoute) {
+    AppLogger.info('PushNotificationService onNavigate -> $targetRoute');
+    try {
+      router.go(targetRoute);
+    } catch (e) {
+      AppLogger.warning('GoRouter error navigating to $targetRoute, falling back to /notifications: $e');
+      router.go(RouteNames.notifications);
+    }
+  };
+
+  return router;
 });

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "201852499115",
+    "project_id": "kisansetu-push",
+    "storage_bucket": "kisansetu-push.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:201852499115:android:1f3a5acca4493cc74df3ee",
+        "android_client_info": {
+          "package_name": "com.farmermarket.farmer_market_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB_aIOEY5a_0rZHz_qujJwrQg7rdr9u-Mk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

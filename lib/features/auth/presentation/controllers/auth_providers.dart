@@ -15,7 +15,8 @@ final authRepositoryProvider = Provider<AuthRepository>((ref) {
 
 final authNotifierProvider = ChangeNotifierProvider<AuthNotifier>((ref) {
   final repository = ref.read(authRepositoryProvider);
-  return AuthNotifier(repository, onSignOutCallback: () {
+  final supabaseClient = ref.read(supabaseClientProvider);
+  return AuthNotifier(repository, supabaseClient: supabaseClient, onSignOutCallback: () {
     ref.invalidate(buyerDashboardNotifierProvider);
     ref.invalidate(marketplaceControllerProvider);
     ref.invalidate(buyerOfferControllerProvider);

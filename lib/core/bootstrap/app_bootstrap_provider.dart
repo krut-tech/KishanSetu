@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:farmer_market_app/core/config/env_config.dart';
 import 'package:farmer_market_app/core/logging/app_logger.dart';
 import 'package:farmer_market_app/core/network/supabase_client_provider.dart';
+import 'package:farmer_market_app/core/notifications/push_notification_service.dart';
 import 'package:farmer_market_app/features/auth/presentation/controllers/auth_providers.dart';
 
 /// Immutable state representing application bootstrap/initialization.
@@ -58,8 +59,15 @@ class AppBootstrapNotifier extends StateNotifier<AppBootstrapState> {
       // Refresh Riverpod network providers with initialized Supabase client
       _ref.invalidate(supabaseClientProvider);
 
+      AppLogger.info('App bootstrap: Initializing PushNotificationService...');
+      try {
+        await PushNotificationService().initialize();
+      } catch (pushErr, stackTrace) {
+        AppLogger.error('Failed to initialize PushNotificationService during bootstrap: $pushErr', pushErr, stackTrace);
+      }
+
       AppLogger.info('App bootstrap: Initializing AuthNotifier session...');
-      _ref.read(authNotifierProvider).initSession();
+      await _ref.read(authNotifierProvider).initSession();
 
       AppLogger.info('App bootstrap completed successfully.');
       state = const AppBootstrapState(

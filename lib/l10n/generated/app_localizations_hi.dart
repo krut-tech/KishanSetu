@@ -9,13 +9,13 @@ class AppLocalizationsHi extends AppLocalizations {
   AppLocalizationsHi([String locale = 'hi']) : super(locale);
 
   @override
-  String get appName => 'किसान बाजार लिंक';
+  String get appName => 'किसानसेतु';
 
   @override
-  String get appTitle => 'किसान बाजार लिंक और मूल्य खोज';
+  String get appTitle => 'किसानसेतु - किसान बाजार लिंक और मूल्य खोज';
 
   @override
-  String get welcomeMessage => 'किसान बाजार लिंक में आपका स्वागत है';
+  String get welcomeMessage => 'किसानसेतु में आपका स्वागत है';
 
   @override
   String get tagline =>

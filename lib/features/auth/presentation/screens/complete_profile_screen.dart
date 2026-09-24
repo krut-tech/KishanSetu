@@ -230,7 +230,7 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
                     ),
                     const SizedBox(height: AppSpacing.xs),
                     Text(
-                      'Tell us a little about yourself to personalize your Farmer Market Linkage experience.',
+                      'Tell us a little about yourself to personalize your KisanSetu experience.',
                       style: TextStyle(
                         fontSize: 13,
                         color: colorScheme.onSurfaceVariant,

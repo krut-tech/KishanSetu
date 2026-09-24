@@ -9,13 +9,13 @@ class AppLocalizationsGu extends AppLocalizations {
   AppLocalizationsGu([String locale = 'gu']) : super(locale);
 
   @override
-  String get appName => 'ખેડૂત બજાર લિંકેજ';
+  String get appName => 'કિસાનસેતુ';
 
   @override
-  String get appTitle => 'ખેડૂત બજાર લિંકેજ અને ભાવ શોધ';
+  String get appTitle => 'કિસાનસેતુ - ખેડૂત બજાર લિંકેજ અને ભાવ શોધ';
 
   @override
-  String get welcomeMessage => 'ખેડૂત બજાર લિંકેજમાં આપનું સ્વાગત છે';
+  String get welcomeMessage => 'કિસાનસેતુમાં આપનું સ્વાગત છે';
 
   @override
   String get tagline =>

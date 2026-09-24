@@ -103,19 +103,19 @@ abstract class AppLocalizations {
   /// No description provided for @appName.
   ///
   /// In en, this message translates to:
-  /// **'Farmer Market Linkage'**
+  /// **'KisanSetu'**
   String get appName;
 
   /// No description provided for @appTitle.
   ///
   /// In en, this message translates to:
-  /// **'Farmer Market Linkage & Price Discovery'**
+  /// **'KisanSetu — Farmer Market Linkage & Price Discovery'**
   String get appTitle;
 
   /// No description provided for @welcomeMessage.
   ///
   /// In en, this message translates to:
-  /// **'Welcome to Farmer Market Linkage'**
+  /// **'Welcome to KisanSetu'**
   String get welcomeMessage;
 
   /// No description provided for @tagline.

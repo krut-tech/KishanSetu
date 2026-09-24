@@ -1,8 +1,8 @@
 {
   "@@locale": "en",
-  "appName": "Farmer Market Linkage",
-  "appTitle": "Farmer Market Linkage & Price Discovery",
-  "welcomeMessage": "Welcome to Farmer Market Linkage",
+  "appName": "KisanSetu",
+  "appTitle": "KisanSetu — Farmer Market Linkage & Price Discovery",
+  "welcomeMessage": "Welcome to KisanSetu",
   "tagline": "Empowering farmers with direct market access and true price discovery",
   "retry": "Retry",
   "errorOccurred": "An error occurred",
