@@ -8,7 +8,47 @@ const corsHeaders = {
 };
 
 /**
+ * Builds and signs a fresh JWT assertion for Google's OAuth2 token endpoint.
+ * `clockSkewSeconds` backdates `iat` (and `exp` accordingly) to tolerate a
+ * cold-started Edge Function container whose clock hasn't finished syncing yet.
+ */
+async function buildAssertion(
+  clientEmail: string,
+  key: CryptoKey,
+  clockSkewSeconds: number
+): Promise<string> {
+  const now = Math.floor(Date.now() / 1000) - clockSkewSeconds;
+  return await create(
+    { alg: "RS256", typ: "JWT" },
+    {
+      iss: clientEmail,
+      scope: "https://www.googleapis.com/auth/firebase.messaging",
+      aud: "https://oauth2.googleapis.com/token",
+      exp: getNumericDate(now + 3300), // 55 min validity, well under Google's 60 min cap
+      iat: getNumericDate(now),
+    },
+    key
+  );
+}
+
+async function requestAccessToken(jwt: string): Promise<{ ok: boolean; data: any }> {
+  const res = await fetch("https://oauth2.googleapis.com/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer",
+      assertion: jwt,
+    }),
+  });
+  const data = await res.json();
+  return { ok: res.ok, data };
+}
+
+/**
  * Generates an OAuth2 Access Token for FCM HTTP v1 using Service Account Credentials.
+ * Retries with an increasing clock-skew backdate if Google rejects the JWT's
+ * iat/exp as being outside a "reasonable timeframe" (a known transient issue
+ * right after an Edge Function cold start, before the container clock settles).
  */
 async function getFcmAccessToken(clientEmail: string, privateKey: string): Promise<string> {
   let cleanedKey = privateKey.trim();
@@ -44,33 +84,28 @@ async function getFcmAccessToken(clientEmail: string, privateKey: string): Promi
     ["sign"]
   );
 
-  const now = Math.floor(Date.now() / 1000);
-  const jwt = await create(
-    { alg: "RS256", typ: "JWT" },
-    {
-      iss: clientEmail,
-      scope: "https://www.googleapis.com/auth/firebase.messaging",
-      aud: "https://oauth2.googleapis.com/token",
-      exp: getNumericDate(now + 3600),
-      iat: getNumericDate(now),
-    },
-    key
-  );
+  // Try a few increasing clock-skew offsets: 0s, 30s, then 90s backdated.
+  const skewAttempts = [0, 30, 90];
+  let lastError: any = null;
 
-  const res = await fetch("https://oauth2.googleapis.com/token", {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({
-      grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer",
-      assertion: jwt,
-    }),
-  });
+  for (const skew of skewAttempts) {
+    const jwt = await buildAssertion(clientEmail, key, skew);
+    const { ok, data } = await requestAccessToken(jwt);
 
-  const data = await res.json();
-  if (!res.ok) {
-    throw new Error(`Failed to obtain FCM OAuth token: ${JSON.stringify(data)}`);
+    if (ok) {
+      return data.access_token;
+    }
+
+    lastError = data;
+    const isClockSkewIssue = data?.error === "invalid_grant";
+    if (!isClockSkewIssue) {
+      // Not a clock-skew style failure (e.g. bad key/email) -> no point retrying.
+      break;
+    }
+    console.warn(`FCM OAuth token attempt failed with skew=${skew}s, retrying:`, JSON.stringify(data));
   }
-  return data.access_token;
+
+  throw new Error(`Failed to obtain FCM OAuth token: ${JSON.stringify(lastError)}`);
 }
 
 /**
