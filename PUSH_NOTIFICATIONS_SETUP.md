@@ -117,6 +117,14 @@ Deploy the function using the Supabase CLI:
 npx supabase functions deploy push-notification --no-verify-jwt
 ```
 
+> **Security note:** `--no-verify-jwt` disables Supabase's built-in JWT check
+> on this function's HTTP endpoint, which is required so the Database
+> Webhook can call it. That also means the endpoint is reachable by anyone
+> on the internet who has the URL. The function itself now enforces its own
+> authorization via a shared `PUSH_WEBHOOK_SECRET` (see below) — **do not
+> skip that step**, or any caller can trigger arbitrary push notifications
+> to any user.
+
 ### Setting FCM Secrets in Supabase
 
 In your Firebase Console:
@@ -130,6 +138,21 @@ npx supabase secrets set FCM_CLIENT_EMAIL="firebase-adminsdk-xxxxx@your-firebase
 npx supabase secrets set FCM_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nYourPrivateKeyStringHere\n-----END PRIVATE KEY-----\n"
 ```
 
+### Setting the Webhook Shared Secret (required)
+
+Because the function is deployed with `--no-verify-jwt`, it validates
+requests itself using a shared secret sent as the `x-webhook-secret` header.
+Generate a random value and set it as a function secret:
+
+```bash
+npx supabase secrets set PUSH_WEBHOOK_SECRET="$(openssl rand -hex 32)"
+```
+
+Keep a copy of the generated value — you will paste it into the Database
+Webhook's custom header configuration in the next step. The function
+refuses every request (401) that doesn't present the matching header, and
+refuses to run at all (500) if `PUSH_WEBHOOK_SECRET` isn't set.
+
 ---
 
 ## 4. Configuring Database Webhook
@@ -142,7 +165,9 @@ In the Supabase Dashboard:
 5. Select Events: `INSERT`.
 6. Select Type: `Supabase Edge Function`.
 7. Choose Function: `push-notification`.
-8. Save Webhook.
+8. Under **HTTP Headers**, add a custom header `x-webhook-secret` with the
+   exact value you generated for `PUSH_WEBHOOK_SECRET` above.
+9. Save Webhook.
 
 ---
 
@@ -170,6 +195,7 @@ In the Supabase Dashboard:
 | **TEST 8** | Notification Tap | Tap push notification | App launches and GoRouter navigates to relevant screen (`/offers`, `/my-produce`, `/notifications`) | **PASS** |
 | **TEST 9** | Logout Cleanup | User logs out | Device push token deactivated in `public.user_devices`; no notification leakage to next user | **PASS** |
 | **TEST 10** | Invalid Token Cleanup | Device token expires/unregisters | Edge Function automatically sets `is_active = false` on FCM response error | **PASS** |
+| **TEST 11** | Unauthenticated call rejected | POST directly to the function URL without `x-webhook-secret` | Function returns `401 Unauthorized`, no push sent | **PASS** |
 
 ---
 
@@ -178,3 +204,4 @@ In the Supabase Dashboard:
 - **Zero Client-Side Secrets:** No service account keys or FCM server secrets are stored in the Flutter codebase or embedded in the APK.
 - **Strict RLS Enforcement:** Users can only read, write, or deactivate their own device entries in `user_devices`.
 - **User Separation:** On logout, device tokens are deactivated in Supabase to prevent user A's notifications from being sent to user B on shared devices.
+- **Webhook Authorization:** The function is deployed with `--no-verify-jwt` (required for the Database Webhook to call it), so it enforces its own check via the `PUSH_WEBHOOK_SECRET` / `x-webhook-secret` header pair described in Section 3. Without this, the endpoint would accept push-notification requests from any unauthenticated caller.
