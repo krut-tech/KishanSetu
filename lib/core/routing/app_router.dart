@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -15,20 +16,20 @@ import 'package:farmer_market_app/features/auth/presentation/screens/forgot_pass
 import 'package:farmer_market_app/features/auth/presentation/screens/login_screen.dart';
 import 'package:farmer_market_app/features/auth/presentation/screens/register_screen.dart';
 import 'package:farmer_market_app/features/auth/presentation/screens/role_selection_screen.dart';
+import 'package:farmer_market_app/features/buyer/presentation/screens/buyer_offers_screen.dart';
+import 'package:farmer_market_app/features/buyer/presentation/screens/marketplace_screen.dart';
 import 'package:farmer_market_app/features/design_system/presentation/design_system_gallery_screen.dart';
 import 'package:farmer_market_app/features/farmer/presentation/screens/add_produce_screen.dart';
+import 'package:farmer_market_app/features/farmer/presentation/screens/market_prices_screen.dart';
+import 'package:farmer_market_app/features/farmer/presentation/screens/my_produce_screen.dart';
+import 'package:farmer_market_app/features/farmer/presentation/screens/offers_screen.dart';
 import 'package:farmer_market_app/features/home/presentation/buyer_home_screen.dart';
 import 'package:farmer_market_app/features/home/presentation/farmer_home_screen.dart';
 import 'package:farmer_market_app/features/notifications/presentation/screens/notification_screen.dart';
 import 'package:farmer_market_app/features/splash/presentation/splash_screen.dart';
 
-int _goRouterConstructionCount = 0;
-
 /// Centralized GoRouter navigation configuration with auth protection guards and bootstrap check.
 final appRouterProvider = Provider<GoRouter>((ref) {
-  _goRouterConstructionCount++;
-  AppLogger.info('GO_ROUTER_CONSTRUCTED count: $_goRouterConstructionCount');
-  AppLogger.info('appRouterProvider building GoRouter');
   final rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
   final authNotifier = ref.read(authNotifierProvider);
   final bootstrapNotifier = ref.read(appBootstrapProvider.notifier);
@@ -46,9 +47,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       final authState = authNotifier.state;
       final location = state.matchedLocation;
 
-      AppLogger.info('GoRouter redirect check: location=$location, isInitialized=${bootstrapState.isInitialized}, isAuthenticated=${authState.isAuthenticated}');
-
-      if (location == RouteNames.designSystem) return null;
+      // The design-system gallery is a developer-only screen and must never
+      // be reachable in a release build, regardless of auth state.
+      if (location == RouteNames.designSystem) {
+        return kDebugMode ? null : RouteNames.splash;
+      }
 
       // Ensure app bootstrap initialization is complete and auth session status is resolved
       if (!bootstrapState.isInitialized ||
@@ -96,6 +99,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       // reachable by a completed buyer through a direct URL/deep link.
       if (location == RouteNames.addProduce && profile?.role != UserRole.farmer) {
         return RouteNames.buyerHome;
+      }
+      if (location == RouteNames.myProduce && profile?.role != UserRole.farmer) {
+        return RouteNames.buyerHome;
+      }
+      if (location == RouteNames.buyerOffers && profile?.role != UserRole.buyer) {
+        return RouteNames.farmerHome;
       }
 
       if (profile?.role == UserRole.farmer) {
@@ -197,25 +206,40 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         name: 'notifications',
         builder: (context, state) => const NotificationScreen(),
       ),
+      // Deep-link targets for push notifications. These previously all
+      // pointed at NotificationScreen by mistake; they now open the actual
+      // feature screens. /offers and /my-produce are shared paths used for
+      // both roles by the notification payload, so they resolve to the
+      // correct screen per the signed-in user's role.
       GoRoute(
-        path: '/offers',
+        path: RouteNames.offers,
         name: 'offers',
-        builder: (context, state) => const NotificationScreen(),
+        builder: (context, state) => Consumer(
+          builder: (context, ref, _) {
+            final role = ref.watch(authNotifierProvider).profile?.role;
+            return role == UserRole.buyer ? const BuyerOffersScreen() : const OffersScreen();
+          },
+        ),
       ),
       GoRoute(
-        path: '/buyer-offers',
+        path: RouteNames.buyerOffers,
         name: 'buyerOffers',
-        builder: (context, state) => const NotificationScreen(),
+        builder: (context, state) => const BuyerOffersScreen(),
       ),
       GoRoute(
-        path: '/my-produce',
+        path: RouteNames.myProduce,
         name: 'myProduce',
-        builder: (context, state) => const NotificationScreen(),
+        builder: (context, state) => Consumer(
+          builder: (context, ref, _) {
+            final role = ref.watch(authNotifierProvider).profile?.role;
+            return role == UserRole.buyer ? const MarketplaceScreen() : const MyProduceScreen();
+          },
+        ),
       ),
       GoRoute(
-        path: '/market-prices',
+        path: RouteNames.marketPrices,
         name: 'marketPrices',
-        builder: (context, state) => const NotificationScreen(),
+        builder: (context, state) => const MarketPricesScreen(),
       ),
       GoRoute(
         path: RouteNames.designSystem,
