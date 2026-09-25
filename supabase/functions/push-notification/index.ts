@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.0";
-import { create, getNumericDate } from "https://deno.land/x/djwt@v2.8/mod.ts";
+import { create } from "https://deno.land/x/djwt@v2.8/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -8,38 +8,27 @@ const corsHeaders = {
 };
 
 /**
- * Asks Google itself what time it is, via the `Date` response header of a
- * plain HTTPS request. The Edge Function's own container clock can drift
- * (especially right after a cold start) which makes locally-generated JWT
- * `iat`/`exp` claims fail Google's "reasonable timeframe" check. Anchoring
- * to Google's own clock removes that entire class of failure, regardless of
- * how far off the container clock actually is.
+ * Builds and signs the JWT assertion for Google's OAuth2 token endpoint.
+ *
+ * IMPORTANT: djwt's `getNumericDate(n)` treats a plain number `n` as
+ * "n seconds from now" (it internally computes Date.now()/1000 + n), NOT as
+ * an absolute Unix timestamp. Passing an already-absolute epoch timestamp
+ * into it (as earlier versions of this function did) silently produces an
+ * `iat`/`exp` decades in the future, which Google's token endpoint rejects
+ * with invalid_grant / "Token must be a short-lived token ... reasonable
+ * timeframe". Since `now` here is already a Unix timestamp in seconds, we
+ * assign it directly to iat/exp instead of routing it through getNumericDate.
  */
-async function getGoogleServerTimeSeconds(): Promise<number> {
-  try {
-    const res = await fetch("https://oauth2.googleapis.com/token", { method: "HEAD" });
-    const dateHeader = res.headers.get("date");
-    if (dateHeader) {
-      const serverTime = Math.floor(new Date(dateHeader).getTime() / 1000);
-      if (!Number.isNaN(serverTime) && serverTime > 0) {
-        return serverTime;
-      }
-    }
-  } catch (e) {
-    console.warn("Could not fetch Google server time, falling back to local clock:", e);
-  }
-  return Math.floor(Date.now() / 1000);
-}
-
-async function buildAssertion(clientEmail: string, key: CryptoKey, now: number): Promise<string> {
+async function buildAssertion(clientEmail: string, key: CryptoKey): Promise<string> {
+  const now = Math.floor(Date.now() / 1000);
   return await create(
     { alg: "RS256", typ: "JWT" },
     {
       iss: clientEmail,
       scope: "https://www.googleapis.com/auth/firebase.messaging",
       aud: "https://oauth2.googleapis.com/token",
-      exp: getNumericDate(now + 3300), // 55 min validity, comfortably under Google's 60 min cap
-      iat: getNumericDate(now),
+      iat: now,
+      exp: now + 3300, // 55 min validity, comfortably under Google's 60 min cap
     },
     key
   );
@@ -60,8 +49,6 @@ async function requestAccessToken(jwt: string): Promise<{ ok: boolean; data: any
 
 /**
  * Generates an OAuth2 Access Token for FCM HTTP v1 using Service Account Credentials.
- * Uses Google's own clock (via HTTP `Date` header) to build the JWT's iat/exp,
- * with a couple of small additional backdate retries as a final safety net.
  */
 async function getFcmAccessToken(clientEmail: string, privateKey: string): Promise<string> {
   let cleanedKey = privateKey.trim();
@@ -97,31 +84,13 @@ async function getFcmAccessToken(clientEmail: string, privateKey: string): Promi
     ["sign"]
   );
 
-  const googleNow = await getGoogleServerTimeSeconds();
-  const localNow = Math.floor(Date.now() / 1000);
-  console.log(`Clock check -> local: ${localNow}, google: ${googleNow}, drift: ${localNow - googleNow}s`);
+  const jwt = await buildAssertion(clientEmail, key);
+  const { ok, data } = await requestAccessToken(jwt);
 
-  // Anchor on Google's clock first; small extra backdate offsets as a last-resort safety net.
-  const extraOffsets = [0, 30, 90];
-  let lastError: any = null;
-
-  for (const offset of extraOffsets) {
-    const jwt = await buildAssertion(clientEmail, key, googleNow - offset);
-    const { ok, data } = await requestAccessToken(jwt);
-
-    if (ok) {
-      return data.access_token;
-    }
-
-    lastError = data;
-    const isClockSkewIssue = data?.error === "invalid_grant";
-    if (!isClockSkewIssue) {
-      break;
-    }
-    console.warn(`FCM OAuth token attempt failed with extra offset=${offset}s, retrying:`, JSON.stringify(data));
+  if (!ok) {
+    throw new Error(`Failed to obtain FCM OAuth token: ${JSON.stringify(data)}`);
   }
-
-  throw new Error(`Failed to obtain FCM OAuth token: ${JSON.stringify(lastError)}`);
+  return data.access_token;
 }
 
 /**
