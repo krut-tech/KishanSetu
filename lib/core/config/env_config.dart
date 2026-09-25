@@ -19,8 +19,13 @@ class EnvConfig {
     }
   }
 
-  static String get supabaseUrl =>
-      dotenv.get('SUPABASE_URL', fallback: 'https://dpbuhtverikgcaieucdp.supabase.co');
+  // NOTE: no hardcoded Supabase URL fallback here on purpose. Falling back to
+  // a real project URL when .env/.env.example fail to load would silently
+  // point the app at an unintended backend with no visible warning.
+  // SupabaseService.init() already treats an empty URL/key as a hard error
+  // and surfaces a clear "Failed to initialize backend services" message via
+  // AppBootstrapNotifier, which is the correct failure mode here.
+  static String get supabaseUrl => dotenv.get('SUPABASE_URL', fallback: '');
 
   static String get supabaseAnonKey =>
       dotenv.get('SUPABASE_ANON_KEY', fallback: '');
