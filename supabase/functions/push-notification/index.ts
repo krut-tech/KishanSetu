@@ -8,23 +8,37 @@ const corsHeaders = {
 };
 
 /**
- * Builds and signs a fresh JWT assertion for Google's OAuth2 token endpoint.
- * `clockSkewSeconds` backdates `iat` (and `exp` accordingly) to tolerate a
- * cold-started Edge Function container whose clock hasn't finished syncing yet.
+ * Asks Google itself what time it is, via the `Date` response header of a
+ * plain HTTPS request. The Edge Function's own container clock can drift
+ * (especially right after a cold start) which makes locally-generated JWT
+ * `iat`/`exp` claims fail Google's "reasonable timeframe" check. Anchoring
+ * to Google's own clock removes that entire class of failure, regardless of
+ * how far off the container clock actually is.
  */
-async function buildAssertion(
-  clientEmail: string,
-  key: CryptoKey,
-  clockSkewSeconds: number
-): Promise<string> {
-  const now = Math.floor(Date.now() / 1000) - clockSkewSeconds;
+async function getGoogleServerTimeSeconds(): Promise<number> {
+  try {
+    const res = await fetch("https://oauth2.googleapis.com/token", { method: "HEAD" });
+    const dateHeader = res.headers.get("date");
+    if (dateHeader) {
+      const serverTime = Math.floor(new Date(dateHeader).getTime() / 1000);
+      if (!Number.isNaN(serverTime) && serverTime > 0) {
+        return serverTime;
+      }
+    }
+  } catch (e) {
+    console.warn("Could not fetch Google server time, falling back to local clock:", e);
+  }
+  return Math.floor(Date.now() / 1000);
+}
+
+async function buildAssertion(clientEmail: string, key: CryptoKey, now: number): Promise<string> {
   return await create(
     { alg: "RS256", typ: "JWT" },
     {
       iss: clientEmail,
       scope: "https://www.googleapis.com/auth/firebase.messaging",
       aud: "https://oauth2.googleapis.com/token",
-      exp: getNumericDate(now + 3300), // 55 min validity, well under Google's 60 min cap
+      exp: getNumericDate(now + 3300), // 55 min validity, comfortably under Google's 60 min cap
       iat: getNumericDate(now),
     },
     key
@@ -46,9 +60,8 @@ async function requestAccessToken(jwt: string): Promise<{ ok: boolean; data: any
 
 /**
  * Generates an OAuth2 Access Token for FCM HTTP v1 using Service Account Credentials.
- * Retries with an increasing clock-skew backdate if Google rejects the JWT's
- * iat/exp as being outside a "reasonable timeframe" (a known transient issue
- * right after an Edge Function cold start, before the container clock settles).
+ * Uses Google's own clock (via HTTP `Date` header) to build the JWT's iat/exp,
+ * with a couple of small additional backdate retries as a final safety net.
  */
 async function getFcmAccessToken(clientEmail: string, privateKey: string): Promise<string> {
   let cleanedKey = privateKey.trim();
@@ -84,12 +97,16 @@ async function getFcmAccessToken(clientEmail: string, privateKey: string): Promi
     ["sign"]
   );
 
-  // Try a few increasing clock-skew offsets: 0s, 30s, then 90s backdated.
-  const skewAttempts = [0, 30, 90];
+  const googleNow = await getGoogleServerTimeSeconds();
+  const localNow = Math.floor(Date.now() / 1000);
+  console.log(`Clock check -> local: ${localNow}, google: ${googleNow}, drift: ${localNow - googleNow}s`);
+
+  // Anchor on Google's clock first; small extra backdate offsets as a last-resort safety net.
+  const extraOffsets = [0, 30, 90];
   let lastError: any = null;
 
-  for (const skew of skewAttempts) {
-    const jwt = await buildAssertion(clientEmail, key, skew);
+  for (const offset of extraOffsets) {
+    const jwt = await buildAssertion(clientEmail, key, googleNow - offset);
     const { ok, data } = await requestAccessToken(jwt);
 
     if (ok) {
@@ -99,10 +116,9 @@ async function getFcmAccessToken(clientEmail: string, privateKey: string): Promi
     lastError = data;
     const isClockSkewIssue = data?.error === "invalid_grant";
     if (!isClockSkewIssue) {
-      // Not a clock-skew style failure (e.g. bad key/email) -> no point retrying.
       break;
     }
-    console.warn(`FCM OAuth token attempt failed with skew=${skew}s, retrying:`, JSON.stringify(data));
+    console.warn(`FCM OAuth token attempt failed with extra offset=${offset}s, retrying:`, JSON.stringify(data));
   }
 
   throw new Error(`Failed to obtain FCM OAuth token: ${JSON.stringify(lastError)}`);
