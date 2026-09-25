@@ -4,7 +4,7 @@ import { create } from "https://deno.land/x/djwt@v2.8/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-webhook-secret",
 };
 
 /**
@@ -116,12 +116,54 @@ function resolveRoute(type: string, relatedType?: string): string {
   }
 }
 
+/**
+ * Constant-time string comparison to avoid leaking the configured secret
+ * through response-timing side channels.
+ */
+function timingSafeEqual(a: string, b: string): boolean {
+  const enc = new TextEncoder();
+  const bufA = enc.encode(a);
+  const bufB = enc.encode(b);
+  if (bufA.length !== bufB.length) return false;
+  let diff = 0;
+  for (let i = 0; i < bufA.length; i++) {
+    diff |= bufA[i] ^ bufB[i];
+  }
+  return diff === 0;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
 
   try {
+    // SECURITY: this function is deployed with `--no-verify-jwt` (see
+    // PUSH_NOTIFICATIONS_SETUP.md) so that Supabase Database Webhooks can
+    // call it. That means, without a check here, ANY unauthenticated caller
+    // on the internet could POST an arbitrary { record: { user_id, title,
+    // message } } payload and force a push notification to be sent to any
+    // user's device. We require a shared secret set on both the Supabase
+    // Database Webhook (as a custom HTTP header) and this function's env
+    // secrets, and reject any request that doesn't present it.
+    const expectedSecret = Deno.env.get("PUSH_WEBHOOK_SECRET");
+    if (!expectedSecret) {
+      console.error("PUSH_WEBHOOK_SECRET is not configured. Refusing to process webhook.");
+      return new Response(
+        JSON.stringify({ error: "Server misconfiguration: webhook secret not set." }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const providedSecret = req.headers.get("x-webhook-secret") ?? "";
+    if (!providedSecret || !timingSafeEqual(providedSecret, expectedSecret)) {
+      console.warn("Rejected push-notification webhook call: missing or invalid x-webhook-secret header.");
+      return new Response(
+        JSON.stringify({ error: "Unauthorized." }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const body = await req.json();
     console.log("Received notification webhook payload:", JSON.stringify(body));
 
