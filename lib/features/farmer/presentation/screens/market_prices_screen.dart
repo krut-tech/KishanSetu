@@ -12,6 +12,7 @@ import 'package:farmer_market_app/core/widgets/price/app_price_text.dart';
 import 'package:farmer_market_app/core/widgets/states/shimmer_loading.dart';
 import 'package:farmer_market_app/features/farmer/presentation/controllers/farmer_providers.dart';
 import 'package:farmer_market_app/features/farmer/presentation/controllers/market_price_controller.dart';
+import 'package:farmer_market_app/features/farmer/presentation/screens/market_price_details_screen.dart';
 
 class MarketPricesScreen extends ConsumerStatefulWidget {
   const MarketPricesScreen({super.key});
@@ -241,6 +242,13 @@ class _MarketPricesScreenState extends ConsumerState<MarketPricesScreen> {
           padding: const EdgeInsets.only(bottom: AppSpacing.sm),
           child: AppCard(
             padding: const EdgeInsets.all(AppSpacing.md),
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => MarketPriceDetailsScreen(price: item),
+                ),
+              );
+            },
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
