@@ -143,48 +143,25 @@ class SupabaseBuyerRepository implements BuyerRepository {
         return left(const AuthFailure('You are not authorized to submit this offer.'));
       }
 
-      // Validate produce is still active and bind the offer to the listing owner.
-      final produceCheck = await _client
-          .from('produce')
-          .select('status, quantity, farmer_id')
-          .eq('id', offer.produceId)
-          .maybeSingle();
+      // Offer creation is delegated to the create_offer() Postgres RPC
+      // (see supabase/migrations/20260922235959_create_core_schema_and_rls.sql).
+      // That function takes a row lock on the produce listing and
+      // re-validates status/available-quantity/duplicate-offer rules
+      // atomically before inserting, which closes a check-then-insert race
+      // that existed here when those checks and the insert were three
+      // separate network round trips. Direct inserts into `offers` are no
+      // longer permitted by RLS -- this RPC is the only way to create one.
+      final created = await _client.rpc('create_offer', params: {
+        'p_produce_id': offer.produceId,
+        'p_offered_price': offer.offeredPrice,
+        'p_quantity': offer.quantity,
+        'p_message': offer.message,
+      }) as Map<String, dynamic>;
 
-      if (produceCheck == null) {
-        return left(const DatabaseFailure('The requested produce listing no longer exists.'));
-      }
-
-      final produceFarmerId = produceCheck['farmer_id'] as String?;
-      if (produceFarmerId == null || produceFarmerId != offer.farmerId) {
-        return left(const DatabaseFailure('The produce seller does not match this offer.'));
-      }
-
-      final duplicate = await _client
-          .from('offers')
-          .select('id')
-          .eq('produce_id', offer.produceId)
-          .eq('buyer_id', currentUser.id)
-          .or('status.eq.pending,status.eq.countered')
-          .limit(1);
-      if ((duplicate as List).isNotEmpty) {
-        return left(const DatabaseFailure('You already have an active offer for this produce listing. Please edit your existing offer.'));
-      }
-
-      final produceStatus = produceCheck['status'] as String?;
-      if (produceStatus != 'active') {
-        return left(const DatabaseFailure('This produce listing is no longer active for offers.'));
-      }
-
-      final availableQty = (produceCheck['quantity'] as num?)?.toDouble() ?? 0.0;
-      if (offer.quantity > availableQty) {
-        return left(DatabaseFailure('Offered quantity (${offer.quantity}) exceeds available quantity ($availableQty).'));
-      }
-
-      final safeOffer = offer.copyWith(buyerId: currentUser.id, farmerId: produceFarmerId);
       final response = await _client
           .from('offers')
-          .insert(safeOffer.toMap())
           .select('*, offer_history(*), produce:produce_id(name, unit, category, expected_price, location), farmer_profile:farmer_id(full_name, district)')
+          .eq('id', created['id'] as String)
           .single();
 
       return right(OfferModel.fromMap(response));
