@@ -5,6 +5,7 @@ import 'package:farmer_market_app/core/constants/app_spacing.dart';
 import 'package:farmer_market_app/core/widgets/app_card.dart';
 import 'package:farmer_market_app/core/widgets/price/app_price_text.dart';
 import 'package:farmer_market_app/features/farmer/domain/models/market_price_model.dart';
+import 'package:farmer_market_app/features/farmer/presentation/screens/market_price_details_screen.dart';
 
 class MarketPriceHighlights extends StatelessWidget {
   final List<MarketPriceModel> prices;
@@ -98,6 +99,13 @@ class MarketPriceHighlights extends StatelessWidget {
                 padding: const EdgeInsets.only(bottom: AppSpacing.sm),
                 child: AppCard(
                   padding: const EdgeInsets.all(AppSpacing.md),
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => MarketPriceDetailsScreen(price: item),
+                      ),
+                    );
+                  },
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
