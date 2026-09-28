@@ -1,7 +1,11 @@
+import 'dart:io';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:farmer_market_app/core/errors/result.dart';
+import 'package:farmer_market_app/features/farmer/domain/models/crop_calendar_event_model.dart';
 import 'package:farmer_market_app/features/farmer/domain/models/dashboard_stats.dart';
 import 'package:farmer_market_app/features/farmer/domain/models/market_price_model.dart';
+import 'package:farmer_market_app/features/farmer/domain/models/nearby_mandi_model.dart';
+import 'package:farmer_market_app/features/farmer/domain/models/nearby_produce_model.dart';
 import 'package:farmer_market_app/features/farmer/domain/models/offer_model.dart';
 import 'package:farmer_market_app/features/farmer/domain/models/produce_model.dart';
 
@@ -16,6 +20,15 @@ abstract class FarmerRepository {
 
   /// Add new produce listing.
   Future<AppResult<ProduceModel>> addProduce(ProduceModel produce);
+
+  /// Add many produce listings in a single request (CSV bulk upload).
+  Future<AppResult<List<ProduceModel>>> bulkAddProduce(List<ProduceModel> produceList);
+
+  /// Upload a produce photo to storage and return its public URL.
+  Future<AppResult<String>> uploadProduceImage({
+    required String farmerId,
+    required File file,
+  });
 
   /// Update existing produce listing.
   Future<AppResult<ProduceModel>> updateProduce(ProduceModel produce);
@@ -45,6 +58,34 @@ abstract class FarmerRepository {
 
   /// Calculate real dashboard statistics for a farmer.
   Future<AppResult<DashboardStats>> getFarmerDashboardStats(String farmerId);
+
+  // ---------------------------------------------------------------------
+  // Crop calendar
+  // ---------------------------------------------------------------------
+
+  Future<AppResult<List<CropCalendarEventModel>>> getCropCalendarEvents(String farmerId);
+
+  Future<AppResult<CropCalendarEventModel>> addCropCalendarEvent(CropCalendarEventModel event);
+
+  Future<AppResult<void>> toggleCropCalendarEventCompleted(String eventId, bool isCompleted);
+
+  Future<AppResult<void>> deleteCropCalendarEvent(String eventId);
+
+  // ---------------------------------------------------------------------
+  // Nearby discovery
+  // ---------------------------------------------------------------------
+
+  Future<AppResult<List<NearbyProduceModel>>> findNearbyProduce({
+    required double lat,
+    required double lng,
+    double radiusKm = 50,
+  });
+
+  Future<AppResult<List<NearbyMandiModel>>> findNearbyMandis({
+    required double lat,
+    required double lng,
+    double radiusKm = 50,
+  });
 
   /// Subscribe to real-time changes on offers for farmer.
   RealtimeChannel subscribeToFarmerOffers(
