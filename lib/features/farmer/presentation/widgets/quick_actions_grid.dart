@@ -9,6 +9,8 @@ class QuickActionsGrid extends StatelessWidget {
   final VoidCallback onMyProduce;
   final VoidCallback onMarketPrices;
   final VoidCallback onMyOffers;
+  final VoidCallback onCropCalendar;
+  final VoidCallback onNearbyDiscovery;
 
   const QuickActionsGrid({
     super.key,
@@ -16,6 +18,8 @@ class QuickActionsGrid extends StatelessWidget {
     required this.onMyProduce,
     required this.onMarketPrices,
     required this.onMyOffers,
+    required this.onCropCalendar,
+    required this.onNearbyDiscovery,
   });
 
   @override
@@ -78,6 +82,30 @@ class QuickActionsGrid extends StatelessWidget {
                 bgColor: isDark ? const Color(0xFF0C4A6E) : AppColors.inTransitBg,
                 fgColor: isDark ? const Color(0xFFE0F2FE) : AppColors.inTransitFg,
                 onTap: onMyOffers,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        Row(
+          children: [
+            Expanded(
+              child: _buildActionButton(
+                label: 'Crop Calendar',
+                icon: Icons.calendar_month_outlined,
+                bgColor: isDark ? const Color(0xFF14532D) : AppColors.primaryLight,
+                fgColor: isDark ? const Color(0xFFDCFCE7) : AppColors.primaryDark,
+                onTap: onCropCalendar,
+              ),
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            Expanded(
+              child: _buildActionButton(
+                label: 'Nearby Map',
+                icon: Icons.map_outlined,
+                bgColor: isDark ? const Color(0xFF78350F) : AppColors.secondaryLight,
+                fgColor: isDark ? const Color(0xFFFEF3C7) : AppColors.secondaryDark,
+                onTap: onNearbyDiscovery,
               ),
             ),
           ],
