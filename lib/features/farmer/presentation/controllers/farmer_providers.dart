@@ -3,8 +3,10 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:farmer_market_app/core/network/supabase_client_provider.dart';
 import 'package:farmer_market_app/features/farmer/data/repositories/supabase_farmer_repository.dart';
 import 'package:farmer_market_app/features/farmer/domain/repositories/farmer_repository.dart';
+import 'package:farmer_market_app/features/farmer/presentation/controllers/crop_calendar_controller.dart';
 import 'package:farmer_market_app/features/farmer/presentation/controllers/farmer_dashboard_notifier.dart';
 import 'package:farmer_market_app/features/farmer/presentation/controllers/market_price_controller.dart';
+import 'package:farmer_market_app/features/farmer/presentation/controllers/nearby_discovery_controller.dart';
 import 'package:farmer_market_app/features/farmer/presentation/controllers/offer_controller.dart';
 import 'package:farmer_market_app/features/farmer/presentation/controllers/produce_controller.dart';
 
@@ -35,4 +37,16 @@ final offerControllerProvider =
     StateNotifierProvider<OfferController, OfferState>((ref) {
   final repository = ref.watch(farmerRepositoryProvider);
   return OfferController(repository);
+});
+
+final cropCalendarControllerProvider =
+    StateNotifierProvider<CropCalendarController, CropCalendarState>((ref) {
+  final repository = ref.watch(farmerRepositoryProvider);
+  return CropCalendarController(repository);
+});
+
+final nearbyDiscoveryControllerProvider =
+    StateNotifierProvider<NearbyDiscoveryController, NearbyDiscoveryState>((ref) {
+  final repository = ref.watch(farmerRepositoryProvider);
+  return NearbyDiscoveryController(repository);
 });
