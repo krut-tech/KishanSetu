@@ -12,6 +12,11 @@ class ProduceModel extends Equatable {
   final String status; // 'active', 'pending', 'sold', 'draft', 'archived'
   final String? location;
   final String? description;
+  final List<String> imageUrls;
+  final List<String> qualityTags;
+  final double? lowStockThreshold;
+  final double? latitude;
+  final double? longitude;
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
@@ -29,6 +34,11 @@ class ProduceModel extends Equatable {
     this.status = 'active',
     this.location,
     this.description,
+    this.imageUrls = const [],
+    this.qualityTags = const [],
+    this.lowStockThreshold,
+    this.latitude,
+    this.longitude,
     this.createdAt,
     this.updatedAt,
     this.farmerName,
@@ -59,6 +69,11 @@ class ProduceModel extends Equatable {
       status: (map['status'] as String?) ?? 'active',
       location: map['location'] as String?,
       description: map['description'] as String?,
+      imageUrls: (map['image_urls'] as List?)?.map((e) => e.toString()).toList() ?? const [],
+      qualityTags: (map['quality_tags'] as List?)?.map((e) => e.toString()).toList() ?? const [],
+      lowStockThreshold: (map['low_stock_threshold'] as num?)?.toDouble(),
+      latitude: (map['latitude'] as num?)?.toDouble(),
+      longitude: (map['longitude'] as num?)?.toDouble(),
       createdAt: map['created_at'] != null
           ? DateTime.tryParse(map['created_at'] as String)
           : null,
@@ -82,6 +97,11 @@ class ProduceModel extends Equatable {
       'status': status,
       if (location != null) 'location': location,
       if (description != null) 'description': description,
+      'image_urls': imageUrls,
+      'quality_tags': qualityTags,
+      if (lowStockThreshold != null) 'low_stock_threshold': lowStockThreshold,
+      if (latitude != null) 'latitude': latitude,
+      if (longitude != null) 'longitude': longitude,
     };
   }
 
@@ -96,6 +116,11 @@ class ProduceModel extends Equatable {
     String? status,
     String? location,
     String? description,
+    List<String>? imageUrls,
+    List<String>? qualityTags,
+    double? lowStockThreshold,
+    double? latitude,
+    double? longitude,
     DateTime? createdAt,
     DateTime? updatedAt,
     String? farmerName,
@@ -112,6 +137,11 @@ class ProduceModel extends Equatable {
       status: status ?? this.status,
       location: location ?? this.location,
       description: description ?? this.description,
+      imageUrls: imageUrls ?? this.imageUrls,
+      qualityTags: qualityTags ?? this.qualityTags,
+      lowStockThreshold: lowStockThreshold ?? this.lowStockThreshold,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       farmerName: farmerName ?? this.farmerName,
@@ -131,6 +161,11 @@ class ProduceModel extends Equatable {
         status,
         location,
         description,
+        imageUrls,
+        qualityTags,
+        lowStockThreshold,
+        latitude,
+        longitude,
         createdAt,
         updatedAt,
         farmerName,

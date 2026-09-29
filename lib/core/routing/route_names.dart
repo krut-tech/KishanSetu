@@ -16,6 +16,11 @@ class RouteNames {
   static const String notifications = '/notifications';
   static const String designSystem = '/design-system';
 
+  // Farmer-only feature screens.
+  static const String bulkUploadProduce = '/bulk-upload-produce';
+  static const String cropCalendar = '/crop-calendar';
+  static const String nearbyDiscovery = '/nearby-discovery';
+
   // Deep-link targets used by push notification navigation (see
   // PushNotificationService.resolveRouteFromData and the push-notification
   // Edge Function's resolveRoute). Previously these were only referenced as

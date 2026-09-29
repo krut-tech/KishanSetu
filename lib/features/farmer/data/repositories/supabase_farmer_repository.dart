@@ -4,8 +4,11 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:farmer_market_app/core/errors/failure.dart';
 import 'package:farmer_market_app/core/errors/result.dart';
 import 'package:farmer_market_app/core/logging/app_logger.dart';
+import 'package:farmer_market_app/features/farmer/domain/models/crop_calendar_event_model.dart';
 import 'package:farmer_market_app/features/farmer/domain/models/dashboard_stats.dart';
 import 'package:farmer_market_app/features/farmer/domain/models/market_price_model.dart';
+import 'package:farmer_market_app/features/farmer/domain/models/nearby_mandi_model.dart';
+import 'package:farmer_market_app/features/farmer/domain/models/nearby_produce_model.dart';
 import 'package:farmer_market_app/features/farmer/domain/models/offer_model.dart';
 import 'package:farmer_market_app/features/farmer/domain/models/produce_model.dart';
 import 'package:farmer_market_app/features/farmer/domain/repositories/farmer_repository.dart';
@@ -77,6 +80,74 @@ class SupabaseFarmerRepository implements FarmerRepository {
       return left(DatabaseFailure(e.message, code: e.code));
     } catch (e, stack) {
       AppLogger.error('Unknown failure adding produce', e, stack);
+      return left(UnknownFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<AppResult<List<ProduceModel>>> bulkAddProduce(List<ProduceModel> produceList) async {
+    try {
+      final currentUser = _client.auth.currentUser;
+      if (currentUser == null) {
+        return left(const AuthFailure('Your session has expired. Please sign in again.'));
+      }
+      if (produceList.isEmpty) {
+        return right(const []);
+      }
+      if (produceList.any((p) => p.farmerId != currentUser.id)) {
+        return left(const AuthFailure('You are not authorized to create these produce listings.'));
+      }
+      AppLogger.info('Bulk inserting ${produceList.length} produce rows');
+      final response = await _client
+          .from('produce')
+          .insert(produceList.map((p) => p.toMap()).toList())
+          .select();
+
+      final created = (response as List)
+          .map((row) => ProduceModel.fromMap(row as Map<String, dynamic>))
+          .toList();
+      return right(created);
+    } on SocketException catch (e) {
+      AppLogger.error('Network error bulk adding produce', e);
+      return left(const NetworkFailure());
+    } on PostgrestException catch (e) {
+      AppLogger.error('Database failure bulk adding produce: ${e.message}', e);
+      return left(DatabaseFailure(e.message, code: e.code));
+    } catch (e, stack) {
+      AppLogger.error('Unknown failure bulk adding produce', e, stack);
+      return left(UnknownFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<AppResult<String>> uploadProduceImage({
+    required String farmerId,
+    required File file,
+  }) async {
+    try {
+      final currentUser = _client.auth.currentUser;
+      if (currentUser == null || currentUser.id != farmerId) {
+        return left(const AuthFailure('You are not authorized to upload images.'));
+      }
+      final ext = file.path.contains('.') ? file.path.split('.').last.toLowerCase() : 'jpg';
+      final storagePath = '$farmerId/${DateTime.now().microsecondsSinceEpoch}.$ext';
+      AppLogger.info('Uploading produce image to $storagePath');
+
+      await _client.storage.from('produce-images').upload(
+            storagePath,
+            file,
+            fileOptions: const FileOptions(cacheControl: '3600', upsert: false),
+          );
+      final publicUrl = _client.storage.from('produce-images').getPublicUrl(storagePath);
+      return right(publicUrl);
+    } on SocketException catch (e) {
+      AppLogger.error('Network error uploading produce image', e);
+      return left(const NetworkFailure());
+    } on StorageException catch (e) {
+      AppLogger.error('Storage failure uploading produce image: ${e.message}', e);
+      return left(DatabaseFailure(e.message));
+    } catch (e, stack) {
+      AppLogger.error('Unknown failure uploading produce image', e, stack);
       return left(UnknownFailure(e.toString()));
     }
   }
@@ -340,6 +411,174 @@ class SupabaseFarmerRepository implements FarmerRepository {
       return left(DatabaseFailure(e.message, code: e.code));
     } catch (e, stack) {
       AppLogger.error('Unknown failure calculating stats', e, stack);
+      return left(UnknownFailure(e.toString()));
+    }
+  }
+
+  // ---------------------------------------------------------------------
+  // Crop calendar
+  // ---------------------------------------------------------------------
+
+  @override
+  Future<AppResult<List<CropCalendarEventModel>>> getCropCalendarEvents(String farmerId) async {
+    try {
+      AppLogger.info('Fetching crop calendar events for farmer: $farmerId');
+      final response = await _client
+          .from('crop_calendar_events')
+          .select()
+          .eq('farmer_id', farmerId)
+          .order('event_date', ascending: true);
+
+      final list = (response as List)
+          .map((row) => CropCalendarEventModel.fromMap(row as Map<String, dynamic>))
+          .toList();
+      return right(list);
+    } on SocketException catch (e) {
+      AppLogger.error('Network error fetching crop calendar', e);
+      return left(const NetworkFailure());
+    } on PostgrestException catch (e) {
+      AppLogger.error('Database failure fetching crop calendar: ${e.message}', e);
+      return left(DatabaseFailure(e.message, code: e.code));
+    } catch (e, stack) {
+      AppLogger.error('Unknown failure fetching crop calendar', e, stack);
+      return left(UnknownFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<AppResult<CropCalendarEventModel>> addCropCalendarEvent(CropCalendarEventModel event) async {
+    try {
+      final currentUser = _client.auth.currentUser;
+      if (currentUser == null || currentUser.id != event.farmerId) {
+        return left(const AuthFailure('You are not authorized to create this reminder.'));
+      }
+      AppLogger.info('Adding crop calendar event: ${event.cropName} (${event.eventType})');
+      final response = await _client
+          .from('crop_calendar_events')
+          .insert(event.toMap())
+          .select()
+          .single();
+      return right(CropCalendarEventModel.fromMap(response));
+    } on SocketException catch (e) {
+      AppLogger.error('Network error adding crop calendar event', e);
+      return left(const NetworkFailure());
+    } on PostgrestException catch (e) {
+      AppLogger.error('Database failure adding crop calendar event: ${e.message}', e);
+      return left(DatabaseFailure(e.message, code: e.code));
+    } catch (e, stack) {
+      AppLogger.error('Unknown failure adding crop calendar event', e, stack);
+      return left(UnknownFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<AppResult<void>> toggleCropCalendarEventCompleted(String eventId, bool isCompleted) async {
+    try {
+      final currentUser = _client.auth.currentUser;
+      if (currentUser == null) {
+        return left(const AuthFailure('Your session has expired. Please sign in again.'));
+      }
+      await _client
+          .from('crop_calendar_events')
+          .update({'is_completed': isCompleted})
+          .eq('id', eventId)
+          .eq('farmer_id', currentUser.id);
+      return right(null);
+    } on SocketException catch (e) {
+      AppLogger.error('Network error updating crop calendar event', e);
+      return left(const NetworkFailure());
+    } on PostgrestException catch (e) {
+      AppLogger.error('Database failure updating crop calendar event: ${e.message}', e);
+      return left(DatabaseFailure(e.message, code: e.code));
+    } catch (e, stack) {
+      AppLogger.error('Unknown failure updating crop calendar event', e, stack);
+      return left(UnknownFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<AppResult<void>> deleteCropCalendarEvent(String eventId) async {
+    try {
+      final currentUser = _client.auth.currentUser;
+      if (currentUser == null) {
+        return left(const AuthFailure('Your session has expired. Please sign in again.'));
+      }
+      await _client
+          .from('crop_calendar_events')
+          .delete()
+          .eq('id', eventId)
+          .eq('farmer_id', currentUser.id);
+      return right(null);
+    } on SocketException catch (e) {
+      AppLogger.error('Network error deleting crop calendar event', e);
+      return left(const NetworkFailure());
+    } on PostgrestException catch (e) {
+      AppLogger.error('Database failure deleting crop calendar event: ${e.message}', e);
+      return left(DatabaseFailure(e.message, code: e.code));
+    } catch (e, stack) {
+      AppLogger.error('Unknown failure deleting crop calendar event', e, stack);
+      return left(UnknownFailure(e.toString()));
+    }
+  }
+
+  // ---------------------------------------------------------------------
+  // Nearby discovery
+  // ---------------------------------------------------------------------
+
+  @override
+  Future<AppResult<List<NearbyProduceModel>>> findNearbyProduce({
+    required double lat,
+    required double lng,
+    double radiusKm = 50,
+  }) async {
+    try {
+      AppLogger.info('Finding nearby produce lat=$lat lng=$lng radius=$radiusKm');
+      final response = await _client.rpc('find_nearby_produce', params: {
+        'p_lat': lat,
+        'p_lng': lng,
+        'p_radius_km': radiusKm,
+      });
+      final list = (response as List)
+          .map((row) => NearbyProduceModel.fromMap(row as Map<String, dynamic>))
+          .toList();
+      return right(list);
+    } on SocketException catch (e) {
+      AppLogger.error('Network error finding nearby produce', e);
+      return left(const NetworkFailure());
+    } on PostgrestException catch (e) {
+      AppLogger.error('Database failure finding nearby produce: ${e.message}', e);
+      return left(DatabaseFailure(e.message, code: e.code));
+    } catch (e, stack) {
+      AppLogger.error('Unknown failure finding nearby produce', e, stack);
+      return left(UnknownFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<AppResult<List<NearbyMandiModel>>> findNearbyMandis({
+    required double lat,
+    required double lng,
+    double radiusKm = 50,
+  }) async {
+    try {
+      AppLogger.info('Finding nearby mandis lat=$lat lng=$lng radius=$radiusKm');
+      final response = await _client.rpc('find_nearby_mandis', params: {
+        'p_lat': lat,
+        'p_lng': lng,
+        'p_radius_km': radiusKm,
+      });
+      final list = (response as List)
+          .map((row) => NearbyMandiModel.fromMap(row as Map<String, dynamic>))
+          .toList();
+      return right(list);
+    } on SocketException catch (e) {
+      AppLogger.error('Network error finding nearby mandis', e);
+      return left(const NetworkFailure());
+    } on PostgrestException catch (e) {
+      AppLogger.error('Database failure finding nearby mandis: ${e.message}', e);
+      return left(DatabaseFailure(e.message, code: e.code));
+    } catch (e, stack) {
+      AppLogger.error('Unknown failure finding nearby mandis', e, stack);
       return left(UnknownFailure(e.toString()));
     }
   }

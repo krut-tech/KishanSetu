@@ -285,6 +285,8 @@ class _FarmerHomeScreenState extends ConsumerState<FarmerHomeScreen> {
               onMyProduce: () => setState(() => _currentIndex = 2),
               onMarketPrices: () => setState(() => _currentIndex = 1),
               onMyOffers: () => setState(() => _currentIndex = 3),
+              onCropCalendar: () => context.push(RouteNames.cropCalendar),
+              onNearbyDiscovery: () => context.push(RouteNames.nearbyDiscovery),
             ),
             const SizedBox(height: AppSpacing.lg),
 
