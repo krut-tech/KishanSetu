@@ -13,6 +13,18 @@ const RESOURCE_ID = "9ef84268-d588-465a-a308-a864a43d0070";
 // full pages of real data.
 const FALLBACK_SAMPLE_KEY = "579b464db66ec23bdd000001cdd3946e44ce4aad7209ff7b23ac571b";
 
+// data.gov.in has been observed hanging or returning 503 for extended
+// periods (upstream government API instability, and possibly heavier
+// throttling on the shared public FALLBACK_SAMPLE_KEY). Without a client-
+// side timeout, a single slow/hung page request could block the whole
+// function until the platform's own execution limit, wasting the entire
+// run on one bad page and giving callers (pg_cron/pg_net) no clean signal
+// to retry sooner. Setting a dedicated DATA_GOV_IN_API_KEY secret (instead
+// of relying on the shared fallback) is the most effective fix for the
+// underlying reliability issue; this timeout just makes failures fail
+// fast and clearly instead of hanging.
+const PER_PAGE_TIMEOUT_MS = 15000;
+
 const CATEGORY_KEYWORDS: Record<string, string[]> = {
   Cereals: ["wheat", "rice", "paddy", "maize", "jowar", "bajra", "barley", "ragi"],
   Pulses: ["gram", "moong", "masur", "lentil", "arhar", "tur", "urad", "peas", "rajma", "cowpea"],
@@ -76,7 +88,16 @@ async function fetchDataGovPage(apiKey: string, limit: number, offset: number, s
   if (commodity) params.set("filters[commodity]", commodity);
 
   const url = `https://api.data.gov.in/resource/${RESOURCE_ID}?${params.toString()}`;
-  const res = await fetch(url);
+
+  let res: Response;
+  try {
+    res = await fetch(url, { signal: AbortSignal.timeout(PER_PAGE_TIMEOUT_MS) });
+  } catch (err) {
+    if (err instanceof Error && err.name === "TimeoutError") {
+      throw new Error(`data.gov.in request timed out after ${PER_PAGE_TIMEOUT_MS}ms (offset ${offset})`);
+    }
+    throw new Error(`data.gov.in request errored (offset ${offset}): ${err instanceof Error ? err.message : String(err)}`);
+  }
   if (!res.ok) {
     const text = await res.text();
     throw new Error(`data.gov.in request failed (${res.status}): ${text}`);
@@ -108,16 +129,37 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const allRecords: DataGovRecord[] = [];
+    const pageErrors: string[] = [];
     for (let page = 0; page < maxPages; page++) {
       const offset = page * pageSize;
-      const json = await fetchDataGovPage(apiKey, pageSize, offset, state, commodity);
-      const records: DataGovRecord[] = json.records ?? [];
-      allRecords.push(...records);
-      if (records.length < pageSize) break; // no more pages
-      if (usingSampleKey) break; // sample key ignores paging, avoid useless repeat calls
+      try {
+        const json = await fetchDataGovPage(apiKey, pageSize, offset, state, commodity);
+        const records: DataGovRecord[] = json.records ?? [];
+        allRecords.push(...records);
+        if (records.length < pageSize) break; // no more pages
+        if (usingSampleKey) break; // sample key ignores paging, avoid useless repeat calls
+      } catch (pageErr) {
+        // Stop paginating on first failure (subsequent pages of the same
+        // upstream call almost always fail the same way), but keep
+        // whatever earlier pages already succeeded instead of discarding
+        // the whole run.
+        pageErrors.push(pageErr instanceof Error ? pageErr.message : String(pageErr));
+        console.error(`sync-market-prices: page ${page} failed, stopping pagination:`, pageErr);
+        break;
+      }
     }
 
     console.log(`Fetched ${allRecords.length} records from data.gov.in (sample key: ${usingSampleKey})`);
+
+    if (allRecords.length === 0) {
+      const message = pageErrors.length > 0
+        ? `data.gov.in did not return any usable data: ${pageErrors[0]}`
+        : "No valid records returned from data.gov.in";
+      return new Response(
+        JSON.stringify({ success: pageErrors.length === 0, message, fetched: 0, upserted: 0, usingSampleKey }),
+        { status: pageErrors.length > 0 ? 502 : 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     // Map raw records to our schema, then de-duplicate on the same key our
     // unique constraint uses (produce_name, market_name, price_date).
@@ -209,6 +251,7 @@ serve(async (req) => {
         fetched: allRecords.length,
         upserted: rows.length,
         usingSampleKey,
+        partialFailure: pageErrors.length > 0 ? pageErrors[0] : undefined,
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
