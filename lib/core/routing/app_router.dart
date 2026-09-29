@@ -20,8 +20,11 @@ import 'package:farmer_market_app/features/buyer/presentation/screens/buyer_offe
 import 'package:farmer_market_app/features/buyer/presentation/screens/marketplace_screen.dart';
 import 'package:farmer_market_app/features/design_system/presentation/design_system_gallery_screen.dart';
 import 'package:farmer_market_app/features/farmer/presentation/screens/add_produce_screen.dart';
+import 'package:farmer_market_app/features/farmer/presentation/screens/bulk_upload_produce_screen.dart';
+import 'package:farmer_market_app/features/farmer/presentation/screens/crop_calendar_screen.dart';
 import 'package:farmer_market_app/features/farmer/presentation/screens/market_prices_screen.dart';
 import 'package:farmer_market_app/features/farmer/presentation/screens/my_produce_screen.dart';
+import 'package:farmer_market_app/features/farmer/presentation/screens/nearby_discovery_screen.dart';
 import 'package:farmer_market_app/features/farmer/presentation/screens/offers_screen.dart';
 import 'package:farmer_market_app/features/home/presentation/buyer_home_screen.dart';
 import 'package:farmer_market_app/features/home/presentation/farmer_home_screen.dart';
@@ -97,10 +100,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
       // Role-based cross-route separation guard. Farmer-only routes must not be
       // reachable by a completed buyer through a direct URL/deep link.
-      if (location == RouteNames.addProduce && profile?.role != UserRole.farmer) {
-        return RouteNames.buyerHome;
-      }
-      if (location == RouteNames.myProduce && profile?.role != UserRole.farmer) {
+      final farmerOnlyRoutes = {
+        RouteNames.addProduce,
+        RouteNames.myProduce,
+        RouteNames.bulkUploadProduce,
+        RouteNames.cropCalendar,
+        RouteNames.nearbyDiscovery,
+      };
+      if (farmerOnlyRoutes.contains(location) && profile?.role != UserRole.farmer) {
         return RouteNames.buyerHome;
       }
       if (location == RouteNames.buyerOffers && profile?.role != UserRole.buyer) {
@@ -195,6 +202,21 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: RouteNames.addProduce,
         name: 'addProduce',
         builder: (context, state) => const AddProduceScreen(),
+      ),
+      GoRoute(
+        path: RouteNames.bulkUploadProduce,
+        name: 'bulkUploadProduce',
+        builder: (context, state) => const BulkUploadProduceScreen(),
+      ),
+      GoRoute(
+        path: RouteNames.cropCalendar,
+        name: 'cropCalendar',
+        builder: (context, state) => const CropCalendarScreen(),
+      ),
+      GoRoute(
+        path: RouteNames.nearbyDiscovery,
+        name: 'nearbyDiscovery',
+        builder: (context, state) => const NearbyDiscoveryScreen(),
       ),
       GoRoute(
         path: RouteNames.buyerHome,
