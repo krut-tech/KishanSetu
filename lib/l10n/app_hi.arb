@@ -308,5 +308,16 @@
   "enterAValidEmail": "एक मान्य ईमेल दर्ज करें",
   "enterRegisteredEmailForReset": "पासवर्ड रीसेट लिंक प्राप्त करने के लिए अपना पंजीकृत ईमेल पता दर्ज करें।",
   "failedToSendResetLink": "रीसेट लिंक भेजने में विफल",
-  "passwordResetLinkSent": "पासवर्ड रीसेट लिंक आपके ईमेल पर भेजा गया!"
+  "passwordResetLinkSent": "पासवर्ड रीसेट लिंक आपके ईमेल पर भेजा गया!",
+  "quintalsLabel": "क्विंटल",
+  "namaste": "नमस्ते",
+  "statusLabel": "स्थिति",
+  "offeredPriceLabel": "प्रस्तावित मूल्य",
+  "quantityCannotExceedAvailable": "मात्रा उपलब्ध उपज मात्रा से अधिक नहीं हो सकती",
+  "exceedsAvailableQuantity": "उपलब्ध मात्रा से अधिक है",
+  "cancelOfferTitle": "प्रस्ताव रद्द करें",
+  "cancelOfferConfirmMessage": "क्या आप इस लंबित प्रस्ताव को रद्द करना चाहते हैं",
+  "messageLabelColon": "संदेश:",
+  "listedLabel": "सूचीबद्ध",
+  "deleteProduceConfirmMessage": "क्या आप हटाना चाहते हैं"
 }
