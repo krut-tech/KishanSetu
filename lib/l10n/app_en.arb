@@ -308,5 +308,16 @@
   "enterAValidEmail": "Enter a valid email",
   "enterRegisteredEmailForReset": "Enter your registered email address to receive a password reset link.",
   "failedToSendResetLink": "Failed to send reset link",
-  "passwordResetLinkSent": "Password reset link sent to your email!"
+  "passwordResetLinkSent": "Password reset link sent to your email!",
+  "quintalsLabel": "Quintals",
+  "namaste": "Namaste",
+  "statusLabel": "Status",
+  "offeredPriceLabel": "Offered Price",
+  "quantityCannotExceedAvailable": "Quantity cannot exceed available produce quantity",
+  "exceedsAvailableQuantity": "Exceeds available quantity",
+  "cancelOfferTitle": "Cancel Offer",
+  "cancelOfferConfirmMessage": "Are you sure you want to cancel this pending offer of",
+  "messageLabelColon": "Message:",
+  "listedLabel": "Listed",
+  "deleteProduceConfirmMessage": "Are you sure you want to delete"
 }
