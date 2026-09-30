@@ -48,7 +48,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
     if (!(_formKey.currentState?.validate() ?? false)) return;
     if (_selectedRole == null) {
-      AppSnackBar.show(context, message: 'Please select an account type', type: SnackBarType.error);
+      AppSnackBar.show(context, message: context.l10n.pleaseSelectAccountType, type: SnackBarType.error);
       return;
     }
 
@@ -61,7 +61,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         );
 
     if (!success && mounted) {
-      final error = ref.read(authNotifierProvider).errorMessage ?? 'Registration failed';
+      final error = ref.read(authNotifierProvider).errorMessage ?? context.l10n.registrationFailed;
       AppSnackBar.show(context, message: error, type: SnackBarType.error);
     }
   }
@@ -72,7 +72,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
     final success = await ref.read(authNotifierProvider.notifier).signInWithGoogle();
     if (!success && mounted) {
-      final error = ref.read(authNotifierProvider).errorMessage ?? 'Google authentication failed.';
+      final error = ref.read(authNotifierProvider).errorMessage ?? context.l10n.googleAuthFailed;
       AppSnackBar.show(context, message: error, type: SnackBarType.error);
     }
   }
@@ -153,10 +153,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         prefixIcon: const Icon(Icons.person_outline_rounded),
                         validator: (v) {
                           if (v == null || v.trim().isEmpty) {
-                            return 'Please enter your full name';
+                            return context.l10n.pleaseEnterYourFullName;
                           }
                           if (v.trim().length < 2) {
-                            return 'Name must be at least 2 characters';
+                            return context.l10n.nameMinTwoChars;
                           }
                           return null;
                         },
@@ -169,11 +169,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         prefixIcon: const Icon(Icons.email_outlined),
                         validator: (v) {
                           if (v == null || v.trim().isEmpty) {
-                            return 'Please enter your email';
+                            return context.l10n.pleaseEnterYourEmail;
                           }
                           final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
                           if (!emailRegex.hasMatch(v.trim())) {
-                            return 'Please enter a valid email address';
+                            return context.l10n.pleaseEnterValidEmail;
                           }
                           return null;
                         },
@@ -186,20 +186,20 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         prefixIcon: const Icon(Icons.phone_outlined),
                         validator: (v) {
                           if (v == null || v.trim().isEmpty) {
-                            return 'Please enter your phone number';
+                            return context.l10n.pleaseEnterYourPhoneNumber;
                           }
                           final phoneRegex = RegExp(r'^[6-9]\d{9}$');
                           if (!phoneRegex.hasMatch(v.trim())) {
-                            return 'Enter valid 10-digit Indian mobile number';
+                            return context.l10n.enterValid10DigitIndianMobile;
                           }
                           return null;
                         },
                       ),
                       const SizedBox(height: AppSpacing.md),
                       AppDropdownFormField<UserRole>(
-                        label: 'Account Type',
+                        label: context.l10n.accountType,
                         value: _selectedRole,
-                        hint: 'Select Account Type',
+                        hint: context.l10n.selectAccountType,
                         items: [
                           DropdownMenuItem(
                             value: UserRole.farmer,
@@ -229,7 +229,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         },
                         validator: (role) {
                           if (role == null) {
-                            return 'Please select an account type';
+                            return context.l10n.pleaseSelectAccountType;
                           }
                           return null;
                         },
@@ -242,33 +242,33 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         prefixIcon: const Icon(Icons.lock_outline_rounded),
                         validator: (v) {
                           if (v == null || v.isEmpty) {
-                            return 'Please enter a password';
+                            return context.l10n.pleaseEnterAPassword;
                           }
                           if (v.length < 6) {
-                            return 'Password must be at least 6 characters long';
+                            return context.l10n.passwordMinLength;
                           }
                           return null;
                         },
                       ),
                       const SizedBox(height: AppSpacing.md),
                       AppTextField(
-                        label: 'Confirm Password',
+                        label: context.l10n.confirmPassword,
                         controller: _confirmPasswordController,
                         obscureText: true,
                         prefixIcon: const Icon(Icons.lock_reset_rounded),
                         validator: (v) {
                           if (v == null || v.isEmpty) {
-                            return 'Please confirm your password';
+                            return context.l10n.pleaseConfirmYourPassword;
                           }
                           if (v != _passwordController.text) {
-                            return 'Passwords do not match';
+                            return context.l10n.passwordsDoNotMatch;
                           }
                           return null;
                         },
                       ),
                       const SizedBox(height: AppSpacing.xl),
                       AppButton(
-                        label: 'Create Account',
+                        label: context.l10n.createAccount,
                         isLoading: authState.isLoading,
                         onPressed: _handleRegister,
                       ),
