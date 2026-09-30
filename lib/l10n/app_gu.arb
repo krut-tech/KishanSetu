@@ -308,5 +308,16 @@
   "enterAValidEmail": "માન્ય ઈમેલ દાખલ કરો",
   "enterRegisteredEmailForReset": "પાસવર્ડ રીસેટ લિંક મેળવવા માટે તમારું નોંધાયેલ ઈમેલ સરનામું દાખલ કરો.",
   "failedToSendResetLink": "રીસેટ લિંક મોકલવામાં નિષ્ફળ",
-  "passwordResetLinkSent": "પાસવર્ડ રીસેટ લિંક તમારા ઈમેલ પર મોકલવામાં આવી!"
+  "passwordResetLinkSent": "પાસવર્ડ રીસેટ લિંક તમારા ઈમેલ પર મોકલવામાં આવી!",
+  "quintalsLabel": "ક્વિન્ટલ",
+  "namaste": "નમસ્તે",
+  "statusLabel": "સ્થિતિ",
+  "offeredPriceLabel": "ઓફર કરેલ ભાવ",
+  "quantityCannotExceedAvailable": "જથ્થો ઉપલબ્ધ પેદાશના જથ્થાથી વધુ ન હોઈ શકે",
+  "exceedsAvailableQuantity": "ઉપલબ્ધ જથ્થા કરતાં વધુ છે",
+  "cancelOfferTitle": "ઓફર રદ કરો",
+  "cancelOfferConfirmMessage": "શું તમે આ બાકી ઓફર રદ કરવા માંગો છો",
+  "messageLabelColon": "સંદેશ:",
+  "listedLabel": "યાદીબદ્ધ",
+  "deleteProduceConfirmMessage": "શું તમે કાઢી નાખવા માંગો છો"
 }
