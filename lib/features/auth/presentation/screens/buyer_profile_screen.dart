@@ -106,7 +106,7 @@ class _BuyerProfileScreenState extends ConsumerState<BuyerProfileScreen> {
         .updateProfile(updatedProfile);
 
     if (!success && mounted) {
-      final error = ref.read(authNotifierProvider).errorMessage ?? 'Failed to save profile';
+      final error = ref.read(authNotifierProvider).errorMessage ?? context.l10n.failedToSaveProfile;
       AppSnackBar.show(context, message: error, type: SnackBarType.error);
     }
   }
@@ -150,7 +150,7 @@ class _BuyerProfileScreenState extends ConsumerState<BuyerProfileScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Buyer Profile Setup',
+                                context.l10n.buyerProfileSetupTitle,
                                 style: TextStyle(
                                   fontSize: 20,
                                   fontWeight: FontWeight.bold,
@@ -158,7 +158,7 @@ class _BuyerProfileScreenState extends ConsumerState<BuyerProfileScreen> {
                                 ),
                               ),
                               Text(
-                                'Provide business & contact details to connect with farmers',
+                                context.l10n.provideBusinessContactDetails,
                                 style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant),
                               ),
                             ],
@@ -168,10 +168,10 @@ class _BuyerProfileScreenState extends ConsumerState<BuyerProfileScreen> {
                     ),
                     const SizedBox(height: AppSpacing.xl),
                     AppTextField(
-                      label: 'Contact Name / Full Name',
+                      label: context.l10n.contactNameFullName,
                       controller: _nameController,
                       prefixIcon: const Icon(Icons.person_outline),
-                      validator: (v) => v == null || v.trim().isEmpty ? 'Contact name is required' : null,
+                      validator: (v) => v == null || v.trim().isEmpty ? context.l10n.contactNameRequired : null,
                     ),
                     const SizedBox(height: AppSpacing.md),
                     AppTextField(
@@ -180,19 +180,19 @@ class _BuyerProfileScreenState extends ConsumerState<BuyerProfileScreen> {
                       keyboardType: TextInputType.phone,
                       prefixIcon: const Icon(Icons.phone_outlined),
                       validator: (v) {
-                        if (v == null || v.trim().isEmpty) return 'Phone number is required';
-                        if (!RegExp(r'^[6-9]\d{9}$').hasMatch(v.trim())) return 'Enter valid 10-digit mobile number';
+                        if (v == null || v.trim().isEmpty) return context.l10n.phoneNumberRequired;
+                        if (!RegExp(r'^[6-9]\d{9}$').hasMatch(v.trim())) return context.l10n.enterValid10DigitMobile;
                         return null;
                       },
                     ),
                     const SizedBox(height: AppSpacing.md),
                     AppDropdownFormField<String>(
-                      label: 'Preferred Language',
+                      label: context.l10n.preferredLanguage,
                       value: _selectedLanguage,
-                      items: const [
-                        DropdownMenuItem(value: 'en', child: Text('English')),
-                        DropdownMenuItem(value: 'hi', child: Text('Hindi (हिंदी)')),
-                        DropdownMenuItem(value: 'gu', child: Text('Gujarati (ગુજરાતી)')),
+                      items: [
+                        DropdownMenuItem(value: 'en', child: Text(context.l10n.english)),
+                        DropdownMenuItem(value: 'hi', child: Text(context.l10n.hindi)),
+                        DropdownMenuItem(value: 'gu', child: Text(context.l10n.gujarati)),
                       ],
                       onChanged: (val) {
                         if (val != null) setState(() => _selectedLanguage = val);
@@ -203,17 +203,17 @@ class _BuyerProfileScreenState extends ConsumerState<BuyerProfileScreen> {
                       label: context.l10n.companyName,
                       controller: _companyNameController,
                       hint: 'e.g. Patel Agro Traders',
-                      validator: (v) => v == null || v.trim().isEmpty ? 'Company name is required' : null,
+                      validator: (v) => v == null || v.trim().isEmpty ? context.l10n.companyNameRequired : null,
                     ),
                     const SizedBox(height: AppSpacing.md),
                     AppDropdownFormField<String>(
                       label: context.l10n.businessType,
                       value: _businessType,
-                      items: const [
-                        DropdownMenuItem(value: 'Wholesaler / Trader', child: Text('Wholesaler / Trader')),
-                        DropdownMenuItem(value: 'Processor / Mill Owner', child: Text('Processor / Mill Owner')),
-                        DropdownMenuItem(value: 'Exporter', child: Text('Exporter')),
-                        DropdownMenuItem(value: 'Retailer', child: Text('Retailer')),
+                      items: [
+                        DropdownMenuItem(value: 'Wholesaler / Trader', child: Text(context.l10n.wholesalerTrader)),
+                        DropdownMenuItem(value: 'Processor / Mill Owner', child: Text(context.l10n.processorMillOwner)),
+                        DropdownMenuItem(value: 'Exporter', child: Text(context.l10n.exporter)),
+                        DropdownMenuItem(value: 'Retailer', child: Text(context.l10n.retailer)),
                       ],
                       onChanged: (val) {
                         if (val != null) setState(() => _businessType = val);
@@ -223,18 +223,18 @@ class _BuyerProfileScreenState extends ConsumerState<BuyerProfileScreen> {
                     AppTextField(
                       label: context.l10n.state,
                       controller: _stateController,
-                      validator: (v) => v == null || v.trim().isEmpty ? 'State is required' : null,
+                      validator: (v) => v == null || v.trim().isEmpty ? context.l10n.stateRequired : null,
                     ),
                     const SizedBox(height: AppSpacing.md),
                     AppTextField(
                       label: context.l10n.district,
                       controller: _districtController,
-                      hint: 'Primary Mandi District / City',
-                      validator: (v) => v == null || v.trim().isEmpty ? 'District / City is required' : null,
+                      hint: context.l10n.primaryMandiDistrictCity,
+                      validator: (v) => v == null || v.trim().isEmpty ? context.l10n.districtCityRequired : null,
                     ),
                     const SizedBox(height: AppSpacing.md),
                     AppTextField(
-                      label: 'GST Number (Optional)',
+                      label: context.l10n.gstNumberOptional,
                       controller: _gstController,
                       hint: '24AAAAA0000A1Z5',
                     ),
