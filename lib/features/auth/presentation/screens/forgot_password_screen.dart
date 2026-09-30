@@ -41,12 +41,12 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
         _emailController.clear();
         AppSnackBar.show(
           context,
-          message: 'Password reset link sent to your email!',
+          message: context.l10n.passwordResetLinkSent,
           type: SnackBarType.success,
         );
         context.go(RouteNames.login);
       } else {
-        final error = ref.read(authNotifierProvider).errorMessage ?? 'Failed to send reset link';
+        final error = ref.read(authNotifierProvider).errorMessage ?? context.l10n.failedToSendResetLink;
         AppSnackBar.show(context, message: error, type: SnackBarType.error);
       }
     }
@@ -84,7 +84,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                       ),
                       const SizedBox(height: AppSpacing.sm),
                       Text(
-                        'Enter your registered email address to receive a password reset link.',
+                        context.l10n.enterRegisteredEmailForReset,
                         style: TextStyle(fontSize: 13, color: colorScheme.onSurfaceVariant),
                       ),
                       const SizedBox(height: AppSpacing.xl),
@@ -93,7 +93,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                         controller: _emailController,
                         keyboardType: TextInputType.emailAddress,
                         prefixIcon: const Icon(Icons.email_outlined),
-                        validator: (v) => v == null || !v.contains('@') ? 'Enter a valid email' : null,
+                        validator: (v) => v == null || !v.contains('@') ? context.l10n.enterAValidEmail : null,
                       ),
                       const SizedBox(height: AppSpacing.xl),
                       AppButton(
@@ -106,7 +106,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                         child: TextButton(
                           onPressed: () => context.go(RouteNames.login),
                           child: Text(
-                            'Back to Login',
+                            context.l10n.backToLogin,
                             style: TextStyle(
                               color: colorScheme.primary,
                               fontWeight: FontWeight.w600,
