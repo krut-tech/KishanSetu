@@ -4,8 +4,12 @@ import 'package:farmer_market_app/core/constants/app_spacing.dart';
 import 'package:farmer_market_app/core/widgets/app_card.dart';
 import 'package:farmer_market_app/core/widgets/badges/app_status_badge.dart';
 import 'package:farmer_market_app/core/widgets/buttons/app_button.dart';
+import 'package:farmer_market_app/core/widgets/dropdowns/app_dropdown.dart';
+import 'package:farmer_market_app/core/widgets/inputs/app_text_field.dart';
 import 'package:farmer_market_app/core/widgets/price/app_price_text.dart';
+import 'package:farmer_market_app/core/widgets/snackbars/app_snack_bar.dart';
 import 'package:farmer_market_app/features/auth/presentation/controllers/auth_providers.dart';
+import 'package:farmer_market_app/features/buyer/domain/models/subscription_model.dart';
 import 'package:farmer_market_app/features/buyer/presentation/controllers/buyer_providers.dart';
 import 'package:farmer_market_app/features/buyer/presentation/screens/make_offer_dialog.dart';
 import 'package:farmer_market_app/features/farmer/domain/models/offer_model.dart';
@@ -29,6 +33,9 @@ class ProduceDetailsScreen extends ConsumerStatefulWidget {
 class _ProduceDetailsScreenState extends ConsumerState<ProduceDetailsScreen> {
   late ProduceModel _produce;
   RealtimeChannel? _detailsChannel;
+  bool _isFavorite = false;
+  String? _wishlistItemId;
+  bool _isTogglingWishlist = false;
 
   @override
   void initState() {
@@ -38,6 +45,18 @@ class _ProduceDetailsScreenState extends ConsumerState<ProduceDetailsScreen> {
       final user = ref.read(authNotifierProvider).state.user;
       if (user != null) {
         ref.read(buyerOfferControllerProvider.notifier).fetchOffers(user.id);
+      }
+
+      final buyerId = ref.read(authNotifierProvider).profile?.id;
+      if (buyerId != null) {
+        final wishlistState = ref.read(wishlistControllerProvider);
+        final match = wishlistState.items.where((i) => i.produce.id == _produce.id);
+        if (match.isNotEmpty) {
+          setState(() {
+            _isFavorite = true;
+            _wishlistItemId = match.first.id;
+          });
+        }
       }
 
       final repo = ref.read(buyerRepositoryProvider);
@@ -74,6 +93,145 @@ class _ProduceDetailsScreenState extends ConsumerState<ProduceDetailsScreen> {
     }
   }
 
+  Future<void> _toggleWishlist() async {
+    final buyerId = ref.read(authNotifierProvider).profile?.id;
+    if (buyerId == null || _isTogglingWishlist) return;
+    setState(() => _isTogglingWishlist = true);
+
+    if (_isFavorite && _wishlistItemId != null) {
+      final ok = await ref.read(wishlistControllerProvider.notifier).remove(_wishlistItemId!, buyerId);
+      if (mounted) {
+        setState(() {
+          _isTogglingWishlist = false;
+          if (ok) {
+            _isFavorite = false;
+            _wishlistItemId = null;
+          }
+        });
+      }
+    } else {
+      final ok = await ref.read(wishlistControllerProvider.notifier).add(buyerId: buyerId, produceId: _produce.id);
+      if (!mounted) return;
+      if (ok) {
+        final match = ref.read(wishlistControllerProvider).items.where((i) => i.produce.id == _produce.id);
+        setState(() {
+          _isTogglingWishlist = false;
+          _isFavorite = true;
+          _wishlistItemId = match.isNotEmpty ? match.first.id : null;
+        });
+        AppSnackBar.show(context, message: 'Added to wishlist', type: SnackBarType.success);
+      } else {
+        setState(() => _isTogglingWishlist = false);
+      }
+    }
+  }
+
+  Future<void> _openSubscribeSheet() async {
+    final buyerId = ref.read(authNotifierProvider).profile?.id;
+    if (buyerId == null) return;
+
+    final quantityController = TextEditingController(text: '1');
+    var frequency = 'weekly';
+    final formKey = GlobalKey<FormState>();
+
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (sheetContext) {
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(sheetContext).viewInsets.bottom,
+            left: AppSpacing.lg,
+            right: AppSpacing.lg,
+          ),
+          child: StatefulBuilder(
+            builder: (context, setSheetState) {
+              return SingleChildScrollView(
+                child: Form(
+                  key: formKey,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Set Up Recurring Order', style: Theme.of(context).textTheme.titleLarge),
+                      const SizedBox(height: AppSpacing.xs),
+                      Text(
+                        '${_produce.name} will be auto-requested from this farmer on your chosen schedule.',
+                        style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 13),
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      AppTextField(
+                        label: 'Quantity per order (${_produce.unit})',
+                        controller: quantityController,
+                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        validator: (v) {
+                          final n = double.tryParse((v ?? '').trim());
+                          if (n == null || n <= 0) return 'Enter valid quantity';
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      AppDropdownFormField<String>(
+                        label: 'Frequency',
+                        value: frequency,
+                        items: const [
+                          DropdownMenuItem(value: 'weekly', child: Text('Every week')),
+                          DropdownMenuItem(value: 'biweekly', child: Text('Every 2 weeks')),
+                          DropdownMenuItem(value: 'monthly', child: Text('Every month')),
+                        ],
+                        onChanged: (v) => setSheetState(() => frequency = v ?? frequency),
+                      ),
+                      const SizedBox(height: AppSpacing.lg),
+                      Consumer(
+                        builder: (context, ref, _) {
+                          final isSubmitting = ref.watch(subscriptionControllerProvider).isSubmitting;
+                          return AppButton(
+                            label: 'Start Subscription',
+                            icon: Icons.autorenew_rounded,
+                            isLoading: isSubmitting,
+                            onPressed: () async {
+                              if (!(formKey.currentState?.validate() ?? false)) return;
+                              final sub = SubscriptionModel(
+                                id: '',
+                                buyerId: buyerId,
+                                farmerId: _produce.farmerId,
+                                produceId: _produce.id,
+                                quantity: double.parse(quantityController.text.trim()),
+                                frequency: frequency,
+                                nextDeliveryDate: DateTime.now().add(const Duration(days: 1)),
+                              );
+                              final ok = await ref.read(subscriptionControllerProvider.notifier).create(sub);
+                              if (!context.mounted) return;
+                              if (ok) {
+                                Navigator.of(context).pop();
+                                AppSnackBar.show(
+                                  this.context,
+                                  message: 'Recurring order set up!',
+                                  type: SnackBarType.success,
+                                );
+                              } else {
+                                final err = ref.read(subscriptionControllerProvider).errorMessage;
+                                if (err != null) AppSnackBar.show(context, message: err, type: SnackBarType.error);
+                              }
+                            },
+                          );
+                        },
+                      ),
+                      const SizedBox(height: AppSpacing.xl),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        );
+      },
+    );
+
+    quantityController.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -100,6 +258,22 @@ class _ProduceDetailsScreenState extends ConsumerState<ProduceDetailsScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Produce Details'),
+        actions: [
+          IconButton(
+            tooltip: _isFavorite ? 'Remove from wishlist' : 'Add to wishlist',
+            icon: _isTogglingWishlist
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : Icon(
+                    _isFavorite ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                    color: _isFavorite ? Colors.redAccent : null,
+                  ),
+            onPressed: _isTogglingWishlist ? null : _toggleWishlist,
+          ),
+        ],
       ),
       body: SafeArea(
         child: Column(
@@ -214,6 +388,20 @@ class _ProduceDetailsScreenState extends ConsumerState<ProduceDetailsScreen> {
                               ),
                             ],
                           ),
+                          if (produce.qualityTags.isNotEmpty) ...[
+                            const SizedBox(height: AppSpacing.sm),
+                            Wrap(
+                              spacing: 6,
+                              runSpacing: 6,
+                              children: produce.qualityTags
+                                  .map((t) => Chip(
+                                        label: Text(t, style: const TextStyle(fontSize: 11)),
+                                        visualDensity: VisualDensity.compact,
+                                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                      ))
+                                  .toList(),
+                            ),
+                          ],
                         ],
                       ),
                     ),
@@ -337,27 +525,44 @@ class _ProduceDetailsScreenState extends ConsumerState<ProduceDetailsScreen> {
                   ),
                 ],
               ),
-              child: AppButton(
-                label: hasActiveOffer
-                    ? 'Edit Offer'
-                    : (isActive ? 'Make Offer' : 'Produce Listing Inactive'),
-                style: AppButtonStyle.secondary,
-                icon: hasActiveOffer ? Icons.edit_outlined : Icons.local_offer_rounded,
-                onPressed: isActive
-                    ? () async {
-                        final submitted = await MakeOfferDialog.show(
-                          context,
-                          produce,
-                          existingOffer: existingOffer,
-                        );
-                        if (submitted == true && context.mounted) {
-                          final user = ref.read(authNotifierProvider).state.user;
-                          if (user != null) {
-                            ref.read(buyerOfferControllerProvider.notifier).fetchOffers(user.id);
-                          }
-                        }
-                      }
-                    : null,
+              child: Row(
+                children: [
+                  if (isActive)
+                    Expanded(
+                      child: AppButton(
+                        label: 'Subscribe',
+                        style: AppButtonStyle.outlined,
+                        icon: Icons.autorenew_rounded,
+                        onPressed: _openSubscribeSheet,
+                      ),
+                    ),
+                  if (isActive) const SizedBox(width: AppSpacing.sm),
+                  Expanded(
+                    flex: 2,
+                    child: AppButton(
+                      label: hasActiveOffer
+                          ? 'Edit Offer'
+                          : (isActive ? 'Make Offer' : 'Produce Listing Inactive'),
+                      style: AppButtonStyle.secondary,
+                      icon: hasActiveOffer ? Icons.edit_outlined : Icons.local_offer_rounded,
+                      onPressed: isActive
+                          ? () async {
+                              final submitted = await MakeOfferDialog.show(
+                                context,
+                                produce,
+                                existingOffer: existingOffer,
+                              );
+                              if (submitted == true && context.mounted) {
+                                final user = ref.read(authNotifierProvider).state.user;
+                                if (user != null) {
+                                  ref.read(buyerOfferControllerProvider.notifier).fetchOffers(user.id);
+                                }
+                              }
+                            }
+                          : null,
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
