@@ -171,7 +171,7 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
         .updateProfile(updatedProfile);
 
     if (!success && mounted) {
-      final error = ref.read(authNotifierProvider).errorMessage ?? 'Failed to save profile';
+      final error = ref.read(authNotifierProvider).errorMessage ?? context.l10n.failedToSaveProfile;
       AppSnackBar.show(context, message: error, type: SnackBarType.error);
     }
   }
@@ -190,10 +190,10 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Complete Your Profile'),
+        title: Text(context.l10n.completeYourProfileTitle),
         actions: [
           IconButton(
-            tooltip: 'Log out',
+            tooltip: context.l10n.logOut,
             icon: const Icon(Icons.logout_rounded),
             onPressed: () => ref.read(authNotifierProvider.notifier).signOut(),
           ),
@@ -211,9 +211,9 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
                   // Step Indicator Header
                   Row(
                     children: [
-                      _StepBadge(stepNumber: 1, label: 'Account Type', isActive: _currentStep == 0, isDone: _currentStep > 0),
+                      _StepBadge(stepNumber: 1, label: context.l10n.accountType, isActive: _currentStep == 0, isDone: _currentStep > 0),
                       const Expanded(child: Divider(indent: 8, endIndent: 8)),
-                      _StepBadge(stepNumber: 2, label: 'Profile Details', isActive: _currentStep == 1, isDone: false),
+                      _StepBadge(stepNumber: 2, label: context.l10n.profileDetailsTitle, isActive: _currentStep == 1, isDone: false),
                     ],
                   ),
                   const SizedBox(height: AppSpacing.lg),
@@ -221,7 +221,7 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
                   if (_currentStep == 0) ...[
                     // Step 1: Select Account Type
                     Text(
-                      'Complete Your Profile',
+                      context.l10n.completeYourProfileTitle,
                       style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
@@ -230,7 +230,7 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
                     ),
                     const SizedBox(height: AppSpacing.xs),
                     Text(
-                      'Tell us a little about yourself to personalize your KisanSetu experience.',
+                      context.l10n.tellUsAboutYourself,
                       style: TextStyle(
                         fontSize: 13,
                         color: colorScheme.onSurfaceVariant,
@@ -278,7 +278,7 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
                                   ),
                                   const SizedBox(height: AppSpacing.xs),
                                   Text(
-                                    'Sell produce and discover market prices.',
+                                    context.l10n.sellProduceDiscoverPrices,
                                     style: TextStyle(
                                       fontSize: 13,
                                       color: colorScheme.onSurfaceVariant,
@@ -338,7 +338,7 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
                                   ),
                                   const SizedBox(height: AppSpacing.xs),
                                   Text(
-                                    'Discover produce and connect with farmers.',
+                                    context.l10n.discoverProduceConnectFarmers,
                                     style: TextStyle(
                                       fontSize: 13,
                                       color: colorScheme.onSurfaceVariant,
@@ -363,7 +363,7 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
                     const SizedBox(height: AppSpacing.xxl),
 
                     AppButton(
-                      label: 'Continue →',
+                      label: context.l10n.continueArrow,
                       onPressed: _selectedRole != null
                           ? () => setState(() => _currentStep = 1)
                           : null,
@@ -378,8 +378,8 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
                         ),
                         Text(
                           _selectedRole == UserRole.farmer
-                              ? 'Complete Your Farmer Profile'
-                              : 'Complete Your Buyer Profile',
+                              ? context.l10n.completeYourFarmerProfileTitle
+                              : context.l10n.completeYourBuyerProfileTitle,
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
@@ -419,7 +419,7 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
                                         borderRadius: BorderRadius.circular(4),
                                       ),
                                       child: Text(
-                                        'Google Account',
+                                        context.l10n.googleAccount,
                                         style: TextStyle(
                                           fontSize: 10,
                                           fontWeight: FontWeight.w600,
@@ -433,7 +433,7 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
                                 Text(
                                   _nameController.text.isNotEmpty
                                       ? _nameController.text
-                                      : 'Google User',
+                                      : context.l10n.googleUser,
                                   style: TextStyle(
                                     fontSize: 15,
                                     fontWeight: FontWeight.bold,
@@ -462,7 +462,7 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
                       controller: _nameController,
                       prefixIcon: const Icon(Icons.person_outline),
                       validator: (v) => v == null || v.trim().isEmpty
-                          ? 'Full name is required'
+                          ? context.l10n.fullNameRequired
                           : null,
                     ),
                     const SizedBox(height: AppSpacing.md),
@@ -473,9 +473,9 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
                       keyboardType: TextInputType.phone,
                       prefixIcon: const Icon(Icons.phone_outlined),
                       validator: (v) {
-                        if (v == null || v.trim().isEmpty) return 'Phone number is required';
+                        if (v == null || v.trim().isEmpty) return context.l10n.phoneNumberRequired;
                         if (!RegExp(r'^[6-9]\d{9}$').hasMatch(v.trim())) {
-                          return 'Enter valid 10-digit mobile number';
+                          return context.l10n.enterValid10DigitMobile;
                         }
                         return null;
                       },
@@ -483,12 +483,12 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
                     const SizedBox(height: AppSpacing.md),
 
                     AppDropdownFormField<String>(
-                      label: 'Preferred Language',
+                      label: context.l10n.preferredLanguage,
                       value: _selectedLanguage,
-                      items: const [
-                        DropdownMenuItem(value: 'en', child: Text('English')),
-                        DropdownMenuItem(value: 'hi', child: Text('Hindi (हिंदी)')),
-                        DropdownMenuItem(value: 'gu', child: Text('Gujarati (ગુજરાતી)')),
+                      items: [
+                        DropdownMenuItem(value: 'en', child: Text(context.l10n.english)),
+                        DropdownMenuItem(value: 'hi', child: Text(context.l10n.hindi)),
+                        DropdownMenuItem(value: 'gu', child: Text(context.l10n.gujarati)),
                       ],
                       onChanged: (val) {
                         if (val != null) setState(() => _selectedLanguage = val);
@@ -501,21 +501,21 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
                       AppTextField(
                         label: context.l10n.state,
                         controller: _stateController,
-                        validator: (v) => v == null || v.trim().isEmpty ? 'State is required' : null,
+                        validator: (v) => v == null || v.trim().isEmpty ? context.l10n.stateRequired : null,
                       ),
                       const SizedBox(height: AppSpacing.md),
                       AppTextField(
                         label: context.l10n.district,
                         controller: _districtController,
                         hint: 'e.g. Anand, Rajkot, Junagadh',
-                        validator: (v) => v == null || v.trim().isEmpty ? 'District is required' : null,
+                        validator: (v) => v == null || v.trim().isEmpty ? context.l10n.districtRequired : null,
                       ),
                       const SizedBox(height: AppSpacing.md),
                       AppTextField(
                         label: context.l10n.village,
                         controller: _villageController,
-                        hint: 'Enter your village name',
-                        validator: (v) => v == null || v.trim().isEmpty ? 'Village is required' : null,
+                        hint: context.l10n.enterYourVillageName,
+                        validator: (v) => v == null || v.trim().isEmpty ? context.l10n.villageRequired : null,
                       ),
                       const SizedBox(height: AppSpacing.md),
                       AppTextField(
@@ -529,7 +529,7 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
                         label: context.l10n.primaryCrop,
                         controller: _cropController,
                         hint: 'e.g. Wheat, Cotton, Mustard, Groundnut',
-                        validator: (v) => v == null || v.trim().isEmpty ? 'Primary crop is required' : null,
+                        validator: (v) => v == null || v.trim().isEmpty ? context.l10n.primaryCropRequired : null,
                       ),
                     ] else ...[
                       // Buyer Profile Fields
@@ -537,17 +537,17 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
                         label: context.l10n.companyName,
                         controller: _companyNameController,
                         hint: 'e.g. Patel Agro Traders',
-                        validator: (v) => v == null || v.trim().isEmpty ? 'Company name is required' : null,
+                        validator: (v) => v == null || v.trim().isEmpty ? context.l10n.companyNameRequired : null,
                       ),
                       const SizedBox(height: AppSpacing.md),
                       AppDropdownFormField<String>(
                         label: context.l10n.businessType,
                         value: _businessType,
-                        items: const [
-                          DropdownMenuItem(value: 'Wholesaler / Trader', child: Text('Wholesaler / Trader')),
-                          DropdownMenuItem(value: 'Processor / Mill Owner', child: Text('Processor / Mill Owner')),
-                          DropdownMenuItem(value: 'Exporter', child: Text('Exporter')),
-                          DropdownMenuItem(value: 'Retailer', child: Text('Retailer')),
+                        items: [
+                          DropdownMenuItem(value: 'Wholesaler / Trader', child: Text(context.l10n.wholesalerTrader)),
+                          DropdownMenuItem(value: 'Processor / Mill Owner', child: Text(context.l10n.processorMillOwner)),
+                          DropdownMenuItem(value: 'Exporter', child: Text(context.l10n.exporter)),
+                          DropdownMenuItem(value: 'Retailer', child: Text(context.l10n.retailer)),
                         ],
                         onChanged: (val) {
                           if (val != null) setState(() => _businessType = val);
@@ -557,18 +557,18 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
                       AppTextField(
                         label: context.l10n.state,
                         controller: _buyerStateController,
-                        validator: (v) => v == null || v.trim().isEmpty ? 'State is required' : null,
+                        validator: (v) => v == null || v.trim().isEmpty ? context.l10n.stateRequired : null,
                       ),
                       const SizedBox(height: AppSpacing.md),
                       AppTextField(
                         label: context.l10n.district,
                         controller: _buyerDistrictController,
-                        hint: 'Primary Mandi District / City',
-                        validator: (v) => v == null || v.trim().isEmpty ? 'District / City is required' : null,
+                        hint: context.l10n.primaryMandiDistrictCity,
+                        validator: (v) => v == null || v.trim().isEmpty ? context.l10n.districtCityRequired : null,
                       ),
                       const SizedBox(height: AppSpacing.md),
                       AppTextField(
-                        label: 'GST Number (Optional)',
+                        label: context.l10n.gstNumberOptional,
                         controller: _gstController,
                         hint: '24AAAAA0000A1Z5',
                       ),
