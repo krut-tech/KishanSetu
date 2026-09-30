@@ -50,7 +50,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     if (mounted) {
       setState(() => _isSubmitting = false);
       if (!success) {
-        final error = ref.read(authNotifierProvider).errorMessage ?? 'Login failed. Please check your credentials.';
+        final error = ref.read(authNotifierProvider).errorMessage ?? context.l10n.loginFailedCheckCredentials;
         AppSnackBar.show(context, message: error, type: SnackBarType.error);
       } else {
         _emailController.clear();
@@ -65,7 +65,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     final success = await ref.read(authNotifierProvider.notifier).signInWithGoogle();
     if (!success && mounted) {
-      final error = ref.read(authNotifierProvider).errorMessage ?? 'Google authentication failed.';
+      final error = ref.read(authNotifierProvider).errorMessage ?? context.l10n.googleAuthFailed;
       AppSnackBar.show(context, message: error, type: SnackBarType.error);
     }
   }
@@ -158,10 +158,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         prefixIcon: const Icon(Icons.email_outlined),
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
-                            return 'Please enter your email';
+                            return context.l10n.pleaseEnterYourEmail;
                           }
                           if (!value.contains('@')) {
-                            return 'Please enter a valid email address';
+                            return context.l10n.pleaseEnterValidEmail;
                           }
                           return null;
                         },
@@ -178,7 +178,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
-                            return 'Please enter your password';
+                            return context.l10n.pleaseEnterYourPassword;
                           }
                           return null;
                         },
