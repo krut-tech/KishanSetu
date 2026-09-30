@@ -101,7 +101,7 @@ class _FarmerProfileScreenState extends ConsumerState<FarmerProfileScreen> {
         .updateProfile(updatedProfile);
 
     if (!success && mounted) {
-      final error = ref.read(authNotifierProvider).errorMessage ?? 'Failed to save profile';
+      final error = ref.read(authNotifierProvider).errorMessage ?? context.l10n.failedToSaveProfile;
       AppSnackBar.show(context, message: error, type: SnackBarType.error);
     }
   }
@@ -145,7 +145,7 @@ class _FarmerProfileScreenState extends ConsumerState<FarmerProfileScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Farmer Profile Setup',
+                                context.l10n.farmerProfileSetupTitle,
                                 style: TextStyle(
                                   fontSize: 20,
                                   fontWeight: FontWeight.bold,
@@ -153,7 +153,7 @@ class _FarmerProfileScreenState extends ConsumerState<FarmerProfileScreen> {
                                 ),
                               ),
                               Text(
-                                'Complete your farm & contact information',
+                                context.l10n.completeFarmContactInfo,
                                 style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant),
                               ),
                             ],
@@ -166,7 +166,7 @@ class _FarmerProfileScreenState extends ConsumerState<FarmerProfileScreen> {
                       label: context.l10n.fullName,
                       controller: _nameController,
                       prefixIcon: const Icon(Icons.person_outline),
-                      validator: (v) => v == null || v.trim().isEmpty ? 'Full name is required' : null,
+                      validator: (v) => v == null || v.trim().isEmpty ? context.l10n.fullNameRequired : null,
                     ),
                     const SizedBox(height: AppSpacing.md),
                     AppTextField(
@@ -175,19 +175,19 @@ class _FarmerProfileScreenState extends ConsumerState<FarmerProfileScreen> {
                       keyboardType: TextInputType.phone,
                       prefixIcon: const Icon(Icons.phone_outlined),
                       validator: (v) {
-                        if (v == null || v.trim().isEmpty) return 'Phone number is required';
-                        if (!RegExp(r'^[6-9]\d{9}$').hasMatch(v.trim())) return 'Enter valid 10-digit mobile number';
+                        if (v == null || v.trim().isEmpty) return context.l10n.phoneNumberRequired;
+                        if (!RegExp(r'^[6-9]\d{9}$').hasMatch(v.trim())) return context.l10n.enterValid10DigitMobile;
                         return null;
                       },
                     ),
                     const SizedBox(height: AppSpacing.md),
                     AppDropdownFormField<String>(
-                      label: 'Preferred Language',
+                      label: context.l10n.preferredLanguage,
                       value: _selectedLanguage,
-                      items: const [
-                        DropdownMenuItem(value: 'en', child: Text('English')),
-                        DropdownMenuItem(value: 'hi', child: Text('Hindi (हिंदी)')),
-                        DropdownMenuItem(value: 'gu', child: Text('Gujarati (ગુજરાતી)')),
+                      items: [
+                        DropdownMenuItem(value: 'en', child: Text(context.l10n.english)),
+                        DropdownMenuItem(value: 'hi', child: Text(context.l10n.hindi)),
+                        DropdownMenuItem(value: 'gu', child: Text(context.l10n.gujarati)),
                       ],
                       onChanged: (val) {
                         if (val != null) setState(() => _selectedLanguage = val);
@@ -197,21 +197,21 @@ class _FarmerProfileScreenState extends ConsumerState<FarmerProfileScreen> {
                     AppTextField(
                       label: context.l10n.state,
                       controller: _stateController,
-                      validator: (v) => v == null || v.trim().isEmpty ? 'State is required' : null,
+                      validator: (v) => v == null || v.trim().isEmpty ? context.l10n.stateRequired : null,
                     ),
                     const SizedBox(height: AppSpacing.md),
                     AppTextField(
                       label: context.l10n.district,
                       controller: _districtController,
                       hint: 'e.g. Anand, Rajkot, Junagadh',
-                      validator: (v) => v == null || v.trim().isEmpty ? 'District is required' : null,
+                      validator: (v) => v == null || v.trim().isEmpty ? context.l10n.districtRequired : null,
                     ),
                     const SizedBox(height: AppSpacing.md),
                     AppTextField(
                       label: context.l10n.village,
                       controller: _villageController,
-                      hint: 'Enter your village name',
-                      validator: (v) => v == null || v.trim().isEmpty ? 'Village is required' : null,
+                      hint: context.l10n.enterYourVillageName,
+                      validator: (v) => v == null || v.trim().isEmpty ? context.l10n.villageRequired : null,
                     ),
                     const SizedBox(height: AppSpacing.md),
                     AppTextField(
@@ -225,7 +225,7 @@ class _FarmerProfileScreenState extends ConsumerState<FarmerProfileScreen> {
                       label: context.l10n.primaryCrop,
                       controller: _cropController,
                       hint: 'e.g. Wheat, Cotton, Mustard, Groundnut',
-                      validator: (v) => v == null || v.trim().isEmpty ? 'Primary crop is required' : null,
+                      validator: (v) => v == null || v.trim().isEmpty ? context.l10n.primaryCropRequired : null,
                     ),
                     const SizedBox(height: AppSpacing.xxl),
                     AppButton(
