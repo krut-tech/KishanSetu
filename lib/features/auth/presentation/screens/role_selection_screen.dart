@@ -30,7 +30,7 @@ class _RoleSelectionScreenState extends ConsumerState<RoleSelectionScreen> {
         .selectRole(_selectedRole!);
 
     if (!success && mounted) {
-      final error = ref.read(authNotifierProvider).errorMessage ?? 'Failed to update role';
+      final error = ref.read(authNotifierProvider).errorMessage ?? context.l10n.failedToUpdateRole;
       AppSnackBar.show(context, message: error, type: SnackBarType.error);
     }
   }
