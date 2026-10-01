@@ -1,5 +1,7 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:farmer_market_app/core/errors/result.dart';
+import 'package:farmer_market_app/features/buyer/domain/models/rfq_model.dart';
+import 'package:farmer_market_app/features/buyer/domain/models/rfq_response_model.dart';
 import 'package:farmer_market_app/features/farmer/domain/models/dashboard_stats.dart';
 import 'package:farmer_market_app/features/farmer/domain/models/market_price_model.dart';
 import 'package:farmer_market_app/features/farmer/domain/models/offer_model.dart';
@@ -45,6 +47,12 @@ abstract class FarmerRepository {
 
   /// Calculate real dashboard statistics for a farmer.
   Future<AppResult<DashboardStats>> getFarmerDashboardStats(String farmerId);
+
+  /// Browse open buyer RFQs (bulk requirements) a farmer can respond to.
+  Future<AppResult<List<RfqModel>>> getOpenRfqs({String? produceName});
+
+  /// Submit a quote against an open RFQ.
+  Future<AppResult<RfqResponseModel>> respondToRfq(RfqResponseModel response);
 
   /// Subscribe to real-time changes on offers for farmer.
   RealtimeChannel subscribeToFarmerOffers(
