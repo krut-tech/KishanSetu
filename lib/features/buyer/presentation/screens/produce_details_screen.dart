@@ -12,6 +12,7 @@ import 'package:farmer_market_app/features/farmer/domain/models/offer_model.dart
 import 'package:farmer_market_app/features/farmer/domain/models/produce_model.dart';
 
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:farmer_market_app/core/localization/localization_extension.dart';
 
 /// Screen displaying complete details for a farmer's produce listing.
 class ProduceDetailsScreen extends ConsumerStatefulWidget {
@@ -78,11 +79,11 @@ class _ProduceDetailsScreenState extends ConsumerState<ProduceDetailsScreen> {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final produce = _produce;
-    final farmerName = produce.farmerName ?? 'Farmer';
+    final farmerName = produce.farmerName ?? context.l10n.farmerLabel;
     final locationText = produce.location ?? produce.farmerDistrict ?? 'Gujarat';
     final listingDateText = produce.createdAt != null
         ? '${produce.createdAt!.day}/${produce.createdAt!.month}/${produce.createdAt!.year}'
-        : 'Recently';
+        : context.l10n.recentlyLabel;
 
     final isActive = produce.status == 'active';
 
@@ -99,7 +100,7 @@ class _ProduceDetailsScreenState extends ConsumerState<ProduceDetailsScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Produce Details'),
+        title: Text(context.l10n.produceDetailsTitle),
       ),
       body: SafeArea(
         child: Column(
@@ -124,7 +125,7 @@ class _ProduceDetailsScreenState extends ConsumerState<ProduceDetailsScreen> {
                                     Icon(Icons.info_outline, size: 18, color: colorScheme.primary),
                                     const SizedBox(width: 8),
                                     Text(
-                                      'You have an active offer',
+                                      context.l10n.youHaveActiveOffer,
                                       style: TextStyle(
                                         fontWeight: FontWeight.bold,
                                         fontSize: 14,
@@ -138,15 +139,15 @@ class _ProduceDetailsScreenState extends ConsumerState<ProduceDetailsScreen> {
                             ),
                             const Divider(),
                             Text(
-                              'Offered Price: ₹${existingOffer.offeredPrice.toStringAsFixed(2)} / ${produce.unit}',
+                              '${context.l10n.offeredPriceLabel}: ₹${existingOffer.offeredPrice.toStringAsFixed(2)} / ${produce.unit}',
                               style: const TextStyle(fontWeight: FontWeight.w600),
                             ),
-                            Text('Quantity: ${existingOffer.quantity} ${produce.unit}'),
+                            Text('${context.l10n.offerQuantity}: ${existingOffer.quantity} ${produce.unit}'),
                             if (existingOffer.message != null && existingOffer.message!.trim().isNotEmpty)
                               Padding(
                                 padding: const EdgeInsets.only(top: 4),
                                 child: Text(
-                                  'Message: "${existingOffer.message}"',
+                                  '${context.l10n.messageLabelColon} "${existingOffer.message}"',
                                   style: TextStyle(
                                     fontSize: 13,
                                     fontStyle: FontStyle.italic,
@@ -209,7 +210,7 @@ class _ProduceDetailsScreenState extends ConsumerState<ProduceDetailsScreen> {
                               Text(' • ', style: TextStyle(color: colorScheme.onSurfaceVariant)),
                               Icon(Icons.calendar_today_outlined, size: 14, color: colorScheme.onSurfaceVariant),
                               Text(
-                                'Listed $listingDateText',
+                                '${context.l10n.listedLabel} $listingDateText',
                                 style: TextStyle(fontSize: 14, color: colorScheme.onSurfaceVariant),
                               ),
                             ],
@@ -225,7 +226,7 @@ class _ProduceDetailsScreenState extends ConsumerState<ProduceDetailsScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Quantity & Pricing',
+                            context.l10n.quantityAndPricing,
                             style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: colorScheme.onSurface),
                           ),
                           const Divider(),
@@ -238,7 +239,7 @@ class _ProduceDetailsScreenState extends ConsumerState<ProduceDetailsScreen> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      'Available Quantity',
+                                      context.l10n.availableQuantityLabel,
                                       style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
@@ -258,7 +259,7 @@ class _ProduceDetailsScreenState extends ConsumerState<ProduceDetailsScreen> {
                                   crossAxisAlignment: CrossAxisAlignment.end,
                                   children: [
                                     Text(
-                                      'Expected Price',
+                                      context.l10n.expectedPriceLabel,
                                       style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
@@ -283,7 +284,7 @@ class _ProduceDetailsScreenState extends ConsumerState<ProduceDetailsScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Farmer & Location Details',
+                            context.l10n.farmerLocationDetails,
                             style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: colorScheme.onSurface),
                           ),
                           const Divider(),
@@ -294,7 +295,7 @@ class _ProduceDetailsScreenState extends ConsumerState<ProduceDetailsScreen> {
                               child: Icon(Icons.person, color: colorScheme.primary),
                             ),
                             title: Text(farmerName, style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.onSurface)),
-                            subtitle: Text('Verified Seller • Location: $locationText', style: TextStyle(color: colorScheme.onSurfaceVariant)),
+                            subtitle: Text('Verified Seller • ${context.l10n.locationLabel}: $locationText', style: TextStyle(color: colorScheme.onSurfaceVariant)),
                           ),
                         ],
                       ),
@@ -308,7 +309,7 @@ class _ProduceDetailsScreenState extends ConsumerState<ProduceDetailsScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Crop Description',
+                              context.l10n.cropDescription,
                               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: colorScheme.onSurface),
                             ),
                             const Divider(),
@@ -339,8 +340,8 @@ class _ProduceDetailsScreenState extends ConsumerState<ProduceDetailsScreen> {
               ),
               child: AppButton(
                 label: hasActiveOffer
-                    ? 'Edit Offer'
-                    : (isActive ? 'Make Offer' : 'Produce Listing Inactive'),
+                    ? context.l10n.editOfferLabel
+                    : (isActive ? context.l10n.makeOffer : context.l10n.produceListingInactive),
                 style: AppButtonStyle.secondary,
                 icon: hasActiveOffer ? Icons.edit_outlined : Icons.local_offer_rounded,
                 onPressed: isActive
