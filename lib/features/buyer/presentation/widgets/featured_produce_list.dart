@@ -4,6 +4,7 @@ import 'package:farmer_market_app/core/constants/app_spacing.dart';
 import 'package:farmer_market_app/core/widgets/app_card.dart';
 import 'package:farmer_market_app/core/widgets/cards/produce_card.dart';
 import 'package:farmer_market_app/features/farmer/domain/models/produce_model.dart';
+import 'package:farmer_market_app/core/localization/localization_extension.dart';
 
 /// Featured/Latest Produce section for the Buyer Dashboard.
 class FeaturedProduceList extends StatelessWidget {
@@ -31,7 +32,7 @@ class FeaturedProduceList extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'Featured Produce',
+              context.l10n.featuredProduce,
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -41,7 +42,7 @@ class FeaturedProduceList extends StatelessWidget {
             if (onViewAll != null)
               TextButton(
                 onPressed: onViewAll,
-                child: const Text('View All'),
+                child: Text(context.l10n.viewAll),
               ),
           ],
         ),
@@ -54,12 +55,12 @@ class FeaturedProduceList extends StatelessWidget {
                 Icon(Icons.storefront_outlined, size: 40, color: secondaryText),
                 const SizedBox(height: AppSpacing.sm),
                 Text(
-                  'No Produce Listed Yet',
+                  context.l10n.noProduceListedYet,
                   style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: primaryText),
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  'Active farmer crop listings will appear here dynamically.',
+                  context.l10n.activeFarmerListingsWillAppear,
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 12, color: secondaryText),
                 ),
@@ -81,7 +82,7 @@ class FeaturedProduceList extends StatelessWidget {
                 askingPrice: item.expectedPrice,
                 netRealizationPrice: item.expectedPrice * 0.95,
                 location: item.location ?? item.farmerDistrict ?? 'Gujarat',
-                farmerName: item.farmerName ?? 'Farmer',
+                farmerName: item.farmerName ?? context.l10n.farmerLabel,
                 onTap: () => onProduceTap?.call(item),
               );
             },
