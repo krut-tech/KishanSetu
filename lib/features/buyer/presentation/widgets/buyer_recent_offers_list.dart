@@ -5,6 +5,8 @@ import 'package:farmer_market_app/core/widgets/app_card.dart';
 import 'package:farmer_market_app/core/widgets/badges/app_status_badge.dart';
 import 'package:farmer_market_app/core/widgets/cards/offer_card.dart';
 import 'package:farmer_market_app/features/farmer/domain/models/offer_model.dart';
+import 'package:farmer_market_app/core/localization/localization_extension.dart';
+import 'package:farmer_market_app/core/localization/status_localizer.dart';
 
 /// Recent offers list widget for the Buyer Dashboard.
 class BuyerRecentOffersList extends StatelessWidget {
@@ -46,7 +48,7 @@ class BuyerRecentOffersList extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'My Recent Offers',
+              context.l10n.myRecentOffers,
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -56,7 +58,7 @@ class BuyerRecentOffersList extends StatelessWidget {
             if (onViewAll != null)
               TextButton(
                 onPressed: onViewAll,
-                child: const Text('View All'),
+                child: Text(context.l10n.viewAll),
               ),
           ],
         ),
@@ -69,12 +71,12 @@ class BuyerRecentOffersList extends StatelessWidget {
                 Icon(Icons.local_offer_outlined, size: 40, color: secondaryText),
                 const SizedBox(height: AppSpacing.sm),
                 Text(
-                  'No Submitted Offers Yet',
+                  context.l10n.noSubmittedOffersYet,
                   style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: primaryText),
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  'Browse marketplace listings and submit bids directly to farmers.',
+                  context.l10n.browseMarketplaceSubmitBids,
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 12, color: secondaryText),
                 ),
@@ -91,12 +93,12 @@ class BuyerRecentOffersList extends StatelessWidget {
               final offer = offers[index];
               final farmerIdDisplay = offer.farmerId.length > 6 ? offer.farmerId.substring(0, 6) : offer.farmerId;
               return OfferCard(
-                cropName: offer.produceName ?? 'Produce',
-                buyerName: offer.farmerName != null ? 'Farmer: ${offer.farmerName}' : 'Farmer ID: $farmerIdDisplay',
+                cropName: offer.produceName ?? context.l10n.produceLabel,
+                buyerName: offer.farmerName != null ? '${context.l10n.farmerLabel}: ${offer.farmerName}' : '${context.l10n.farmerLabel} ID: $farmerIdDisplay',
                 offerPrice: offer.offeredPrice,
-                quantity: '${offer.quantity} ${offer.produceUnit ?? "Units"}',
+                quantity: '${offer.quantity} ${offer.produceUnit ?? context.l10n.unitsLabel}',
                 status: _mapStatus(offer.status),
-                expiresText: 'Status: ${offer.status.toUpperCase()}',
+                expiresText: '${context.l10n.statusLabel}: ${localizedOfferStatus(context, offer.status)}',
                 onCancel: offer.status == 'pending' ? () => onCancelOffer?.call(offer) : null,
               );
             },
