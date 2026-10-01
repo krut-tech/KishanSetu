@@ -10,6 +10,7 @@ import 'package:farmer_market_app/features/auth/presentation/controllers/auth_pr
 import 'package:farmer_market_app/features/buyer/presentation/controllers/buyer_providers.dart';
 import 'package:farmer_market_app/features/farmer/domain/models/offer_model.dart';
 import 'package:farmer_market_app/features/farmer/domain/models/produce_model.dart';
+import 'package:farmer_market_app/core/localization/localization_extension.dart';
 
 /// Modal dialog / sheet allowing a buyer to submit or edit a price offer for a produce listing.
 class MakeOfferDialog extends ConsumerStatefulWidget {
@@ -127,7 +128,7 @@ class _MakeOfferDialogState extends ConsumerState<MakeOfferDialog> {
 
     final user = ref.read(authNotifierProvider).state.user;
     if (user == null) {
-      AppSnackBar.show(context, message: 'You must be logged in to make or edit an offer', type: SnackBarType.error);
+      AppSnackBar.show(context, message: context.l10n.mustBeLoggedInToOffer, type: SnackBarType.error);
       return;
     }
 
@@ -136,19 +137,19 @@ class _MakeOfferDialogState extends ConsumerState<MakeOfferDialog> {
     final message = _messageController.text.trim();
 
     if (offeredPrice <= 0) {
-      AppSnackBar.show(context, message: 'Offered price must be greater than 0', type: SnackBarType.error);
+      AppSnackBar.show(context, message: context.l10n.offeredPriceMustBeGreaterThanZero, type: SnackBarType.error);
       return;
     }
 
     if (offerQuantity <= 0) {
-      AppSnackBar.show(context, message: 'Quantity must be greater than 0', type: SnackBarType.error);
+      AppSnackBar.show(context, message: context.l10n.quantityMustBeGreaterThanZero, type: SnackBarType.error);
       return;
     }
 
     if (offerQuantity > widget.produce.quantity) {
       AppSnackBar.show(
         context,
-        message: 'Quantity cannot exceed available produce quantity (${widget.produce.quantity} ${widget.produce.unit})',
+        message: '${context.l10n.quantityCannotExceedAvailable} (${widget.produce.quantity} ${widget.produce.unit})',
         type: SnackBarType.error,
       );
       return;
@@ -185,13 +186,13 @@ class _MakeOfferDialogState extends ConsumerState<MakeOfferDialog> {
         ref.read(buyerDashboardNotifierProvider.notifier).refreshDashboard();
         AppSnackBar.show(
           context,
-          message: isEditing ? 'Offer updated successfully!' : 'Offer submitted successfully!',
+          message: isEditing ? context.l10n.offerUpdatedSuccessfully : context.l10n.offerSubmittedSuccessfully,
           type: SnackBarType.success,
         );
         Navigator.of(context).pop(true);
       } else {
         setState(() => _isSubmitting = false);
-        final error = ref.read(buyerOfferControllerProvider).errorMessage ?? 'Failed to submit offer';
+        final error = ref.read(buyerOfferControllerProvider).errorMessage ?? context.l10n.failedToSubmitOffer;
         AppSnackBar.show(context, message: error, type: SnackBarType.error);
       }
     }
@@ -230,7 +231,7 @@ class _MakeOfferDialogState extends ConsumerState<MakeOfferDialog> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          isEditing ? 'Edit Offer' : 'Make an Offer',
+                          isEditing ? context.l10n.editOfferLabel : context.l10n.makeAnOffer,
                           style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
@@ -265,7 +266,7 @@ class _MakeOfferDialogState extends ConsumerState<MakeOfferDialog> {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Asking Price', style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant)),
+                        Text(context.l10n.askingPrice, style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant)),
                         Text(
                           '₹${widget.produce.expectedPrice.toStringAsFixed(0)} / ${widget.produce.unit}',
                           style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: colorScheme.primary),
@@ -275,7 +276,7 @@ class _MakeOfferDialogState extends ConsumerState<MakeOfferDialog> {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
-                        Text('Available', style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant)),
+                        Text(context.l10n.availableLabel, style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant)),
                         Text(
                           '${widget.produce.quantity} ${widget.produce.unit}',
                           style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: colorScheme.onSurface),
@@ -289,12 +290,12 @@ class _MakeOfferDialogState extends ConsumerState<MakeOfferDialog> {
 
               // Offered Price Field
               AppCurrencyField(
-                label: 'Offered Price (per ${widget.produce.unit})',
+                label: '${context.l10n.offeredPriceLabel} (per ${widget.produce.unit})',
                 controller: _priceController,
                 validator: (v) {
-                  if (v == null || v.trim().isEmpty) return 'Offered price is required';
+                  if (v == null || v.trim().isEmpty) return context.l10n.offeredPriceRequired;
                   final p = double.tryParse(v.trim());
-                  if (p == null || p <= 0) return 'Enter a valid price greater than 0';
+                  if (p == null || p <= 0) return context.l10n.enterValidPriceGreaterThanZero;
                   return null;
                 },
               ),
@@ -302,16 +303,16 @@ class _MakeOfferDialogState extends ConsumerState<MakeOfferDialog> {
 
               // Quantity Field
               AppTextField(
-                label: 'Quantity (${widget.produce.unit})',
+                label: '${context.l10n.offerQuantity} (${widget.produce.unit})',
                 controller: _quantityController,
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
                 prefixIcon: const Icon(Icons.scale_outlined),
                 validator: (v) {
-                  if (v == null || v.trim().isEmpty) return 'Quantity is required';
+                  if (v == null || v.trim().isEmpty) return context.l10n.quantityIsRequired;
                   final q = double.tryParse(v.trim());
-                  if (q == null || q <= 0) return 'Enter a valid quantity greater than 0';
+                  if (q == null || q <= 0) return context.l10n.enterValidQuantityGreaterThanZero;
                   if (q > widget.produce.quantity) {
-                    return 'Exceeds available quantity (${widget.produce.quantity})';
+                    return '${context.l10n.exceedsAvailableQuantity} (${widget.produce.quantity})';
                   }
                   return null;
                 },
@@ -320,13 +321,13 @@ class _MakeOfferDialogState extends ConsumerState<MakeOfferDialog> {
 
               // Message Field
               AppTextField(
-                label: 'Message to Farmer (Optional)',
+                label: context.l10n.messageToFarmerOptional,
                 controller: _messageController,
                 hint: 'e.g. Can pick up from farm directly within 2 days.',
                 maxLines: 3,
                 validator: (v) {
                   if (v != null && v.length > 250) {
-                    return 'Message cannot exceed 250 characters';
+                    return context.l10n.messageExceeds250;
                   }
                   return null;
                 },
@@ -335,7 +336,7 @@ class _MakeOfferDialogState extends ConsumerState<MakeOfferDialog> {
 
               // Submit Button
               AppButton(
-                label: isEditing ? 'Save / Update Offer' : 'Submit Offer',
+                label: isEditing ? context.l10n.saveUpdateOffer : context.l10n.submitOffer,
                 style: AppButtonStyle.secondary,
                 isLoading: offerState.isSubmitting,
                 onPressed: _submitOffer,
