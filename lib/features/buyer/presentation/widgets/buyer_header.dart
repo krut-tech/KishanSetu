@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:farmer_market_app/core/constants/app_colors.dart';
 import 'package:farmer_market_app/core/constants/app_spacing.dart';
 import 'package:farmer_market_app/features/auth/domain/models/user_profile.dart';
+import 'package:farmer_market_app/core/localization/localization_extension.dart';
 
 /// Top header banner displaying authenticated buyer business details.
 class BuyerHeader extends StatelessWidget {
@@ -22,7 +23,7 @@ class BuyerHeader extends StatelessWidget {
     final primaryText = isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight;
     final secondaryText = isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight;
 
-    final displayName = profile?.companyName ?? profile?.fullName ?? 'Buyer';
+    final displayName = profile?.companyName ?? profile?.fullName ?? context.l10n.buyerLabel;
     final locationText = [
       if (profile?.district != null && profile!.district!.isNotEmpty) profile!.district,
       if (profile?.state != null && profile!.state!.isNotEmpty) profile!.state,
@@ -80,7 +81,7 @@ class BuyerHeader extends StatelessWidget {
         ),
         IconButton(
           icon: const Icon(Icons.notifications_outlined),
-          tooltip: 'Notifications',
+          tooltip: context.l10n.notificationsTitle,
           onPressed: onNotificationPressed,
         ),
       ],
