@@ -14,6 +14,8 @@ import 'package:farmer_market_app/features/buyer/presentation/controllers/buyer_
 import 'package:farmer_market_app/features/buyer/presentation/screens/make_offer_dialog.dart';
 import 'package:farmer_market_app/features/farmer/domain/models/offer_model.dart';
 import 'package:farmer_market_app/features/farmer/domain/models/produce_model.dart';
+import 'package:farmer_market_app/core/localization/localization_extension.dart';
+import 'package:farmer_market_app/core/localization/status_localizer.dart';
 
 /// Screen displaying submitted offers created by the authenticated buyer.
 class BuyerOffersScreen extends ConsumerStatefulWidget {
@@ -31,6 +33,13 @@ class _BuyerOffersScreenState extends ConsumerState<BuyerOffersScreen> {
     'Rejected',
     'Cancelled',
   ];
+
+  /// Display label for a status filter chip. The English [status] string
+  /// stays the value sent to the offers filter; only the label is localized.
+  String _statusLabel(String status) {
+    if (status == 'All') return context.l10n.allLabel;
+    return localizedOfferStatus(context, status);
+  }
 
   @override
   void initState() {
@@ -69,10 +78,10 @@ class _BuyerOffersScreenState extends ConsumerState<BuyerOffersScreen> {
   Future<void> _handleCancelOffer(OfferModel offer) async {
     final confirmed = await AppDialogs.showConfirmDialog(
       context: context,
-      title: 'Cancel Offer',
-      message: 'Are you sure you want to cancel this pending offer of ₹${offer.offeredPrice.toStringAsFixed(0)}?',
-      confirmLabel: 'Yes, Cancel',
-      cancelLabel: 'Keep Offer',
+      title: context.l10n.cancelOfferTitle,
+      message: '${context.l10n.cancelOfferConfirmMessage} ₹${offer.offeredPrice.toStringAsFixed(0)}?',
+      confirmLabel: context.l10n.yesCancel,
+      cancelLabel: context.l10n.keepOffer,
       isDestructive: true,
     );
 
@@ -87,9 +96,9 @@ class _BuyerOffersScreenState extends ConsumerState<BuyerOffersScreen> {
       if (mounted) {
         if (success) {
           ref.read(buyerDashboardNotifierProvider.notifier).refreshDashboard();
-          AppSnackBar.show(context, message: 'Offer cancelled successfully', type: SnackBarType.success);
+          AppSnackBar.show(context, message: context.l10n.offerCancelledSuccessfully, type: SnackBarType.success);
         } else {
-          final error = ref.read(buyerOfferControllerProvider).errorMessage ?? 'Failed to cancel offer';
+          final error = ref.read(buyerOfferControllerProvider).errorMessage ?? context.l10n.failedToCancelOffer;
           AppSnackBar.show(context, message: error, type: SnackBarType.error);
         }
       }
@@ -119,7 +128,7 @@ class _BuyerOffersScreenState extends ConsumerState<BuyerOffersScreen> {
                     padding: const EdgeInsets.only(right: AppSpacing.xs),
                     child: FilterChip(
                       label: Text(
-                        status,
+                        _statusLabel(status),
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
@@ -177,7 +186,7 @@ class _BuyerOffersScreenState extends ConsumerState<BuyerOffersScreen> {
           alignment: Alignment.center,
           padding: const EdgeInsets.all(AppSpacing.md),
           child: ErrorStateWidget(
-            title: 'Failed to load offers',
+            title: context.l10n.failedToLoadOffers,
             message: state.errorMessage!,
             onRetry: () => _fetchOffers(),
           ),
@@ -193,9 +202,9 @@ class _BuyerOffersScreenState extends ConsumerState<BuyerOffersScreen> {
           alignment: Alignment.center,
           padding: const EdgeInsets.all(AppSpacing.md),
           child: EmptyStateWidget(
-            title: 'No offers found',
-            message: 'You have not created any offers matching this filter.',
-            actionLabel: 'Refresh Offers',
+            title: context.l10n.noOffersFound,
+            message: context.l10n.noOffersMatchFilter,
+            actionLabel: context.l10n.refreshOffers,
             onAction: () => _fetchOffers(),
           ),
         ),
@@ -220,12 +229,12 @@ class _BuyerOffersScreenState extends ConsumerState<BuyerOffersScreen> {
         final statusType = _mapStatus(offer.status);
 
         return OfferCard(
-          cropName: offer.produceName ?? 'Produce Listing',
-          buyerName: offer.farmerName != null ? 'Farmer: ${offer.farmerName}' : 'Farmer ID: $farmerIdDisplay',
+          cropName: offer.produceName ?? context.l10n.produceListingLabel,
+          buyerName: offer.farmerName != null ? '${context.l10n.farmerLabel}: ${offer.farmerName}' : '${context.l10n.farmerLabel} ID: $farmerIdDisplay',
           offerPrice: offer.offeredPrice,
-          quantity: '${offer.quantity} ${offer.produceUnit ?? "Units"}',
+          quantity: '${offer.quantity} ${offer.produceUnit ?? context.l10n.unitsLabel}',
           status: statusType,
-          expiresText: 'Status: ${offer.status.toUpperCase()}',
+          expiresText: '${context.l10n.statusLabel}: ${localizedOfferStatus(context, offer.status)}',
           message: offer.message,
           history: offer.history,
           onCancel: isPending ? () => _handleCancelOffer(offer) : null,
@@ -234,8 +243,8 @@ class _BuyerOffersScreenState extends ConsumerState<BuyerOffersScreen> {
                   final produce = ProduceModel(
                     id: offer.produceId,
                     farmerId: offer.farmerId,
-                    name: offer.produceName ?? 'Produce Listing',
-                    category: offer.produceCategory ?? 'General',
+                    name: offer.produceName ?? context.l10n.produceListingLabel,
+                    category: offer.produceCategory ?? context.l10n.generalLabel,
                     quantity: offer.quantity,
                     unit: offer.produceUnit ?? 'units',
                     expectedPrice: offer.produceExpectedPrice ?? offer.offeredPrice,
