@@ -9,6 +9,7 @@ import 'package:farmer_market_app/core/widgets/states/shimmer_loading.dart';
 import 'package:farmer_market_app/features/buyer/presentation/controllers/buyer_providers.dart';
 import 'package:farmer_market_app/features/buyer/presentation/controllers/marketplace_controller.dart';
 import 'package:farmer_market_app/features/buyer/presentation/screens/produce_details_screen.dart';
+import 'package:farmer_market_app/core/localization/localization_extension.dart';
 
 /// Full Marketplace Screen for Buyers to browse, search, filter, and sort active farmer produce.
 class MarketplaceScreen extends ConsumerStatefulWidget {
@@ -20,6 +21,31 @@ class MarketplaceScreen extends ConsumerStatefulWidget {
 
 class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
   final TextEditingController _searchController = TextEditingController();
+
+  /// Display label for a category chip. The English [cat] string stays the
+  /// value sent to the marketplace filter; only the label is localized.
+  String _categoryLabel(String cat) {
+    switch (cat) {
+      case 'All':
+        return context.l10n.allLabel;
+      case 'Grains':
+        return context.l10n.grainsCategory;
+      case 'Vegetables':
+        return context.l10n.vegetablesCategory;
+      case 'Fruits':
+        return context.l10n.fruitsCategory;
+      case 'Pulses':
+        return context.l10n.pulsesCategory;
+      case 'Spices':
+        return context.l10n.spicesCategory;
+      case 'Oilseeds':
+        return context.l10n.oilseedsCategory;
+      case 'Commercial Crops':
+        return context.l10n.commercialCropsCategory;
+      default:
+        return cat;
+    }
+  }
 
   static const List<String> _categories = [
     'All',
@@ -70,7 +96,7 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
               children: [
                 // Search Field
                 AppSearchField(
-                  hint: 'Search crop, category, or location...',
+                  hint: context.l10n.searchCropCategoryLocation,
                   controller: _searchController,
                   onChanged: _onSearchChanged,
                   onClear: () {
@@ -93,7 +119,7 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
                         padding: const EdgeInsets.only(right: AppSpacing.xs),
                         child: FilterChip(
                           label: Text(
-                            cat,
+                            _categoryLabel(cat),
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
@@ -146,11 +172,11 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
                             fontWeight: FontWeight.bold,
                             color: colorScheme.primary,
                           ),
-                          items: const [
-                            DropdownMenuItem(value: 'newest', child: Text('Sort: Newest')),
-                            DropdownMenuItem(value: 'price_asc', child: Text('Price: Low → High')),
-                            DropdownMenuItem(value: 'price_desc', child: Text('Price: High → Low')),
-                            DropdownMenuItem(value: 'quantity_desc', child: Text('Quantity: High → Low')),
+                          items: [
+                            DropdownMenuItem(value: 'newest', child: Text(context.l10n.sortNewest)),
+                            DropdownMenuItem(value: 'price_asc', child: Text(context.l10n.priceLowToHighArrow)),
+                            DropdownMenuItem(value: 'price_desc', child: Text(context.l10n.priceHighToLowArrow)),
+                            DropdownMenuItem(value: 'quantity_desc', child: Text(context.l10n.quantityHighToLow)),
                           ],
                           onChanged: (val) {
                             if (val != null) {
@@ -206,7 +232,7 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
           alignment: Alignment.center,
           padding: const EdgeInsets.all(AppSpacing.md),
           child: ErrorStateWidget(
-            title: 'Failed to load marketplace',
+            title: context.l10n.failedToLoadMarketplace,
             message: state.errorMessage!,
             onRetry: () => ref.read(marketplaceControllerProvider.notifier).fetchProduce(),
           ),
@@ -222,9 +248,9 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
           alignment: Alignment.center,
           padding: const EdgeInsets.all(AppSpacing.md),
           child: EmptyStateWidget(
-            title: 'No produce available',
-            message: 'No farmer produce matches your search or filter criteria.',
-            actionLabel: 'Reset Filters',
+            title: context.l10n.noProduceAvailableTitle,
+            message: context.l10n.noFarmerProduceMatches,
+            actionLabel: context.l10n.resetFilters,
             onAction: () {
               _searchController.clear();
               ref.read(marketplaceControllerProvider.notifier).resetFilters();
@@ -253,7 +279,7 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
           askingPrice: produce.expectedPrice,
           netRealizationPrice: produce.expectedPrice * 0.95,
           location: produce.location ?? produce.farmerDistrict ?? 'Gujarat',
-          farmerName: produce.farmerName ?? 'Farmer',
+          farmerName: produce.farmerName ?? context.l10n.farmerLabel,
           onTap: () {
             Navigator.of(context).push(
               MaterialPageRoute(
