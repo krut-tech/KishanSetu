@@ -6,6 +6,7 @@ import 'package:farmer_market_app/features/farmer/domain/repositories/farmer_rep
 import 'package:farmer_market_app/features/farmer/presentation/controllers/farmer_dashboard_notifier.dart';
 import 'package:farmer_market_app/features/farmer/presentation/controllers/market_price_controller.dart';
 import 'package:farmer_market_app/features/farmer/presentation/controllers/offer_controller.dart';
+import 'package:farmer_market_app/features/farmer/presentation/controllers/open_rfqs_controller.dart';
 import 'package:farmer_market_app/features/farmer/presentation/controllers/produce_controller.dart';
 
 final farmerRepositoryProvider = Provider<FarmerRepository>((ref) {
@@ -35,4 +36,10 @@ final offerControllerProvider =
     StateNotifierProvider<OfferController, OfferState>((ref) {
   final repository = ref.watch(farmerRepositoryProvider);
   return OfferController(repository);
+});
+
+final openRfqsControllerProvider =
+    StateNotifierProvider<OpenRfqsController, OpenRfqsState>((ref) {
+  final repository = ref.watch(farmerRepositoryProvider);
+  return OpenRfqsController(repository);
 });
