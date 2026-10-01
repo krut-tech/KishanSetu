@@ -4,6 +4,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:farmer_market_app/core/errors/failure.dart';
 import 'package:farmer_market_app/core/errors/result.dart';
 import 'package:farmer_market_app/core/logging/app_logger.dart';
+import 'package:farmer_market_app/features/buyer/domain/models/rfq_model.dart';
+import 'package:farmer_market_app/features/buyer/domain/models/rfq_response_model.dart';
 import 'package:farmer_market_app/features/farmer/domain/models/dashboard_stats.dart';
 import 'package:farmer_market_app/features/farmer/domain/models/market_price_model.dart';
 import 'package:farmer_market_app/features/farmer/domain/models/offer_model.dart';
@@ -257,25 +259,6 @@ class SupabaseFarmerRepository implements FarmerRepository {
         return left(const DatabaseFailure('Invalid offer status transition.'));
       }
 
-      // Accept/reject/counter is delegated to the respond_to_offer()
-      // Postgres RPC (see
-      // supabase/migrations/20260922235959_create_core_schema_and_rls.sql).
-      // Previously this method updated offers.status directly with no
-      // awareness of produce inventory, so two different offers on the same
-      // listing could each be accepted for more quantity than actually
-      // existed. The RPC locks the produce row and re-validates/decrements
-      // remaining quantity atomically when accepting. Direct updates to
-      // offers by the farmer are no longer permitted by RLS -- this RPC is
-      // the only way to accept/reject/counter.
-      //
-      // NOTE: this method's signature only carries a status change, so a
-      // 'countered' transition here still can't send a revised price or
-      // quantity to the RPC (p_countered_price/p_countered_quantity are
-      // passed as null, i.e. the counter keeps the original terms). If
-      // countering with new terms is meant to be supported, this interface
-      // and its screen/controller callers need to be extended to collect
-      // and pass those values -- that's outside what a repository-only
-      // change can safely do without touching the UI layer.
       final created = await _client.rpc('respond_to_offer', params: {
         'p_offer_id': offerId,
         'p_status': normalizedStatus,
@@ -340,6 +323,61 @@ class SupabaseFarmerRepository implements FarmerRepository {
       return left(DatabaseFailure(e.message, code: e.code));
     } catch (e, stack) {
       AppLogger.error('Unknown failure calculating stats', e, stack);
+      return left(UnknownFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<AppResult<List<RfqModel>>> getOpenRfqs({String? produceName}) async {
+    try {
+      AppLogger.info('Fetching open RFQs, filter: $produceName');
+      var query = _client
+          .from('rfqs')
+          .select('*, buyer_profile:buyer_id(full_name)')
+          .eq('status', 'open');
+
+      if (produceName != null && produceName.trim().isNotEmpty) {
+        query = query.ilike('produce_name', '%${produceName.trim()}%');
+      }
+
+      final response = await query.order('created_at', ascending: false);
+      final list = (response as List)
+          .map((row) => RfqModel.fromMap(row as Map<String, dynamic>))
+          .toList();
+      return right(list);
+    } on SocketException catch (e) {
+      AppLogger.error('Network error fetching open RFQs', e);
+      return left(const NetworkFailure());
+    } on PostgrestException catch (e) {
+      AppLogger.error('Database failure fetching open RFQs: ${e.message}', e);
+      return left(DatabaseFailure(e.message, code: e.code));
+    } catch (e, stack) {
+      AppLogger.error('Unknown failure fetching open RFQs', e, stack);
+      return left(UnknownFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<AppResult<RfqResponseModel>> respondToRfq(RfqResponseModel response) async {
+    try {
+      final currentUser = _client.auth.currentUser;
+      if (currentUser == null || currentUser.id != response.farmerId) {
+        return left(const AuthFailure('You are not authorized to submit this quote.'));
+      }
+      AppLogger.info('Responding to RFQ: ${response.rfqId}');
+      final created = await _client.from('rfq_responses').insert(response.toMap()).select().single();
+      return right(RfqResponseModel.fromMap(created));
+    } on SocketException catch (e) {
+      AppLogger.error('Network error responding to RFQ', e);
+      return left(const NetworkFailure());
+    } on PostgrestException catch (e) {
+      if (e.code == '23505') {
+        return left(const DatabaseFailure('You have already sent a quote for this RFQ.'));
+      }
+      AppLogger.error('Database failure responding to RFQ: ${e.message}', e);
+      return left(DatabaseFailure(e.message, code: e.code));
+    } catch (e, stack) {
+      AppLogger.error('Unknown failure responding to RFQ', e, stack);
       return left(UnknownFailure(e.toString()));
     }
   }
