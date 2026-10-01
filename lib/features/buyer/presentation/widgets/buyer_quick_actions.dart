@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:farmer_market_app/core/constants/app_colors.dart';
 import 'package:farmer_market_app/core/constants/app_spacing.dart';
 import 'package:farmer_market_app/core/widgets/app_card.dart';
+import 'package:farmer_market_app/core/localization/localization_extension.dart';
 
 /// Quick action grid cards for the Buyer Dashboard.
 class BuyerQuickActionsGrid extends StatelessWidget {
@@ -27,7 +28,7 @@ class BuyerQuickActionsGrid extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Quick Actions',
+          context.l10n.quickActionsTitle,
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
@@ -45,32 +46,32 @@ class BuyerQuickActionsGrid extends StatelessWidget {
           children: [
             _buildActionCard(
               context,
-              title: 'Marketplace',
-              subtitle: 'Browse & Buy',
+              title: context.l10n.marketplace,
+              subtitle: context.l10n.browseAndBuy,
               icon: Icons.storefront_outlined,
               color: isDark ? const Color(0xFF4ADE80) : AppColors.primary,
               onTap: onBrowseMarketplace,
             ),
             _buildActionCard(
               context,
-              title: 'Market Prices',
-              subtitle: 'Mandi Rates',
+              title: context.l10n.marketPrices,
+              subtitle: context.l10n.mandiRates,
               icon: Icons.trending_up_outlined,
               color: isDark ? const Color(0xFF4ADE80) : AppColors.primary,
               onTap: onMarketPrices,
             ),
             _buildActionCard(
               context,
-              title: 'My Offers',
-              subtitle: 'Track Bids',
+              title: context.l10n.myOffers,
+              subtitle: context.l10n.trackBids,
               icon: Icons.local_offer_outlined,
               color: isDark ? const Color(0xFFF59E0B) : AppColors.warning,
               onTap: onMyOffers,
             ),
             _buildActionCard(
               context,
-              title: 'My Profile',
-              subtitle: 'Company Info',
+              title: context.l10n.myProfileLabel,
+              subtitle: context.l10n.companyInfo,
               icon: Icons.person_outline_rounded,
               color: isDark ? const Color(0xFF38BDF8) : AppColors.info,
               onTap: onProfile,
