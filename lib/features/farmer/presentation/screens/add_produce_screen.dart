@@ -11,6 +11,7 @@ import 'package:farmer_market_app/core/widgets/snackbars/app_snack_bar.dart';
 import 'package:farmer_market_app/features/auth/presentation/controllers/auth_providers.dart';
 import 'package:farmer_market_app/features/farmer/domain/models/produce_model.dart';
 import 'package:farmer_market_app/features/farmer/presentation/controllers/farmer_providers.dart';
+import 'package:farmer_market_app/core/localization/localization_extension.dart';
 
 class AddProduceScreen extends ConsumerStatefulWidget {
   const AddProduceScreen({super.key});
@@ -20,6 +21,30 @@ class AddProduceScreen extends ConsumerStatefulWidget {
 }
 
 class _AddProduceScreenState extends ConsumerState<AddProduceScreen> {
+  /// Display label for a category dropdown item. The English value stays
+  /// what is stored/sent to the backend; only the label is localized.
+  String _categoryLabel(String cat) {
+    switch (cat) {
+      case 'Cereals':
+        return context.l10n.cerealsCategory;
+      case 'Pulses':
+        return context.l10n.pulsesCategory;
+      case 'Vegetables':
+        return context.l10n.vegetablesCategory;
+      case 'Fruits':
+        return context.l10n.fruitsCategory;
+      case 'Oilseeds':
+        return context.l10n.oilseedsCategory;
+      case 'Spices':
+        return context.l10n.spicesCategory;
+      case 'Cotton & Fiber':
+        return context.l10n.cottonFiberCategory;
+      case 'Other':
+        return context.l10n.otherCategory;
+      default:
+        return cat;
+    }
+  }
   final _formKey = GlobalKey<FormState>();
 
   final _nameController = TextEditingController();
@@ -84,7 +109,7 @@ class _AddProduceScreenState extends ConsumerState<AddProduceScreen> {
 
     final user = ref.read(authNotifierProvider).profile;
     if (user == null) {
-      AppSnackBar.show(context, message: 'Authentication required', type: SnackBarType.error);
+      AppSnackBar.show(context, message: context.l10n.authenticationRequired, type: SnackBarType.error);
       return;
     }
 
@@ -111,7 +136,7 @@ class _AddProduceScreenState extends ConsumerState<AddProduceScreen> {
 
     if (success) {
       ref.read(farmerDashboardNotifierProvider.notifier).refreshDashboard();
-      AppSnackBar.show(context, message: 'Produce listed successfully!', type: SnackBarType.success);
+      AppSnackBar.show(context, message: context.l10n.produceListedSuccessfully, type: SnackBarType.success);
       context.pop();
     } else {
       setState(() => _isSubmitting = false);
@@ -128,8 +153,8 @@ class _AddProduceScreenState extends ConsumerState<AddProduceScreen> {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      appBar: const AppTopBar(
-        title: 'Add Produce Listing',
+      appBar: AppTopBar(
+        title: context.l10n.addProduceListingTitle,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(AppSpacing.lg),
@@ -139,7 +164,7 @@ class _AddProduceScreenState extends ConsumerState<AddProduceScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'List Your Crop Produce',
+                context.l10n.listYourCropProduce,
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
@@ -148,7 +173,7 @@ class _AddProduceScreenState extends ConsumerState<AddProduceScreen> {
               ),
               const SizedBox(height: AppSpacing.xs),
               Text(
-                'Provide accurate crop details so interested buyers can make offers.',
+                context.l10n.provideAccurateCropDetails,
                 style: TextStyle(
                   fontSize: 14,
                   color: colorScheme.onSurfaceVariant,
@@ -158,16 +183,16 @@ class _AddProduceScreenState extends ConsumerState<AddProduceScreen> {
 
               // Produce Name
               AppTextField(
-                label: 'Crop / Produce Name',
+                label: context.l10n.cropProduceNameLabel,
                 hint: 'e.g. Sharbati Wheat, Desi Chana, Tomatoes',
                 controller: _nameController,
                 prefixIcon: Icon(Icons.eco_rounded, color: colorScheme.primary),
                 validator: (val) {
                   if (val == null || val.trim().isEmpty) {
-                    return 'Please enter crop produce name';
+                    return context.l10n.pleaseEnterCropName;
                   }
                   if (val.trim().length < 2) {
-                    return 'Name must be at least 2 characters';
+                    return context.l10n.nameMinTwoChars;
                   }
                   return null;
                 },
@@ -176,10 +201,10 @@ class _AddProduceScreenState extends ConsumerState<AddProduceScreen> {
 
               // Category Dropdown
               AppDropdownFormField<String>(
-                label: 'Produce Category',
+                label: context.l10n.produceCategoryLabel,
                 value: _selectedCategory,
                 items: _categories
-                    .map((c) => DropdownMenuItem(value: c, child: Text(c)))
+                    .map((c) => DropdownMenuItem(value: c, child: Text(_categoryLabel(c))))
                     .toList(),
                 onChanged: (val) {
                   if (val != null) setState(() => _selectedCategory = val);
@@ -194,18 +219,18 @@ class _AddProduceScreenState extends ConsumerState<AddProduceScreen> {
                   Expanded(
                     flex: 2,
                     child: AppTextField(
-                      label: 'Available Quantity',
+                      label: context.l10n.availableQuantityLabel,
                       hint: 'e.g. 50',
                       controller: _quantityController,
                       keyboardType: const TextInputType.numberWithOptions(decimal: true),
                       prefixIcon: Icon(Icons.scale_rounded, color: colorScheme.primary),
                       validator: (val) {
                         if (val == null || val.trim().isEmpty) {
-                          return 'Enter quantity';
+                          return context.l10n.enterQuantity;
                         }
                         final numVal = double.tryParse(val.trim());
                         if (numVal == null || numVal <= 0) {
-                          return 'Enter valid quantity';
+                          return context.l10n.enterValidQuantityLabel;
                         }
                         return null;
                       },
@@ -215,7 +240,7 @@ class _AddProduceScreenState extends ConsumerState<AddProduceScreen> {
                   Expanded(
                     flex: 1,
                     child: AppDropdownFormField<String>(
-                      label: 'Unit',
+                      label: context.l10n.unitLabel,
                       value: _selectedUnit,
                       items: _units
                           .map((u) => DropdownMenuItem(value: u, child: Text(u)))
@@ -231,17 +256,17 @@ class _AddProduceScreenState extends ConsumerState<AddProduceScreen> {
 
               // Expected Price
               AppCurrencyField(
-                label: 'Expected Price (₹ per $_selectedUnit)',
+                label: '${context.l10n.expectedPriceLabel} (₹ per $_selectedUnit)',
                 hint: '2450',
                 unitSuffix: '/ $_selectedUnit',
                 controller: _priceController,
                 validator: (val) {
                   if (val == null || val.trim().isEmpty) {
-                    return 'Please enter expected price';
+                    return context.l10n.pleaseEnterExpectedPrice;
                   }
                   final numVal = double.tryParse(val.trim());
                   if (numVal == null || numVal <= 0) {
-                    return 'Enter valid positive price';
+                    return context.l10n.enterValidPositivePrice;
                   }
                   return null;
                 },
@@ -250,13 +275,13 @@ class _AddProduceScreenState extends ConsumerState<AddProduceScreen> {
 
               // Location
               AppTextField(
-                label: 'Harvest / Pickup Location',
+                label: context.l10n.harvestPickupLocation,
                 hint: 'e.g. Vasad, Anand, Gujarat',
                 controller: _locationController,
                 prefixIcon: Icon(Icons.location_on_outlined, color: colorScheme.primary),
                 validator: (val) {
                   if (val == null || val.trim().isEmpty) {
-                    return 'Please enter location';
+                    return context.l10n.pleaseEnterLocation;
                   }
                   return null;
                 },
@@ -265,7 +290,7 @@ class _AddProduceScreenState extends ConsumerState<AddProduceScreen> {
 
               // Description
               AppTextField(
-                label: 'Additional Quality Details (Optional)',
+                label: context.l10n.additionalQualityDetailsOptional,
                 hint: 'e.g. Organic certified, Grade A quality, harvested last week',
                 controller: _descriptionController,
                 maxLines: 3,
@@ -275,7 +300,7 @@ class _AddProduceScreenState extends ConsumerState<AddProduceScreen> {
 
               // Submit Button
               AppButton(
-                label: 'Publish Listing',
+                label: context.l10n.publishListing,
                 icon: Icons.check_circle_outline_rounded,
                 isLoading: state.isSubmitting,
                 onPressed: _submitProduce,
