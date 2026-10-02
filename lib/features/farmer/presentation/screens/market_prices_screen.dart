@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:farmer_market_app/core/constants/app_colors.dart';
+import 'package:farmer_market_app/core/localization/localization_extension.dart';
 import 'package:farmer_market_app/core/constants/app_spacing.dart';
 import 'package:farmer_market_app/core/widgets/app_card.dart';
 import 'package:farmer_market_app/core/widgets/chips/app_chip.dart';
@@ -35,6 +36,29 @@ class _MarketPricesScreenState extends ConsumerState<MarketPricesScreen> {
     'Oilseeds',
     'Spices',
   ];
+
+  /// Display label for a category chip. The English [cat] string is still the
+  /// value sent to the repository as the filter key; only the label is localized.
+  String _categoryLabel(String cat) {
+    switch (cat) {
+      case 'All':
+        return context.l10n.allLabel;
+      case 'Cereals':
+        return context.l10n.cerealsCategory;
+      case 'Pulses':
+        return context.l10n.pulsesCategory;
+      case 'Vegetables':
+        return context.l10n.vegetablesCategory;
+      case 'Fruits':
+        return context.l10n.fruitsCategory;
+      case 'Oilseeds':
+        return context.l10n.oilseedsCategory;
+      case 'Spices':
+        return context.l10n.spicesCategory;
+      default:
+        return cat;
+    }
+  }
 
   @override
   void initState() {
@@ -81,7 +105,7 @@ class _MarketPricesScreenState extends ConsumerState<MarketPricesScreen> {
                     Expanded(
                       child: AppSearchField(
                         controller: _searchController,
-                        hint: 'Search market prices by crop name...',
+                        hint: context.l10n.searchMarketPricesHint,
                         onChanged: (val) => _fetchPrices(),
                         onClear: () {
                           _searchController.clear();
@@ -95,23 +119,23 @@ class _MarketPricesScreenState extends ConsumerState<MarketPricesScreen> {
                         Icons.sort_rounded,
                         color: isDark ? const Color(0xFF4ADE80) : AppColors.primary,
                       ),
-                      tooltip: 'Sort Prices',
+                      tooltip: context.l10n.sortPrices,
                       onSelected: (sortVal) {
                         setState(() => _selectedSort = sortVal);
                         _fetchPrices();
                       },
-                      itemBuilder: (context) => const [
+                      itemBuilder: (context) => [
                         PopupMenuItem(
                           value: 'date_desc',
-                          child: Text('Latest Date'),
+                          child: Text(context.l10n.latestDate),
                         ),
                         PopupMenuItem(
                           value: 'price_asc',
-                          child: Text('Price: Low to High'),
+                          child: Text(context.l10n.priceLowToHigh),
                         ),
                         PopupMenuItem(
                           value: 'price_desc',
-                          child: Text('Price: High to Low'),
+                          child: Text(context.l10n.priceHighToLow),
                         ),
                       ],
                     ),
@@ -126,7 +150,7 @@ class _MarketPricesScreenState extends ConsumerState<MarketPricesScreen> {
                       return Padding(
                         padding: const EdgeInsets.only(right: AppSpacing.xs),
                         child: AppChip(
-                          label: cat,
+                          label: _categoryLabel(cat),
                           isSelected: isSelected,
                           onTap: () {
                             setState(() => _selectedCategory = cat);
@@ -179,7 +203,7 @@ class _MarketPricesScreenState extends ConsumerState<MarketPricesScreen> {
           alignment: Alignment.center,
           padding: const EdgeInsets.all(AppSpacing.md),
           child: ErrorStateWidget(
-            title: 'Failed to load market prices',
+            title: context.l10n.failedToLoadMarketPrices,
             message: state.errorMessage!,
             onRetry: _fetchPrices,
           ),
@@ -195,10 +219,10 @@ class _MarketPricesScreenState extends ConsumerState<MarketPricesScreen> {
           alignment: Alignment.center,
           padding: const EdgeInsets.all(AppSpacing.md),
           child: EmptyStateWidget(
-            title: 'No Market Prices Found',
-            message: 'No market price records match your current search or category filter.',
+            title: context.l10n.noMarketPricesFound,
+            message: context.l10n.noMarketPricesFoundMessage,
             icon: Icons.trending_up_outlined,
-            actionLabel: 'Reset Filters',
+            actionLabel: context.l10n.resetFilters,
             onAction: () {
               _searchController.clear();
               setState(() {
@@ -236,7 +260,7 @@ class _MarketPricesScreenState extends ConsumerState<MarketPricesScreen> {
 
         final formattedDate = item.priceDate != null
             ? DateFormat('dd MMM yyyy').format(item.priceDate!)
-            : 'Today';
+            : context.l10n.today;
 
         return Padding(
           padding: const EdgeInsets.only(bottom: AppSpacing.sm),
