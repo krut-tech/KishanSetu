@@ -3,6 +3,7 @@ import 'package:farmer_market_app/core/constants/app_colors.dart';
 import 'package:farmer_market_app/core/constants/app_spacing.dart';
 import 'package:farmer_market_app/core/widgets/app_card.dart';
 import 'package:farmer_market_app/features/buyer/domain/models/buyer_dashboard_stats.dart';
+import 'package:farmer_market_app/core/localization/localization_extension.dart';
 
 /// Stat cards summary for Marketplace and Offers overview on Buyer Dashboard.
 class MarketplaceSummaryCards extends StatelessWidget {
@@ -24,7 +25,7 @@ class MarketplaceSummaryCards extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Procurement Summary',
+          context.l10n.procurementSummary,
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
@@ -37,7 +38,7 @@ class MarketplaceSummaryCards extends StatelessWidget {
             Expanded(
               child: _buildSummaryCard(
                 context,
-                title: 'Available Produce',
+                title: context.l10n.availableProduce,
                 count: stats.totalAvailableProduce,
                 icon: Icons.eco_outlined,
                 color: isDark ? const Color(0xFF4ADE80) : AppColors.primary,
@@ -48,7 +49,7 @@ class MarketplaceSummaryCards extends StatelessWidget {
             Expanded(
               child: _buildSummaryCard(
                 context,
-                title: 'Total Offers',
+                title: context.l10n.totalOffers,
                 count: stats.activeOffers,
                 icon: Icons.local_offer_outlined,
                 color: isDark ? const Color(0xFF38BDF8) : AppColors.info,
@@ -63,7 +64,7 @@ class MarketplaceSummaryCards extends StatelessWidget {
             Expanded(
               child: _buildSummaryCard(
                 context,
-                title: 'Pending Offers',
+                title: context.l10n.pendingOffers,
                 count: stats.pendingOffers,
                 icon: Icons.hourglass_top_rounded,
                 color: isDark ? const Color(0xFFF59E0B) : AppColors.warning,
@@ -74,7 +75,7 @@ class MarketplaceSummaryCards extends StatelessWidget {
             Expanded(
               child: _buildSummaryCard(
                 context,
-                title: 'Accepted Offers',
+                title: context.l10n.acceptedOffers,
                 count: stats.acceptedOffers,
                 icon: Icons.check_circle_outline_rounded,
                 color: isDark ? const Color(0xFF34D399) : AppColors.success,
