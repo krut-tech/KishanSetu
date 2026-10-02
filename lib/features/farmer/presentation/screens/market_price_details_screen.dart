@@ -5,6 +5,7 @@ import 'package:farmer_market_app/core/constants/app_spacing.dart';
 import 'package:farmer_market_app/core/widgets/app_card.dart';
 import 'package:farmer_market_app/core/widgets/price/app_price_text.dart';
 import 'package:farmer_market_app/features/farmer/domain/models/market_price_model.dart';
+import 'package:farmer_market_app/core/localization/localization_extension.dart';
 
 /// Full-detail view for a single market price record.
 ///
@@ -28,15 +29,15 @@ class MarketPriceDetailsScreen extends StatelessWidget {
     };
 
     final trendLabel = switch (trendEnum) {
-      PriceTrend.up => 'Rising',
-      PriceTrend.down => 'Falling',
-      PriceTrend.stable => 'Stable',
-      PriceTrend.none => 'No trend data',
+      PriceTrend.up => context.l10n.rising,
+      PriceTrend.down => context.l10n.falling,
+      PriceTrend.stable => context.l10n.stableTrend,
+      PriceTrend.none => context.l10n.noTrendData,
     };
 
     final formattedPriceDate = price.priceDate != null
         ? DateFormat('dd MMM yyyy (EEEE)').format(price.priceDate!)
-        : 'Not specified';
+        : context.l10n.notSpecified;
 
     final formattedUpdatedAt = price.createdAt != null
         ? DateFormat('dd MMM yyyy, hh:mm a').format(price.createdAt!)
@@ -44,7 +45,7 @@ class MarketPriceDetailsScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(price.produceName.isNotEmpty ? price.produceName : 'Market Price Details'),
+        title: Text(price.produceName.isNotEmpty ? price.produceName : context.l10n.marketPriceDetailsTitle),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(AppSpacing.md),
@@ -116,7 +117,7 @@ class MarketPriceDetailsScreen extends StatelessWidget {
             ),
             const SizedBox(height: AppSpacing.lg),
             Text(
-              'Market Details',
+              context.l10n.marketDetails,
               style: TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.bold,
@@ -128,16 +129,16 @@ class MarketPriceDetailsScreen extends StatelessWidget {
               padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
               child: Column(
                 children: [
-                  _DetailRow(icon: Icons.storefront_outlined, label: 'Market / Mandi', value: price.marketName),
+                  _DetailRow(icon: Icons.storefront_outlined, label: context.l10n.marketMandiLabel, value: price.marketName),
                   if (price.location != null)
-                    _DetailRow(icon: Icons.location_on_outlined, label: 'Location', value: price.location!),
-                  _DetailRow(icon: Icons.calendar_today_outlined, label: 'Price Date', value: formattedPriceDate),
+                    _DetailRow(icon: Icons.location_on_outlined, label: context.l10n.locationLabel, value: price.location!),
+                  _DetailRow(icon: Icons.calendar_today_outlined, label: context.l10n.priceDateLabel, value: formattedPriceDate),
                   if (price.source != null)
-                    _DetailRow(icon: Icons.verified_outlined, label: 'Source', value: price.source!, isLast: formattedUpdatedAt == null),
+                    _DetailRow(icon: Icons.verified_outlined, label: context.l10n.sourceLabel, value: price.source!, isLast: formattedUpdatedAt == null),
                   if (formattedUpdatedAt != null)
                     _DetailRow(
                       icon: Icons.history_outlined,
-                      label: 'Last Synced',
+                      label: context.l10n.lastSynced,
                       value: formattedUpdatedAt,
                       isLast: true,
                     ),
@@ -146,8 +147,7 @@ class MarketPriceDetailsScreen extends StatelessWidget {
             ),
             const SizedBox(height: AppSpacing.lg),
             Text(
-              'Prices shown are as last reported for this market and may change whenever '
-              'updated data is published for this crop.',
+              context.l10n.priceDetailsFooterNote,
               style: TextStyle(
                 fontSize: 12,
                 color: colorScheme.onSurfaceVariant,
