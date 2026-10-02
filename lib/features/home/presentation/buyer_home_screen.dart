@@ -6,6 +6,7 @@ import 'package:farmer_market_app/core/constants/app_constants.dart';
 import 'package:farmer_market_app/core/constants/app_spacing.dart';
 import 'package:farmer_market_app/core/localization/locale_controller.dart';
 import 'package:farmer_market_app/core/localization/localization_extension.dart';
+import 'package:farmer_market_app/core/routing/route_names.dart';
 import 'package:farmer_market_app/core/theme/theme_controller.dart';
 import 'package:farmer_market_app/core/widgets/app_card.dart';
 import 'package:farmer_market_app/core/widgets/buttons/app_button.dart';
@@ -285,6 +286,10 @@ class _BuyerHomeScreenState extends ConsumerState<BuyerHomeScreen> {
               onMarketPrices: () => setState(() => _currentIndex = 2),
               onMyOffers: () => setState(() => _currentIndex = 3),
               onProfile: () => setState(() => _currentIndex = 4),
+              onWishlist: () => context.push(RouteNames.wishlist),
+              onPostRfq: () => context.push(RouteNames.rfqList),
+              onAdvancedSearch: () => context.push(RouteNames.advancedSearch),
+              onSubscriptions: () => context.push(RouteNames.subscriptions),
             ),
             const SizedBox(height: AppSpacing.lg),
 
