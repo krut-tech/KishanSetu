@@ -16,13 +16,18 @@ import 'package:farmer_market_app/features/auth/presentation/screens/forgot_pass
 import 'package:farmer_market_app/features/auth/presentation/screens/login_screen.dart';
 import 'package:farmer_market_app/features/auth/presentation/screens/register_screen.dart';
 import 'package:farmer_market_app/features/auth/presentation/screens/role_selection_screen.dart';
+import 'package:farmer_market_app/features/buyer/presentation/screens/advanced_search_screen.dart';
 import 'package:farmer_market_app/features/buyer/presentation/screens/buyer_offers_screen.dart';
 import 'package:farmer_market_app/features/buyer/presentation/screens/marketplace_screen.dart';
+import 'package:farmer_market_app/features/buyer/presentation/screens/rfq_list_screen.dart';
+import 'package:farmer_market_app/features/buyer/presentation/screens/subscriptions_screen.dart';
+import 'package:farmer_market_app/features/buyer/presentation/screens/wishlist_screen.dart';
 import 'package:farmer_market_app/features/design_system/presentation/design_system_gallery_screen.dart';
 import 'package:farmer_market_app/features/farmer/presentation/screens/add_produce_screen.dart';
 import 'package:farmer_market_app/features/farmer/presentation/screens/market_prices_screen.dart';
 import 'package:farmer_market_app/features/farmer/presentation/screens/my_produce_screen.dart';
 import 'package:farmer_market_app/features/farmer/presentation/screens/offers_screen.dart';
+import 'package:farmer_market_app/features/farmer/presentation/screens/open_rfqs_screen.dart';
 import 'package:farmer_market_app/features/home/presentation/buyer_home_screen.dart';
 import 'package:farmer_market_app/features/home/presentation/farmer_home_screen.dart';
 import 'package:farmer_market_app/features/notifications/presentation/screens/notification_screen.dart';
@@ -96,14 +101,19 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       }
 
       // Role-based cross-route separation guard. Farmer-only routes must not be
-      // reachable by a completed buyer through a direct URL/deep link.
-      if (location == RouteNames.addProduce && profile?.role != UserRole.farmer) {
+      // reachable by a completed buyer through a direct URL/deep link, and vice versa.
+      final farmerOnlyRoutes = {RouteNames.addProduce, RouteNames.myProduce, RouteNames.openRfqs};
+      final buyerOnlyRoutes = {
+        RouteNames.buyerOffers,
+        RouteNames.wishlist,
+        RouteNames.rfqList,
+        RouteNames.advancedSearch,
+        RouteNames.subscriptions,
+      };
+      if (farmerOnlyRoutes.contains(location) && profile?.role != UserRole.farmer) {
         return RouteNames.buyerHome;
       }
-      if (location == RouteNames.myProduce && profile?.role != UserRole.farmer) {
-        return RouteNames.buyerHome;
-      }
-      if (location == RouteNames.buyerOffers && profile?.role != UserRole.buyer) {
+      if (buyerOnlyRoutes.contains(location) && profile?.role != UserRole.buyer) {
         return RouteNames.farmerHome;
       }
 
@@ -197,9 +207,34 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const AddProduceScreen(),
       ),
       GoRoute(
+        path: RouteNames.openRfqs,
+        name: 'openRfqs',
+        builder: (context, state) => const OpenRfqsScreen(),
+      ),
+      GoRoute(
         path: RouteNames.buyerHome,
         name: 'buyerHome',
         builder: (context, state) => const BuyerHomeScreen(),
+      ),
+      GoRoute(
+        path: RouteNames.wishlist,
+        name: 'wishlist',
+        builder: (context, state) => const WishlistScreen(),
+      ),
+      GoRoute(
+        path: RouteNames.rfqList,
+        name: 'rfqList',
+        builder: (context, state) => const RfqListScreen(),
+      ),
+      GoRoute(
+        path: RouteNames.advancedSearch,
+        name: 'advancedSearch',
+        builder: (context, state) => const AdvancedSearchScreen(),
+      ),
+      GoRoute(
+        path: RouteNames.subscriptions,
+        name: 'subscriptions',
+        builder: (context, state) => const SubscriptionsScreen(),
       ),
       GoRoute(
         path: RouteNames.notifications,

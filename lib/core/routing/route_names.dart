@@ -16,6 +16,15 @@ class RouteNames {
   static const String notifications = '/notifications';
   static const String designSystem = '/design-system';
 
+  // Buyer-only feature screens.
+  static const String wishlist = '/wishlist';
+  static const String rfqList = '/rfq-list';
+  static const String advancedSearch = '/advanced-search';
+  static const String subscriptions = '/subscriptions';
+
+  // Farmer-only feature screens.
+  static const String openRfqs = '/open-rfqs';
+
   // Deep-link targets used by push notification navigation (see
   // PushNotificationService.resolveRouteFromData and the push-notification
   // Edge Function's resolveRoute). Previously these were only referenced as
