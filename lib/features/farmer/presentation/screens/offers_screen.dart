@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:farmer_market_app/core/constants/app_spacing.dart';
+import 'package:farmer_market_app/core/routing/route_names.dart';
 import 'package:farmer_market_app/core/widgets/badges/app_status_badge.dart';
 import 'package:farmer_market_app/core/widgets/cards/offer_card.dart';
 import 'package:farmer_market_app/core/widgets/chips/app_chip.dart';
@@ -53,12 +55,40 @@ class _OffersScreenState extends ConsumerState<OffersScreen> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(offerControllerProvider);
+    final colorScheme = Theme.of(context).colorScheme;
 
     return SafeArea(
       top: false,
       bottom: true,
       child: Column(
         children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.md, AppSpacing.md, 0),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(10),
+              onTap: () => context.push(RouteNames.openRfqs),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+                decoration: BoxDecoration(
+                  color: colorScheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.inbox_outlined, color: colorScheme.onPrimaryContainer, size: 20),
+                    const SizedBox(width: AppSpacing.sm),
+                    Expanded(
+                      child: Text(
+                        'Browse open buyer requirements (RFQs) and send a quote',
+                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: colorScheme.onPrimaryContainer),
+                      ),
+                    ),
+                    Icon(Icons.chevron_right_rounded, color: colorScheme.onPrimaryContainer),
+                  ],
+                ),
+              ),
+            ),
+          ),
           Container(
             padding: const EdgeInsets.all(AppSpacing.md),
             color: Theme.of(context).colorScheme.surface,
