@@ -93,7 +93,11 @@ class _AdvancedSearchScreenState extends ConsumerState<AdvancedSearchScreen> {
               hint: 'e.g. Wheat, Tomato',
               controller: _queryController,
               prefixIcon: const Icon(Icons.search_rounded),
-              onFieldSubmitted: (_) => _runSearch(),
+              suffixIcon: IconButton(
+                icon: const Icon(Icons.arrow_forward_rounded),
+                onPressed: _runSearch,
+              ),
+              onChanged: (_) {},
             ),
           ),
           Padding(
