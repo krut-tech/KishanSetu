@@ -9,6 +9,10 @@ class BuyerQuickActionsGrid extends StatelessWidget {
   final VoidCallback onMarketPrices;
   final VoidCallback onMyOffers;
   final VoidCallback onProfile;
+  final VoidCallback onWishlist;
+  final VoidCallback onPostRfq;
+  final VoidCallback onAdvancedSearch;
+  final VoidCallback onSubscriptions;
 
   const BuyerQuickActionsGrid({
     super.key,
@@ -16,6 +20,10 @@ class BuyerQuickActionsGrid extends StatelessWidget {
     required this.onMarketPrices,
     required this.onMyOffers,
     required this.onProfile,
+    required this.onWishlist,
+    required this.onPostRfq,
+    required this.onAdvancedSearch,
+    required this.onSubscriptions,
   });
 
   @override
@@ -66,6 +74,38 @@ class BuyerQuickActionsGrid extends StatelessWidget {
               icon: Icons.local_offer_outlined,
               color: isDark ? const Color(0xFFF59E0B) : AppColors.warning,
               onTap: onMyOffers,
+            ),
+            _buildActionCard(
+              context,
+              title: 'Wishlist',
+              subtitle: 'Saved Items',
+              icon: Icons.favorite_border_rounded,
+              color: Colors.redAccent,
+              onTap: onWishlist,
+            ),
+            _buildActionCard(
+              context,
+              title: 'Post RFQ',
+              subtitle: 'Bulk Request',
+              icon: Icons.request_quote_outlined,
+              color: isDark ? const Color(0xFF38BDF8) : AppColors.info,
+              onTap: onPostRfq,
+            ),
+            _buildActionCard(
+              context,
+              title: 'Advanced Search',
+              subtitle: 'Filter Produce',
+              icon: Icons.tune_rounded,
+              color: isDark ? const Color(0xFFA78BFA) : const Color(0xFF7C3AED),
+              onTap: onAdvancedSearch,
+            ),
+            _buildActionCard(
+              context,
+              title: 'Subscriptions',
+              subtitle: 'Recurring Orders',
+              icon: Icons.autorenew_rounded,
+              color: isDark ? const Color(0xFF4ADE80) : AppColors.primary,
+              onTap: onSubscriptions,
             ),
             _buildActionCard(
               context,
