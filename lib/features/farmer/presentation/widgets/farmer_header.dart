@@ -3,6 +3,7 @@ import 'package:farmer_market_app/core/constants/app_colors.dart';
 import 'package:farmer_market_app/core/constants/app_radius.dart';
 import 'package:farmer_market_app/core/constants/app_spacing.dart';
 import 'package:farmer_market_app/features/auth/domain/models/user_profile.dart';
+import 'package:farmer_market_app/core/localization/localization_extension.dart';
 
 class FarmerHeader extends StatelessWidget {
   final UserProfile? profile;
@@ -22,14 +23,14 @@ class FarmerHeader extends StatelessWidget {
     final primaryText = isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight;
     final secondaryText = isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight;
 
-    final name = profile?.fullName.isNotEmpty == true ? profile!.fullName : 'Farmer';
+    final name = profile?.fullName.isNotEmpty == true ? profile!.fullName : context.l10n.farmerLabel;
     final locationParts = [
       profile?.village,
       profile?.district,
       profile?.state,
     ].where((s) => s != null && s.trim().isNotEmpty).join(', ');
 
-    final locationText = locationParts.isNotEmpty ? locationParts : 'Location not set';
+    final locationText = locationParts.isNotEmpty ? locationParts : context.l10n.locationNotSet;
 
     return Row(
       children: [
@@ -59,7 +60,7 @@ class FarmerHeader extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Namaste, $name 🙏',
+                '${context.l10n.namaste}, $name 🙏',
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
