@@ -3,6 +3,7 @@ import 'package:farmer_market_app/core/animations/animated_pressable.dart';
 import 'package:farmer_market_app/core/constants/app_colors.dart';
 import 'package:farmer_market_app/core/constants/app_radius.dart';
 import 'package:farmer_market_app/core/constants/app_spacing.dart';
+import 'package:farmer_market_app/core/localization/localization_extension.dart';
 
 class QuickActionsGrid extends StatelessWidget {
   final VoidCallback onAddProduce;
@@ -27,7 +28,7 @@ class QuickActionsGrid extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Quick Actions',
+          context.l10n.quickActionsTitle,
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
@@ -39,7 +40,7 @@ class QuickActionsGrid extends StatelessWidget {
           children: [
             Expanded(
               child: _buildActionButton(
-                label: 'Add Produce',
+                label: context.l10n.addProduceLabel,
                 icon: Icons.add_circle_outline_rounded,
                 bgColor: AppColors.primary,
                 fgColor: Colors.white,
@@ -49,7 +50,7 @@ class QuickActionsGrid extends StatelessWidget {
             const SizedBox(width: AppSpacing.sm),
             Expanded(
               child: _buildActionButton(
-                label: 'My Produce',
+                label: context.l10n.myProduce,
                 icon: Icons.inventory_2_outlined,
                 bgColor: isDark ? const Color(0xFF14532D) : AppColors.primaryLight,
                 fgColor: isDark ? const Color(0xFFDCFCE7) : AppColors.primaryDark,
@@ -63,7 +64,7 @@ class QuickActionsGrid extends StatelessWidget {
           children: [
             Expanded(
               child: _buildActionButton(
-                label: 'Market Prices',
+                label: context.l10n.marketPrices,
                 icon: Icons.trending_up_rounded,
                 bgColor: isDark ? const Color(0xFF78350F) : AppColors.secondaryLight,
                 fgColor: isDark ? const Color(0xFFFEF3C7) : AppColors.secondaryDark,
@@ -73,7 +74,7 @@ class QuickActionsGrid extends StatelessWidget {
             const SizedBox(width: AppSpacing.sm),
             Expanded(
               child: _buildActionButton(
-                label: 'My Offers',
+                label: context.l10n.myOffers,
                 icon: Icons.local_offer_outlined,
                 bgColor: isDark ? const Color(0xFF0C4A6E) : AppColors.inTransitBg,
                 fgColor: isDark ? const Color(0xFFE0F2FE) : AppColors.inTransitFg,
