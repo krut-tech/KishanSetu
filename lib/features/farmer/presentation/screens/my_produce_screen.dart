@@ -14,6 +14,7 @@ import 'package:farmer_market_app/core/widgets/states/shimmer_loading.dart';
 import 'package:farmer_market_app/features/auth/presentation/controllers/auth_providers.dart';
 import 'package:farmer_market_app/features/farmer/presentation/controllers/farmer_providers.dart';
 import 'package:farmer_market_app/features/farmer/presentation/controllers/produce_controller.dart';
+import 'package:farmer_market_app/core/localization/localization_extension.dart';
 
 class MyProduceScreen extends ConsumerStatefulWidget {
   const MyProduceScreen({super.key});
@@ -78,7 +79,7 @@ class _MyProduceScreenState extends ConsumerState<MyProduceScreen> {
               children: [
                 AppSearchField(
                   controller: _searchController,
-                  hint: 'Search my produce by crop name...',
+                  hint: context.l10n.searchMyProduceHint,
                   onChanged: (val) => _fetchProduce(),
                   onClear: () {
                     _searchController.clear();
@@ -114,7 +115,7 @@ class _MyProduceScreenState extends ConsumerState<MyProduceScreen> {
               onRefresh: () async {
                 _fetchProduce();
               },
-              child: _buildContent(state, user?.fullName ?? 'Farmer'),
+              child: _buildContent(state, user?.fullName ?? context.l10n.farmerLabel),
             ),
           ),
         ],
@@ -147,7 +148,7 @@ class _MyProduceScreenState extends ConsumerState<MyProduceScreen> {
           alignment: Alignment.center,
           padding: const EdgeInsets.all(AppSpacing.md),
           child: ErrorStateWidget(
-            title: 'Failed to load produce',
+            title: context.l10n.failedToLoadProduce,
             message: state.errorMessage!,
             onRetry: _fetchProduce,
           ),
@@ -163,10 +164,10 @@ class _MyProduceScreenState extends ConsumerState<MyProduceScreen> {
           alignment: Alignment.center,
           padding: const EdgeInsets.all(AppSpacing.md),
           child: EmptyStateWidget(
-            title: 'No produce listed yet',
-            message: 'You have not added any produce listings in this category.',
+            title: context.l10n.noProduceListedYetFarmer,
+            message: context.l10n.noProduceInCategory,
             icon: Icons.eco_outlined,
-            actionLabel: 'Add Produce',
+            actionLabel: context.l10n.addProduceLabel,
             onAction: () => context.push(RouteNames.addProduce),
           ),
         ),
@@ -194,14 +195,14 @@ class _MyProduceScreenState extends ConsumerState<MyProduceScreen> {
             quantity: '${item.quantity} ${item.unit}',
             askingPrice: item.expectedPrice,
             netRealizationPrice: netRealization,
-            location: item.location ?? 'Location not specified',
+            location: item.location ?? context.l10n.locationNotSpecified,
             farmerName: farmerName,
             onDelete: () async {
               final confirmed = await AppDialogs.showConfirmDialog(
                 context: context,
-                title: 'Delete Produce Listing',
-                message: 'Are you sure you want to delete ${item.name}?',
-                confirmLabel: 'Delete',
+                title: context.l10n.deleteProduceListingTitle,
+                message: '${context.l10n.deleteProduceConfirmMessage} ${item.name}?',
+                confirmLabel: context.l10n.deleteLabel,
                 isDestructive: true,
               );
               if (confirmed == true) {
@@ -211,7 +212,7 @@ class _MyProduceScreenState extends ConsumerState<MyProduceScreen> {
                 if (success) {
                   ref.read(farmerDashboardNotifierProvider.notifier).refreshDashboard();
                   if (context.mounted) {
-                    AppSnackBar.show(context, message: 'Produce deleted', type: SnackBarType.info);
+                    AppSnackBar.show(context, message: context.l10n.produceDeleted, type: SnackBarType.info);
                   }
                 }
               }
