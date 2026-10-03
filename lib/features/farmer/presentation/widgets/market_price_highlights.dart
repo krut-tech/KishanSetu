@@ -6,6 +6,7 @@ import 'package:farmer_market_app/core/widgets/app_card.dart';
 import 'package:farmer_market_app/core/widgets/price/app_price_text.dart';
 import 'package:farmer_market_app/features/farmer/domain/models/market_price_model.dart';
 import 'package:farmer_market_app/features/farmer/presentation/screens/market_price_details_screen.dart';
+import 'package:farmer_market_app/core/localization/localization_extension.dart';
 
 class MarketPriceHighlights extends StatelessWidget {
   final List<MarketPriceModel> prices;
@@ -30,7 +31,7 @@ class MarketPriceHighlights extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'Market Price Highlights',
+              context.l10n.marketPriceHighlightsTitle,
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
@@ -39,7 +40,7 @@ class MarketPriceHighlights extends StatelessWidget {
             ),
             TextButton(
               onPressed: onViewAll,
-              child: const Text('View All'),
+              child: Text(context.l10n.viewAll),
             ),
           ],
         ),
@@ -60,7 +61,7 @@ class MarketPriceHighlights extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'No Market Prices Available',
+                        context.l10n.noMarketPricesAvailable,
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
@@ -69,7 +70,7 @@ class MarketPriceHighlights extends StatelessWidget {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        'Market price updates will appear here once published.',
+                        context.l10n.marketPricesWillAppear,
                         style: TextStyle(
                           fontSize: 12,
                           color: secondaryText,
@@ -93,7 +94,7 @@ class MarketPriceHighlights extends StatelessWidget {
 
               final formattedDate = item.priceDate != null
                   ? DateFormat('dd MMM').format(item.priceDate!)
-                  : 'Today';
+                  : context.l10n.today;
 
               return Padding(
                 padding: const EdgeInsets.only(bottom: AppSpacing.sm),
