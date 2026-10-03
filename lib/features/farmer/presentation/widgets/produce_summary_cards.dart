@@ -5,6 +5,7 @@ import 'package:farmer_market_app/core/constants/app_radius.dart';
 import 'package:farmer_market_app/core/constants/app_spacing.dart';
 import 'package:farmer_market_app/core/widgets/app_card.dart';
 import 'package:farmer_market_app/features/farmer/domain/models/dashboard_stats.dart';
+import 'package:farmer_market_app/core/localization/localization_extension.dart';
 
 class ProduceSummaryCards extends StatelessWidget {
   final DashboardStats stats;
@@ -25,7 +26,7 @@ class ProduceSummaryCards extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Produce & Offers Summary',
+          context.l10n.produceOffersSummary,
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
@@ -38,7 +39,7 @@ class ProduceSummaryCards extends StatelessWidget {
             Expanded(
               child: _buildStatCard(
                 context,
-                title: 'Active Listings',
+                title: context.l10n.activeListings,
                 count: stats.activeListings,
                 icon: Icons.eco_rounded,
                 iconBg: isDark ? const Color(0xFF064E3B) : AppColors.activeBg,
@@ -50,7 +51,7 @@ class ProduceSummaryCards extends StatelessWidget {
             Expanded(
               child: _buildStatCard(
                 context,
-                title: 'Pending Offers',
+                title: context.l10n.pendingOffers,
                 count: stats.pendingOffers,
                 icon: Icons.local_offer_rounded,
                 iconBg: isDark ? const Color(0xFF78350F) : AppColors.pendingBg,
@@ -66,7 +67,7 @@ class ProduceSummaryCards extends StatelessWidget {
             Expanded(
               child: _buildStatCard(
                 context,
-                title: 'Sold Produce',
+                title: context.l10n.soldProduce,
                 count: stats.soldProduce,
                 icon: Icons.check_circle_rounded,
                 iconBg: isDark ? const Color(0xFF14532D) : AppColors.acceptedBg,
@@ -78,7 +79,7 @@ class ProduceSummaryCards extends StatelessWidget {
             Expanded(
               child: _buildStatCard(
                 context,
-                title: 'Draft Listings',
+                title: context.l10n.draftListings,
                 count: stats.draftProduce,
                 icon: Icons.edit_document,
                 iconBg: isDark ? AppColors.borderDark : AppColors.draftBg,
