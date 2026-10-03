@@ -4,6 +4,7 @@ import 'package:farmer_market_app/core/constants/app_spacing.dart';
 import 'package:farmer_market_app/core/widgets/app_card.dart';
 import 'package:farmer_market_app/core/widgets/price/app_price_text.dart';
 import 'package:farmer_market_app/features/farmer/domain/models/market_price_model.dart';
+import 'package:farmer_market_app/core/localization/localization_extension.dart';
 
 class MarketInsightsCard extends StatelessWidget {
   final List<MarketPriceModel> marketPrices;
@@ -35,7 +36,7 @@ class MarketInsightsCard extends StatelessWidget {
                 ),
                 const SizedBox(width: AppSpacing.xs),
                 Text(
-                  'Market Price Insights',
+                  context.l10n.marketPriceInsightsTitle,
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -46,7 +47,7 @@ class MarketInsightsCard extends StatelessWidget {
             ),
             const SizedBox(height: AppSpacing.sm),
             Text(
-              'No price data available to calculate market analytics.',
+              context.l10n.noPriceDataAvailable,
               style: TextStyle(
                 fontSize: 13,
                 color: secondaryText,
@@ -79,7 +80,7 @@ class MarketInsightsCard extends StatelessWidget {
               ),
               const SizedBox(width: AppSpacing.xs),
               Text(
-                'Market Price Insights',
+                context.l10n.marketPriceInsightsTitle,
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
@@ -93,7 +94,7 @@ class MarketInsightsCard extends StatelessWidget {
             children: [
               Expanded(
                 child: _buildInsightColumn(
-                  label: 'Highest Price',
+                  label: context.l10n.highestPrice,
                   price: highest,
                   unit: commonUnit,
                   color: isDark ? const Color(0xFF4ADE80) : AppColors.success,
@@ -103,7 +104,7 @@ class MarketInsightsCard extends StatelessWidget {
               Container(width: 1, height: 40, color: dividerColor),
               Expanded(
                 child: _buildInsightColumn(
-                  label: 'Average Price',
+                  label: context.l10n.averagePrice,
                   price: avg,
                   unit: commonUnit,
                   color: isDark ? const Color(0xFF6EE7B7) : AppColors.primary,
@@ -113,7 +114,7 @@ class MarketInsightsCard extends StatelessWidget {
               Container(width: 1, height: 40, color: dividerColor),
               Expanded(
                 child: _buildInsightColumn(
-                  label: 'Lowest Price',
+                  label: context.l10n.lowestPrice,
                   price: lowest,
                   unit: commonUnit,
                   color: isDark ? const Color(0xFFFBBF24) : AppColors.warning,
