@@ -6,6 +6,7 @@ import 'package:farmer_market_app/core/widgets/app_card.dart';
 import 'package:farmer_market_app/core/widgets/badges/app_status_badge.dart';
 import 'package:farmer_market_app/core/widgets/cards/offer_card.dart';
 import 'package:farmer_market_app/features/farmer/domain/models/offer_model.dart';
+import 'package:farmer_market_app/core/localization/localization_extension.dart';
 
 class RecentOffersList extends StatelessWidget {
   final List<OfferModel> offers;
@@ -32,7 +33,7 @@ class RecentOffersList extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'Recent Offers Received',
+              context.l10n.recentOffersReceived,
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
@@ -41,7 +42,7 @@ class RecentOffersList extends StatelessWidget {
             ),
             TextButton(
               onPressed: onViewAll,
-              child: const Text('View All'),
+              child: Text(context.l10n.viewAll),
             ),
           ],
         ),
@@ -62,7 +63,7 @@ class RecentOffersList extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'No Offers Received Yet',
+                        context.l10n.noOffersReceivedYet,
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
@@ -71,7 +72,7 @@ class RecentOffersList extends StatelessWidget {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        'Offers from interested buyers will appear here.',
+                        context.l10n.offersFromBuyersWillAppear,
                         style: TextStyle(
                           fontSize: 12,
                           color: secondaryText,
@@ -97,13 +98,13 @@ class RecentOffersList extends StatelessWidget {
 
               final formattedTime = offer.createdAt != null
                   ? DateFormat('dd MMM, hh:mm a').format(offer.createdAt!)
-                  : 'Recent';
+                  : context.l10n.recentLabel;
 
               return Padding(
                 padding: const EdgeInsets.only(bottom: AppSpacing.sm),
                 child: OfferCard(
-                  cropName: offer.produceName ?? 'Produce Listing',
-                  buyerName: offer.buyerName ?? offer.buyerCompany ?? 'Buyer',
+                  cropName: offer.produceName ?? context.l10n.produceListingLabel,
+                  buyerName: offer.buyerName ?? offer.buyerCompany ?? context.l10n.buyerLabel,
                   offerPrice: offer.offeredPrice,
                   quantity: '${offer.quantity} ${offer.produceUnit ?? "units"}',
                   status: statusBadgeType,
