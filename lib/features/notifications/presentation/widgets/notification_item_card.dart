@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:farmer_market_app/features/notifications/domain/models/notification_model.dart';
+import 'package:farmer_market_app/core/localization/localization_extension.dart';
 
 class NotificationItemCard extends StatelessWidget {
   final NotificationModel notification;
@@ -12,7 +13,7 @@ class NotificationItemCard extends StatelessWidget {
     required this.onTap,
   });
 
-  String _formatTime(DateTime time) {
+  String _formatTime(BuildContext context, DateTime time) {
     final now = DateTime.now();
     final difference = now.difference(time);
     
@@ -25,7 +26,7 @@ class NotificationItemCard extends StatelessWidget {
     } else if (difference.inMinutes > 0) {
       return '${difference.inMinutes}m ago';
     } else {
-      return 'Just now';
+      return context.l10n.justNow;
     }
   }
 
@@ -105,7 +106,7 @@ class NotificationItemCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    _formatTime(notification.createdAt),
+                    _formatTime(context, notification.createdAt),
                     style: theme.textTheme.labelSmall?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.8),
                     ),
