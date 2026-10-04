@@ -137,8 +137,9 @@ class AdminController extends StateNotifier<AdminState> {
       (_) {
         state = state.copyWith(
           listings: state.listings
-              .map((p) => p.id == produceId ? p.copyWith(status: p.status) : p)
-              .where((p) => status != 'removed' || p.id != produceId)
+              .map((p) => p.id == produceId
+                  ? p.copyWith(moderationStatus: status, moderationNote: note)
+                  : p)
               .toList(),
           successMessage: 'Listing moderated.',
         );
