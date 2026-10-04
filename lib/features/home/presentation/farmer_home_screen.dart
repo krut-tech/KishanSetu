@@ -56,11 +56,11 @@ class _FarmerHomeScreenState extends ConsumerState<FarmerHomeScreen> {
   String _getGreeting() {
     final hour = DateTime.now().hour;
     if (hour < 12) {
-      return 'Good Morning';
+      return context.l10n.goodMorning;
     } else if (hour < 17) {
-      return 'Good Afternoon';
+      return context.l10n.goodAfternoon;
     } else {
-      return 'Good Evening';
+      return context.l10n.goodEvening;
     }
   }
 
@@ -203,13 +203,13 @@ class _FarmerHomeScreenState extends ConsumerState<FarmerHomeScreen> {
 
     if (dashboardState.errorMessage != null && dashboardState.recentProduce.isEmpty) {
       return ErrorStateWidget(
-        title: 'Unable to load dashboard',
+        title: context.l10n.unableToLoadDashboard,
         message: dashboardState.errorMessage!,
         onRetry: _loadDashboard,
       );
     }
 
-    final greetingText = '${_getGreeting()}, ${profile?.fullName ?? "Farmer"}!';
+    final greetingText = '${_getGreeting()}, ${profile?.fullName ?? context.l10n.farmerLabel}!';
 
     return RefreshIndicator(
       onRefresh: () async {
@@ -265,7 +265,7 @@ class _FarmerHomeScreenState extends ConsumerState<FarmerHomeScreen> {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          'Direct market access & transparent price discovery for your crops.',
+                          context.l10n.welcomeSubtitleFarmer,
                           style: TextStyle(
                             fontSize: 12,
                             color: colorScheme.onPrimaryContainer.withValues(alpha: 0.9),
@@ -313,7 +313,15 @@ class _FarmerHomeScreenState extends ConsumerState<FarmerHomeScreen> {
                 if (ok) {
                   ref.read(farmerDashboardNotifierProvider.notifier).refreshDashboard();
                   if (context.mounted) {
-                    AppSnackBar.show(context, message: 'Offer marked as ${status.toUpperCase()}', type: SnackBarType.success);
+                    AppSnackBar.show(
+                      context,
+                      message: status.toLowerCase() == 'accepted'
+                          ? context.l10n.offerAcceptedStatus
+                          : status.toLowerCase() == 'rejected'
+                              ? context.l10n.offerRejectedStatus
+                              : 'Offer marked as ${status.toUpperCase()}',
+                      type: SnackBarType.success,
+                    );
                   }
                 }
               },
@@ -341,20 +349,20 @@ class _FarmerHomeScreenState extends ConsumerState<FarmerHomeScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Farmer Profile Details',
+              context.l10n.farmerProfileDetailsTitle,
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: colorScheme.onSurface),
             ),
             const Divider(),
-            ListTile(title: const Text('Name'), subtitle: Text(profile?.fullName ?? '-')),
-            ListTile(title: const Text('Phone'), subtitle: Text(profile?.phone ?? '-')),
+            ListTile(title: Text(context.l10n.nameLabel), subtitle: Text(profile?.fullName ?? '-')),
+            ListTile(title: Text(context.l10n.phoneLabel), subtitle: Text(profile?.phone ?? '-')),
             ListTile(
-              title: const Text('Location'),
+              title: Text(context.l10n.locationLabel),
               subtitle: Text('${profile?.village ?? ''}, ${profile?.district ?? ''}, ${profile?.state ?? ''}'),
             ),
-            ListTile(title: const Text('Primary Crop'), subtitle: Text(profile?.primaryCrop ?? '-')),
+            ListTile(title: Text(context.l10n.primaryCropLabel), subtitle: Text(profile?.primaryCrop ?? '-')),
             ListTile(
-              title: const Text('Land Size'),
-              subtitle: Text('${profile?.landSizeAcres ?? 0} Acres'),
+              title: Text(context.l10n.landSizeLabel),
+              subtitle: Text('${profile?.landSizeAcres ?? 0} ${context.l10n.acresLabel}'),
             ),
             const SizedBox(height: AppSpacing.md),
             AppButton(
