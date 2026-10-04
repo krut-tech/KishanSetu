@@ -96,8 +96,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
                     ),
                     child: Column(
                       children: [
-                        const Text(
-                          'Connection Error',
+                        Text(
+                          context.l10n.connectionError,
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
@@ -106,7 +106,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
                         ),
                         const SizedBox(height: AppConstants.paddingSmall),
                         Text(
-                          bootstrapState.errorMessage ?? 'Service initialization failed.',
+                          bootstrapState.errorMessage ?? context.l10n.serviceInitializationFailed,
                           textAlign: TextAlign.center,
                           style: const TextStyle(
                             fontSize: 14,
@@ -127,7 +127,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
                               color: AppColors.primary,
                             ),
                             label: Text(
-                              _showDetails ? 'Hide Details' : 'Show Details',
+                              _showDetails ? context.l10n.hideDetails : context.l10n.showDetails,
                               style: const TextStyle(color: AppColors.primary),
                             ),
                           ),
@@ -167,7 +167,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
                               ref.read(appBootstrapProvider.notifier).initialize();
                             },
                             icon: const Icon(Icons.refresh),
-                            label: const Text('Retry Connection'),
+                            label: Text(context.l10n.retryConnection),
                           ),
                         ),
                       ],
