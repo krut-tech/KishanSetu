@@ -26,6 +26,11 @@ class UserProfile extends Equatable {
   final bool isProfileComplete;
   final DateTime? createdAt;
 
+  // Trust & Safety (admin-managed; never written by the normal profile update flow)
+  final bool isAdmin;
+  final String accountStatus; // active, suspended, banned
+  final String kycStatus; // unverified, pending, verified, rejected
+
   const UserProfile({
     required this.id,
     this.role,
@@ -44,6 +49,9 @@ class UserProfile extends Equatable {
     this.buyingCapacityQuintals,
     this.isProfileComplete = false,
     this.createdAt,
+    this.isAdmin = false,
+    this.accountStatus = 'active',
+    this.kycStatus = 'unverified',
   });
 
   factory UserProfile.fromMap(Map<String, dynamic> map) {
@@ -71,6 +79,9 @@ class UserProfile extends Equatable {
       createdAt: map['created_at'] != null
           ? DateTime.tryParse(map['created_at'] as String)
           : null,
+      isAdmin: (map['is_admin'] as bool?) ?? false,
+      accountStatus: (map['account_status'] as String?) ?? 'active',
+      kycStatus: (map['kyc_status'] as String?) ?? 'unverified',
     );
   }
 
@@ -92,6 +103,10 @@ class UserProfile extends Equatable {
       'business_type': businessType,
       'buying_capacity_quintals': buyingCapacityQuintals,
       'is_profile_complete': isProfileComplete,
+      // is_admin / account_status / kyc_status are intentionally omitted here:
+      // they are admin-managed and a BEFORE UPDATE trigger on the server
+      // silently keeps the existing value for any non-admin caller regardless,
+      // but they're left out of the normal profile-update payload for clarity.
     };
   }
 
@@ -112,6 +127,9 @@ class UserProfile extends Equatable {
     String? businessType,
     double? buyingCapacityQuintals,
     bool? isProfileComplete,
+    bool? isAdmin,
+    String? accountStatus,
+    String? kycStatus,
   }) {
     return UserProfile(
       id: id ?? this.id,
@@ -131,6 +149,9 @@ class UserProfile extends Equatable {
       buyingCapacityQuintals: buyingCapacityQuintals ?? this.buyingCapacityQuintals,
       isProfileComplete: isProfileComplete ?? this.isProfileComplete,
       createdAt: createdAt,
+      isAdmin: isAdmin ?? this.isAdmin,
+      accountStatus: accountStatus ?? this.accountStatus,
+      kycStatus: kycStatus ?? this.kycStatus,
     );
   }
 
@@ -152,5 +173,8 @@ class UserProfile extends Equatable {
         businessType,
         buyingCapacityQuintals,
         isProfileComplete,
+        isAdmin,
+        accountStatus,
+        kycStatus,
       ];
 }
