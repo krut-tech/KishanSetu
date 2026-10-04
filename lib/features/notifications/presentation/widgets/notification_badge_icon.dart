@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:farmer_market_app/core/logging/app_logger.dart';
 import 'package:farmer_market_app/features/notifications/presentation/controllers/notification_notifier.dart';
+import 'package:farmer_market_app/core/localization/localization_extension.dart';
 
 class NotificationBadgeIcon extends ConsumerWidget {
   const NotificationBadgeIcon({super.key});
@@ -16,7 +17,7 @@ class NotificationBadgeIcon extends ConsumerWidget {
       children: [
         IconButton(
           icon: const Icon(Icons.notifications_outlined),
-          tooltip: 'Notifications',
+          tooltip: context.l10n.notificationsTitle,
           onPressed: () {
             AppLogger.info('NOTIFICATION BELL TAPPED');
             AppLogger.info('NAVIGATING TO NOTIFICATION CENTER');
