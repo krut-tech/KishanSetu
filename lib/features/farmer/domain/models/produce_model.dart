@@ -18,6 +18,10 @@ class ProduceModel extends Equatable {
   final String? farmerName;
   final String? farmerDistrict;
 
+  // Trust & Safety: admin listing moderation.
+  final String moderationStatus; // approved, flagged, removed
+  final String? moderationNote;
+
   const ProduceModel({
     required this.id,
     required this.farmerId,
@@ -33,6 +37,8 @@ class ProduceModel extends Equatable {
     this.updatedAt,
     this.farmerName,
     this.farmerDistrict,
+    this.moderationStatus = 'approved',
+    this.moderationNote,
   });
 
   factory ProduceModel.fromMap(Map<String, dynamic> map) {
@@ -67,6 +73,8 @@ class ProduceModel extends Equatable {
           : null,
       farmerName: fName ?? map['farmer_name'] as String?,
       farmerDistrict: fDistrict ?? map['farmer_district'] as String?,
+      moderationStatus: (map['moderation_status'] as String?) ?? 'approved',
+      moderationNote: map['moderation_note'] as String?,
     );
   }
 
@@ -82,6 +90,8 @@ class ProduceModel extends Equatable {
       'status': status,
       if (location != null) 'location': location,
       if (description != null) 'description': description,
+      // moderation_status / moderation_note are admin-managed via admin_moderate_produce()
+      // and intentionally left out of the normal create/update payload.
     };
   }
 
@@ -100,6 +110,8 @@ class ProduceModel extends Equatable {
     DateTime? updatedAt,
     String? farmerName,
     String? farmerDistrict,
+    String? moderationStatus,
+    String? moderationNote,
   }) {
     return ProduceModel(
       id: id ?? this.id,
@@ -116,6 +128,8 @@ class ProduceModel extends Equatable {
       updatedAt: updatedAt ?? this.updatedAt,
       farmerName: farmerName ?? this.farmerName,
       farmerDistrict: farmerDistrict ?? this.farmerDistrict,
+      moderationStatus: moderationStatus ?? this.moderationStatus,
+      moderationNote: moderationNote ?? this.moderationNote,
     );
   }
 
@@ -135,5 +149,7 @@ class ProduceModel extends Equatable {
         updatedAt,
         farmerName,
         farmerDistrict,
+        moderationStatus,
+        moderationNote,
       ];
 }
