@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:farmer_market_app/features/notifications/presentation/controllers/notification_notifier.dart';
 import 'package:farmer_market_app/features/notifications/presentation/widgets/notification_item_card.dart';
+import 'package:farmer_market_app/core/localization/localization_extension.dart';
 
 class NotificationScreen extends ConsumerWidget {
   const NotificationScreen({super.key});
@@ -13,7 +14,7 @@ class NotificationScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Notifications'),
+        title: Text(context.l10n.notificationsTitle),
         actions: [
           if (state.notifications.isNotEmpty)
             TextButton(
@@ -21,7 +22,7 @@ class NotificationScreen extends ConsumerWidget {
                 ref.read(notificationNotifierProvider.notifier).markAllAsRead();
               },
               child: Text(
-                'Mark all read',
+                context.l10n.markAllRead,
                 style: TextStyle(
                   color: theme.colorScheme.primary,
                   fontWeight: FontWeight.bold,
@@ -52,7 +53,7 @@ class NotificationScreen extends ConsumerWidget {
               onPressed: () {
                 ref.read(notificationNotifierProvider.notifier).refresh();
               },
-              child: const Text('Retry'),
+              child: Text(context.l10n.retry),
             ),
           ],
         ),
@@ -67,7 +68,7 @@ class NotificationScreen extends ConsumerWidget {
             Icon(Icons.notifications_none, size: 64, color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.5)),
             const SizedBox(height: 16),
             Text(
-              'No notifications yet',
+              context.l10n.noNotificationsYet,
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
