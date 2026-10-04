@@ -55,11 +55,11 @@ class _BuyerHomeScreenState extends ConsumerState<BuyerHomeScreen> {
   String _getGreeting() {
     final hour = DateTime.now().hour;
     if (hour < 12) {
-      return 'Good Morning';
+      return context.l10n.goodMorning;
     } else if (hour < 17) {
-      return 'Good Afternoon';
+      return context.l10n.goodAfternoon;
     } else {
-      return 'Good Evening';
+      return context.l10n.goodEvening;
     }
   }
 
@@ -202,13 +202,13 @@ class _BuyerHomeScreenState extends ConsumerState<BuyerHomeScreen> {
 
     if (dashboardState.errorMessage != null && dashboardState.featuredProduce.isEmpty) {
       return ErrorStateWidget(
-        title: 'Unable to load dashboard',
+        title: context.l10n.unableToLoadDashboard,
         message: dashboardState.errorMessage!,
         onRetry: _loadDashboard,
       );
     }
 
-    final buyerName = profile?.companyName ?? profile?.fullName ?? 'Buyer';
+    final buyerName = profile?.companyName ?? profile?.fullName ?? context.l10n.buyerLabel;
     final greetingText = '${_getGreeting()}, $buyerName!';
 
     return RefreshIndicator(
@@ -265,7 +265,7 @@ class _BuyerHomeScreenState extends ConsumerState<BuyerHomeScreen> {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          'Direct crop procurement portal & price discovery marketplace.',
+                          context.l10n.welcomeSubtitleBuyer,
                           style: TextStyle(
                             fontSize: 12,
                             color: colorScheme.onPrimaryContainer.withValues(alpha: 0.9),
@@ -338,21 +338,21 @@ class _BuyerHomeScreenState extends ConsumerState<BuyerHomeScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Buyer Business Details',
+              context.l10n.buyerBusinessDetailsTitle,
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: colorScheme.onSurface),
             ),
             const Divider(),
-            ListTile(title: const Text('Contact Name'), subtitle: Text(profile?.fullName ?? '-')),
-            ListTile(title: const Text('Company / Business'), subtitle: Text(profile?.companyName ?? '-')),
-            ListTile(title: const Text('Business Type'), subtitle: Text(profile?.businessType ?? '-')),
+            ListTile(title: Text(context.l10n.contactNameLabel), subtitle: Text(profile?.fullName ?? '-')),
+            ListTile(title: Text(context.l10n.companyBusinessLabel), subtitle: Text(profile?.companyName ?? '-')),
+            ListTile(title: Text(context.l10n.businessTypeLabel), subtitle: Text(profile?.businessType ?? '-')),
             ListTile(
-              title: const Text('Location'),
+              title: Text(context.l10n.locationLabel),
               subtitle: Text('${profile?.district ?? ''}, ${profile?.state ?? ''}'),
             ),
-            ListTile(title: const Text('GST Number'), subtitle: Text(profile?.gstNumber ?? 'Not Provided')),
+            ListTile(title: Text(context.l10n.gstNumberLabel), subtitle: Text(profile?.gstNumber ?? context.l10n.notProvided)),
             ListTile(
-              title: const Text('Buying Capacity'),
-              subtitle: Text('${profile?.buyingCapacityQuintals ?? 0} Quintals'),
+              title: Text(context.l10n.buyingCapacityLabel),
+              subtitle: Text('${profile?.buyingCapacityQuintals ?? 0} ${context.l10n.quintalsLabel}'),
             ),
             const SizedBox(height: AppSpacing.md),
             AppButton(
