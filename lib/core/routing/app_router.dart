@@ -27,6 +27,9 @@ import 'package:farmer_market_app/features/home/presentation/buyer_home_screen.d
 import 'package:farmer_market_app/features/home/presentation/farmer_home_screen.dart';
 import 'package:farmer_market_app/features/notifications/presentation/screens/notification_screen.dart';
 import 'package:farmer_market_app/features/splash/presentation/splash_screen.dart';
+import 'package:farmer_market_app/features/trust_safety/presentation/screens/admin_dashboard_screen.dart';
+import 'package:farmer_market_app/features/trust_safety/presentation/screens/kyc_submission_screen.dart';
+import 'package:farmer_market_app/features/trust_safety/presentation/screens/report_dispute_screen.dart';
 
 /// Centralized GoRouter navigation configuration with auth protection guards and bootstrap check.
 final appRouterProvider = Provider<GoRouter>((ref) {
@@ -93,6 +96,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           if (isRoleSetupRoute) return null;
           return RouteNames.completeProfile;
         }
+      }
+
+      // Admin-only guard. Checked before the generic role guards below so a
+      // non-admin hitting /admin-panel is bounced straight to their own home.
+      if (location == RouteNames.adminPanel && profile?.isAdmin != true) {
+        return profile?.role == UserRole.buyer ? RouteNames.buyerHome : RouteNames.farmerHome;
       }
 
       // Role-based cross-route separation guard. Farmer-only routes must not be
@@ -200,6 +209,28 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: RouteNames.buyerHome,
         name: 'buyerHome',
         builder: (context, state) => const BuyerHomeScreen(),
+      ),
+      GoRoute(
+        path: RouteNames.kycVerification,
+        name: 'kycVerification',
+        builder: (context, state) => const KycSubmissionScreen(),
+      ),
+      GoRoute(
+        path: RouteNames.reportIssue,
+        name: 'reportIssue',
+        builder: (context, state) {
+          final extra = state.extra as Map<String, String>?;
+          return ReportDisputeScreen(
+            reportedUserId: extra?['reportedUserId'],
+            relatedOrderId: extra?['relatedOrderId'],
+            relatedOfferId: extra?['relatedOfferId'],
+          );
+        },
+      ),
+      GoRoute(
+        path: RouteNames.adminPanel,
+        name: 'adminPanel',
+        builder: (context, state) => const AdminDashboardScreen(),
       ),
       GoRoute(
         path: RouteNames.notifications,
