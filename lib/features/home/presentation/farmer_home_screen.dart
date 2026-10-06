@@ -83,6 +83,12 @@ class _FarmerHomeScreenState extends ConsumerState<FarmerHomeScreen> {
       appBar: AppBar(
         title: Text(context.l10n.farmerHomeTitle),
         actions: [
+          if (profile?.isAdmin == true)
+            IconButton(
+              tooltip: 'Admin Panel',
+              icon: const Icon(Icons.admin_panel_settings_outlined),
+              onPressed: () => context.push(RouteNames.adminPanel),
+            ),
           const NotificationBadgeIcon(),
           PopupMenuButton<String>(
             icon: const Icon(Icons.language),
@@ -333,6 +339,7 @@ class _FarmerHomeScreenState extends ConsumerState<FarmerHomeScreen> {
 
   Widget _buildProfileTab(BuildContext context, UserProfile? profile) {
     final colorScheme = Theme.of(context).colorScheme;
+    final kycStatus = profile?.kycStatus ?? 'unverified';
 
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.xxxl + 24),
@@ -355,6 +362,16 @@ class _FarmerHomeScreenState extends ConsumerState<FarmerHomeScreen> {
             ListTile(
               title: const Text('Land Size'),
               subtitle: Text('${profile?.landSizeAcres ?? 0} Acres'),
+            ),
+            ListTile(
+              leading: Icon(
+                kycStatus == 'verified' ? Icons.verified_rounded : Icons.verified_user_outlined,
+                color: kycStatus == 'verified' ? Colors.green : colorScheme.onSurfaceVariant,
+              ),
+              title: const Text('Identity Verification'),
+              subtitle: Text(kycStatus[0].toUpperCase() + kycStatus.substring(1)),
+              trailing: const Icon(Icons.chevron_right_rounded),
+              onTap: () => context.push(RouteNames.kycVerification),
             ),
             const SizedBox(height: AppSpacing.md),
             AppButton(
