@@ -31,6 +31,9 @@ dependencies:
   google_fonts: ^6.2.1
   shimmer: ^3.0.0
 
+  # Media (KYC document photo capture)
+  image_picker: ^1.1.2
+
   # Utilities & Helpers
   logger: ^2.5.0
   fpdart: ^1.1.0

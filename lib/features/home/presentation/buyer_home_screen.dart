@@ -6,6 +6,7 @@ import 'package:farmer_market_app/core/constants/app_constants.dart';
 import 'package:farmer_market_app/core/constants/app_spacing.dart';
 import 'package:farmer_market_app/core/localization/locale_controller.dart';
 import 'package:farmer_market_app/core/localization/localization_extension.dart';
+import 'package:farmer_market_app/core/routing/route_names.dart';
 import 'package:farmer_market_app/core/theme/theme_controller.dart';
 import 'package:farmer_market_app/core/widgets/app_card.dart';
 import 'package:farmer_market_app/core/widgets/buttons/app_button.dart';
@@ -82,6 +83,12 @@ class _BuyerHomeScreenState extends ConsumerState<BuyerHomeScreen> {
       appBar: AppBar(
         title: Text(context.l10n.buyerHomeTitle),
         actions: [
+          if (profile?.isAdmin == true)
+            IconButton(
+              tooltip: 'Admin Panel',
+              icon: const Icon(Icons.admin_panel_settings_outlined),
+              onPressed: () => context.push(RouteNames.adminPanel),
+            ),
           const NotificationBadgeIcon(),
           PopupMenuButton<String>(
             icon: const Icon(Icons.language),
@@ -330,6 +337,7 @@ class _BuyerHomeScreenState extends ConsumerState<BuyerHomeScreen> {
 
   Widget _buildProfileTab(BuildContext context, UserProfile? profile) {
     final colorScheme = Theme.of(context).colorScheme;
+    final kycStatus = profile?.kycStatus ?? 'unverified';
 
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.xxxl + 24),
@@ -353,6 +361,16 @@ class _BuyerHomeScreenState extends ConsumerState<BuyerHomeScreen> {
             ListTile(
               title: Text(context.l10n.buyingCapacityLabel),
               subtitle: Text('${profile?.buyingCapacityQuintals ?? 0} ${context.l10n.quintalsLabel}'),
+            ),
+            ListTile(
+              leading: Icon(
+                kycStatus == 'verified' ? Icons.verified_rounded : Icons.verified_user_outlined,
+                color: kycStatus == 'verified' ? Colors.green : colorScheme.onSurfaceVariant,
+              ),
+              title: const Text('Identity Verification'),
+              subtitle: Text(kycStatus[0].toUpperCase() + kycStatus.substring(1)),
+              trailing: const Icon(Icons.chevron_right_rounded),
+              onTap: () => context.push(RouteNames.kycVerification),
             ),
             const SizedBox(height: AppSpacing.md),
             AppButton(

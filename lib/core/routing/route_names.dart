@@ -16,6 +16,13 @@ class RouteNames {
   static const String notifications = '/notifications';
   static const String designSystem = '/design-system';
 
+  // Trust & Safety: available to any authenticated user.
+  static const String kycVerification = '/kyc-verification';
+  static const String reportIssue = '/report-issue';
+
+  // Admin-only.
+  static const String adminPanel = '/admin-panel';
+
   // Deep-link targets used by push notification navigation (see
   // PushNotificationService.resolveRouteFromData and the push-notification
   // Edge Function's resolveRoute). Previously these were only referenced as

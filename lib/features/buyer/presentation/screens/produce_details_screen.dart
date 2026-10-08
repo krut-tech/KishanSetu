@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:farmer_market_app/core/constants/app_spacing.dart';
+import 'package:farmer_market_app/core/routing/route_names.dart';
 import 'package:farmer_market_app/core/widgets/app_card.dart';
 import 'package:farmer_market_app/core/widgets/badges/app_status_badge.dart';
 import 'package:farmer_market_app/core/widgets/buttons/app_button.dart';
@@ -101,6 +103,16 @@ class _ProduceDetailsScreenState extends ConsumerState<ProduceDetailsScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(context.l10n.produceDetailsTitle),
+        actions: [
+          IconButton(
+            tooltip: 'Report an issue with this listing or farmer',
+            icon: const Icon(Icons.flag_outlined),
+            onPressed: () => context.push(
+              RouteNames.reportIssue,
+              extra: {'reportedUserId': produce.farmerId},
+            ),
+          ),
+        ],
       ),
       body: SafeArea(
         child: Column(
