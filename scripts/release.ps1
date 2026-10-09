@@ -26,8 +26,7 @@ switch -Regex ($Bump) {
 
 $code = $new.Major * 10000 + $new.Minor * 100 + $new.Build
 
-git rev-parse "v$new" 2>$null
-if ($LASTEXITCODE -eq 0) { throw "Tag v$new already exists." }
+if (git tag -l "v$new") { throw "Tag v$new already exists." }
 
 (Get-Content pubspec.yaml) -replace '^version:.*', "version: $new+$code" | Set-Content pubspec.yaml
 
