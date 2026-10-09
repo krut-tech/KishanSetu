@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:farmer_market_app/core/animations/staggered_reveal.dart';
 import 'package:farmer_market_app/core/logging/app_logger.dart';
 import 'package:farmer_market_app/core/constants/app_constants.dart';
 import 'package:farmer_market_app/core/constants/app_spacing.dart';
@@ -11,6 +12,9 @@ import 'package:farmer_market_app/core/theme/theme_controller.dart';
 import 'package:farmer_market_app/core/widgets/app_card.dart';
 import 'package:farmer_market_app/core/widgets/buttons/app_button.dart';
 import 'package:farmer_market_app/core/widgets/error_state_widget.dart';
+import 'package:farmer_market_app/core/widgets/fade_indexed_stack.dart';
+import 'package:farmer_market_app/core/widgets/hero_welcome_card.dart';
+import 'package:farmer_market_app/core/widgets/navigation/app_bottom_nav.dart';
 import 'package:farmer_market_app/core/widgets/states/shimmer_loading.dart';
 import 'package:farmer_market_app/features/auth/domain/models/user_profile.dart';
 import 'package:farmer_market_app/features/auth/presentation/controllers/auth_providers.dart';
@@ -147,38 +151,38 @@ class _BuyerHomeScreenState extends ConsumerState<BuyerHomeScreen> {
       body: SafeArea(
         top: false,
         bottom: false,
-        child: IndexedStack(
+        child: FadeIndexedStack(
           index: _currentIndex,
           children: pages,
         ),
       ),
-      bottomNavigationBar: NavigationBar(
+      bottomNavigationBar: AppBottomNavigationBar(
         selectedIndex: _currentIndex,
         onDestinationSelected: (index) => setState(() => _currentIndex = index),
-        destinations: [
-          NavigationDestination(
-            icon: const Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home, color: colorScheme.primary),
+        items: [
+          AppBottomNavItem(
+            icon: Icons.home_outlined,
+            activeIcon: Icons.home_rounded,
             label: context.l10n.home,
           ),
-          NavigationDestination(
-            icon: const Icon(Icons.storefront_outlined),
-            selectedIcon: Icon(Icons.storefront, color: colorScheme.primary),
+          AppBottomNavItem(
+            icon: Icons.storefront_outlined,
+            activeIcon: Icons.storefront_rounded,
             label: context.l10n.marketplace,
           ),
-          NavigationDestination(
-            icon: const Icon(Icons.trending_up_outlined),
-            selectedIcon: Icon(Icons.trending_up, color: colorScheme.primary),
+          AppBottomNavItem(
+            icon: Icons.trending_up_outlined,
+            activeIcon: Icons.trending_up_rounded,
             label: context.l10n.marketPrices,
           ),
-          NavigationDestination(
-            icon: const Icon(Icons.local_offer_outlined),
-            selectedIcon: Icon(Icons.local_offer, color: colorScheme.primary),
+          AppBottomNavItem(
+            icon: Icons.local_offer_outlined,
+            activeIcon: Icons.local_offer_rounded,
             label: context.l10n.myOffers,
           ),
-          NavigationDestination(
-            icon: const Icon(Icons.person_outline),
-            selectedIcon: Icon(Icons.person, color: colorScheme.primary),
+          AppBottomNavItem(
+            icon: Icons.person_outline_rounded,
+            activeIcon: Icons.person_rounded,
             label: context.l10n.profile,
           ),
         ],
@@ -187,7 +191,6 @@ class _BuyerHomeScreenState extends ConsumerState<BuyerHomeScreen> {
   }
 
   Widget _buildDashboardView(BuildContext context, UserProfile? profile) {
-    final colorScheme = Theme.of(context).colorScheme;
     final dashboardState = ref.watch(buyerDashboardNotifierProvider);
 
     if (dashboardState.isLoading) {
@@ -229,104 +232,93 @@ class _BuyerHomeScreenState extends ConsumerState<BuyerHomeScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Header
-            BuyerHeader(
-              profile: profile,
-              onNotificationPressed: () {
-                AppLogger.info('NOTIFICATION BELL TAPPED');
-                AppLogger.info('NAVIGATING TO NOTIFICATION CENTER');
-                try {
-                  context.pushNamed('notifications');
-                } catch (e, stackTrace) {
-                  AppLogger.error('Failed to navigate to Notification Center', e, stackTrace);
-                }
-              },
-              onProfilePressed: () {
-                setState(() => _currentIndex = 4);
-              },
+            StaggeredReveal(
+              index: 0,
+              child: BuyerHeader(
+                profile: profile,
+                onNotificationPressed: () {
+                  AppLogger.info('NOTIFICATION BELL TAPPED');
+                  AppLogger.info('NAVIGATING TO NOTIFICATION CENTER');
+                  try {
+                    context.pushNamed('notifications');
+                  } catch (e, stackTrace) {
+                    AppLogger.error('Failed to navigate to Notification Center', e, stackTrace);
+                  }
+                },
+                onProfilePressed: () {
+                  setState(() => _currentIndex = 4);
+                },
+              ),
             ),
             const SizedBox(height: AppSpacing.md),
 
-            // Welcome Card
-            AppCard(
-              backgroundColor: colorScheme.primaryContainer,
-              padding: const EdgeInsets.all(AppSpacing.md),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.storefront_rounded,
-                    color: colorScheme.primary,
-                    size: 32,
-                  ),
-                  const SizedBox(width: AppSpacing.md),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          greetingText,
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: colorScheme.onPrimaryContainer,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          context.l10n.welcomeSubtitleBuyer,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: colorScheme.onPrimaryContainer.withValues(alpha: 0.9),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+            // Welcome Hero
+            StaggeredReveal(
+              index: 1,
+              child: HeroWelcomeCard(
+                icon: Icons.storefront_rounded,
+                title: greetingText,
+                subtitle: context.l10n.welcomeSubtitleBuyer,
               ),
             ),
             const SizedBox(height: AppSpacing.lg),
 
             // Quick Actions
-            BuyerQuickActionsGrid(
-              onBrowseMarketplace: () => setState(() => _currentIndex = 1),
-              onMarketPrices: () => setState(() => _currentIndex = 2),
-              onMyOffers: () => setState(() => _currentIndex = 3),
-              onProfile: () => setState(() => _currentIndex = 4),
+            StaggeredReveal(
+              index: 2,
+              child: BuyerQuickActionsGrid(
+                onBrowseMarketplace: () => setState(() => _currentIndex = 1),
+                onMarketPrices: () => setState(() => _currentIndex = 2),
+                onMyOffers: () => setState(() => _currentIndex = 3),
+                onProfile: () => setState(() => _currentIndex = 4),
+              ),
             ),
             const SizedBox(height: AppSpacing.lg),
 
             // Summary Cards
-            MarketplaceSummaryCards(
-              stats: dashboardState.stats,
-              onStatCardTap: (index) => setState(() => _currentIndex = index),
+            StaggeredReveal(
+              index: 3,
+              child: MarketplaceSummaryCards(
+                stats: dashboardState.stats,
+                onStatCardTap: (index) => setState(() => _currentIndex = index),
+              ),
             ),
             const SizedBox(height: AppSpacing.lg),
 
             // Featured Produce
-            FeaturedProduceList(
-              produceList: dashboardState.featuredProduce,
-              onViewAll: () => setState(() => _currentIndex = 1),
-              onProduceTap: (produce) {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => ProduceDetailsScreen(produce: produce),
-                  ),
-                );
-              },
+            StaggeredReveal(
+              index: 4,
+              child: FeaturedProduceList(
+                produceList: dashboardState.featuredProduce,
+                onViewAll: () => setState(() => _currentIndex = 1),
+                onProduceTap: (produce) {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => ProduceDetailsScreen(produce: produce),
+                    ),
+                  );
+                },
+              ),
             ),
             const SizedBox(height: AppSpacing.lg),
 
             // Market Price Highlights
-            MarketPriceHighlights(
-              prices: dashboardState.marketHighlights,
-              onViewAll: () => setState(() => _currentIndex = 2),
+            StaggeredReveal(
+              index: 5,
+              child: MarketPriceHighlights(
+                prices: dashboardState.marketHighlights,
+                onViewAll: () => setState(() => _currentIndex = 2),
+              ),
             ),
             const SizedBox(height: AppSpacing.lg),
 
             // Recent Offers List
-            BuyerRecentOffersList(
-              offers: dashboardState.recentOffers,
-              onViewAll: () => setState(() => _currentIndex = 3),
+            StaggeredReveal(
+              index: 6,
+              child: BuyerRecentOffersList(
+                offers: dashboardState.recentOffers,
+                onViewAll: () => setState(() => _currentIndex = 3),
+              ),
             ),
             const SizedBox(height: AppSpacing.lg),
           ],
