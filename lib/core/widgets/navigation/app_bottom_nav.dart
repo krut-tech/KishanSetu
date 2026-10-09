@@ -16,8 +16,11 @@ class AppBottomNavItem {
   });
 }
 
-/// Floating frosted-glass bottom navigation. The selected destination expands
-/// into a gold (dark) / green (light) pill with its label.
+/// Floating frosted-glass bottom navigation.
+///
+/// With 4 or fewer destinations the selected one expands into a pill with its
+/// label. With 5+ destinations every label stays visible under its icon and the
+/// selected icon sits in an animated pill.
 class AppBottomNavigationBar extends StatelessWidget {
   final int selectedIndex;
   final ValueChanged<int> onDestinationSelected;
@@ -37,7 +40,9 @@ class AppBottomNavigationBar extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
     final pillColor = isDark ? AppColors.accent : AppColors.primary;
     final onPill = isDark ? AppColors.forest : Colors.white;
+    final activeLabel = isDark ? AppColors.accent : AppColors.primary;
     final radius = BorderRadius.circular(32);
+    final stacked = items.length >= 5;
 
     return SafeArea(
       top: false,
@@ -49,7 +54,7 @@ class AppBottomNavigationBar extends StatelessWidget {
             filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
             child: Container(
               height: 68,
-              padding: const EdgeInsets.symmetric(horizontal: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 6),
               decoration: BoxDecoration(
                 color: cs.surface.withValues(alpha: isDark ? 0.72 : 0.86),
                 borderRadius: radius,
@@ -59,18 +64,25 @@ class AppBottomNavigationBar extends StatelessWidget {
                 children: [
                   for (var i = 0; i < items.length; i++)
                     Expanded(
-                      flex: i == selectedIndex ? 3 : 2,
-                      child: _NavItem(
-                        item: items[i],
-                        selected: i == selectedIndex,
-                        pillColor: pillColor,
-                        onPill: onPill,
-                        idleColor: cs.onSurfaceVariant,
-                        onTap: () {
-                          HapticFeedback.selectionClick();
-                          onDestinationSelected(i);
-                        },
-                      ),
+                      flex: stacked ? 1 : (i == selectedIndex ? 3 : 2),
+                      child: stacked
+                          ? _StackedNavItem(
+                              item: items[i],
+                              selected: i == selectedIndex,
+                              pillColor: pillColor,
+                              onPill: onPill,
+                              idleColor: cs.onSurfaceVariant,
+                              activeLabelColor: activeLabel,
+                              onTap: () => _select(i),
+                            )
+                          : _NavItem(
+                              item: items[i],
+                              selected: i == selectedIndex,
+                              pillColor: pillColor,
+                              onPill: onPill,
+                              idleColor: cs.onSurfaceVariant,
+                              onTap: () => _select(i),
+                            ),
                     ),
                 ],
               ),
@@ -79,6 +91,11 @@ class AppBottomNavigationBar extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  void _select(int i) {
+    HapticFeedback.selectionClick();
+    onDestinationSelected(i);
   }
 }
 
@@ -156,6 +173,83 @@ class _NavItem extends StatelessWidget {
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _StackedNavItem extends StatelessWidget {
+  final AppBottomNavItem item;
+  final bool selected;
+  final Color pillColor;
+  final Color onPill;
+  final Color idleColor;
+  final Color activeLabelColor;
+  final VoidCallback onTap;
+
+  const _StackedNavItem({
+    required this.item,
+    required this.selected,
+    required this.pillColor,
+    required this.onPill,
+    required this.idleColor,
+    required this.activeLabelColor,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: item.label,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 280),
+              curve: Curves.easeOutCubic,
+              width: selected ? 54 : 40,
+              height: 30,
+              decoration: BoxDecoration(
+                color: selected ? pillColor : Colors.transparent,
+                borderRadius: BorderRadius.circular(15),
+              ),
+              child: Center(
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 200),
+                  transitionBuilder: (child, anim) =>
+                      ScaleTransition(scale: anim, child: child),
+                  child: Icon(
+                    selected ? item.activeIcon : item.icon,
+                    key: ValueKey<bool>(selected),
+                    size: 21,
+                    color: selected ? onPill : idleColor,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 3),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 2),
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: AnimatedDefaultTextStyle(
+                  duration: const Duration(milliseconds: 200),
+                  style: TextStyle(
+                    fontSize: 10.5,
+                    fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
+                    color: selected ? activeLabelColor : idleColor,
+                  ),
+                  child: Text(item.label, maxLines: 1),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
