@@ -1,11 +1,12 @@
 name: Build and Release APK
 
-# Ye workflow tab chalega jab aap koi tag push karoge jo v se start hota ho
-# Example: git tag v1.0.1 && git push origin v1.0.1
 on:
   push:
     tags:
       - 'v*'
+
+permissions:
+  contents: write
 
 jobs:
   build-and-release:
@@ -15,10 +16,22 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
+      - name: Derive version from tag
+        id: ver
+        run: |
+          TAG="${GITHUB_REF_NAME#v}"
+          if ! [[ "$TAG" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Tag must look like v1.2.3, got: $GITHUB_REF_NAME"
+            exit 1
+          fi
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$TAG"
+          echo "name=$TAG" >> "$GITHUB_OUTPUT"
+          echo "code=$((MAJOR * 10000 + MINOR * 100 + PATCH))" >> "$GITHUB_OUTPUT"
+
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          channel: 'stable'   # hamesha latest stable Flutter/Dart use hoga, isse version conflict nahi aayega
+          channel: 'stable'
 
       - name: Get dependencies
         run: flutter pub get
@@ -34,15 +47,16 @@ jobs:
           echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > ${{ runner.temp }}/keystore.jks
 
       - name: Build release APK
-        run: flutter build apk --release
+        run: >
+          flutter build apk --release
+          --build-name=${{ steps.ver.outputs.name }}
+          --build-number=${{ steps.ver.outputs.code }}
         env:
           ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/keystore.jks
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
 
-      # IMPORTANT: filename hamesha same rakha (app-release.apk)
-      # taaki /releases/latest/download/app-release.apk link hamesha kaam kare
       - name: Rename APK to fixed name
         run: cp build/app/outputs/flutter-apk/app-release.apk app-release.apk
 
@@ -52,6 +66,7 @@ jobs:
           files: app-release.apk
           name: Release ${{ github.ref_name }}
           tag_name: ${{ github.ref_name }}
+          generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
