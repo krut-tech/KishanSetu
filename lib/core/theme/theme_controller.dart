@@ -3,10 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Riverpod StateNotifier for managing app theme mode persistence.
+/// Harvest Glass defaults to the dark (forest + gold) look.
 class ThemeController extends StateNotifier<ThemeMode> {
   static const _themePrefKey = 'user_theme_mode';
 
-  ThemeController() : super(ThemeMode.light) {
+  ThemeController() : super(ThemeMode.dark) {
     _loadThemeMode();
   }
 
@@ -29,7 +30,7 @@ class ThemeController extends StateNotifier<ThemeMode> {
   }
 
   Future<void> toggleTheme() async {
-    final nextMode = state == ThemeMode.light ? ThemeMode.dark : ThemeMode.light;
+    final nextMode = state == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark;
     await setThemeMode(nextMode);
   }
 }

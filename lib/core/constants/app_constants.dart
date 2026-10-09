@@ -17,13 +17,13 @@ class AppConstants {
   static const double paddingLarge = 24.0;
   static const double paddingXLarge = 32.0;
 
-  // Border Radius
-  static const double borderRadiusSmall = 8.0;
-  static const double borderRadiusMedium = 12.0;
-  static const double borderRadiusLarge = 16.0;
+  // Border Radius (Harvest Glass: softer, rounder)
+  static const double borderRadiusSmall = 10.0;
+  static const double borderRadiusMedium = 16.0;
+  static const double borderRadiusLarge = 22.0;
 
   // Touch Target Accessibility
-  static const double minTouchTargetSize = 48.0;
+  static const double minTouchTargetSize = 52.0;
 
   // Rupee Currency Symbol
   static const String currencySymbol = '₹';
