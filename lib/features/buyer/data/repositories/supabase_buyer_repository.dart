@@ -32,7 +32,7 @@ class SupabaseBuyerRepository implements BuyerRepository {
           .eq('status', 'active');
 
       if (category != null && category.trim().isNotEmpty && category.toLowerCase() != 'all') {
-        query = query.ilike('category', '%${category.trim()}%');
+        query = query.eq('category', category.trim());
       }
 
       if (location != null && location.trim().isNotEmpty) {
@@ -52,11 +52,15 @@ class SupabaseBuyerRepository implements BuyerRepository {
         query = query.or('name.ilike.$term,category.ilike.$term,location.ilike.$term');
       }
 
+      // Cap the page size: the marketplace spans every farmer's active
+      // listings, so an unbounded select gets slower as more farmers list.
+      final limitedQuery = query.limit(100);
+
       final response = await switch (sortBy) {
-        'price_asc' => query.order('expected_price', ascending: true),
-        'price_desc' => query.order('expected_price', ascending: false),
-        'quantity_desc' => query.order('quantity', ascending: false),
-        _ => query.order('created_at', ascending: false),
+        'price_asc' => limitedQuery.order('expected_price', ascending: true),
+        'price_desc' => limitedQuery.order('expected_price', ascending: false),
+        'quantity_desc' => limitedQuery.order('quantity', ascending: false),
+        _ => limitedQuery.order('created_at', ascending: false),
       };
 
       final list = (response as List)
