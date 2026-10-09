@@ -319,5 +319,18 @@
   "cancelOfferConfirmMessage": "શું તમે આ બાકી ઓફર રદ કરવા માંગો છો",
   "messageLabelColon": "સંદેશ:",
   "listedLabel": "યાદીબદ્ધ",
-  "deleteProduceConfirmMessage": "શું તમે કાઢી નાખવા માંગો છો"
+  "deleteProduceConfirmMessage": "શું તમે કાઢી નાખવા માંગો છો",
+  "updateAvailable": "અપડેટ ઉપલબ્ધ છે",
+  "newVersionAvailable": "કિસાનસેતુનું નવું વર્ઝન ઉપલબ્ધ છે.",
+  "currentVersion": "હાલનું વર્ઝન",
+  "latestVersion": "નવું વર્ઝન",
+  "whatsNew": "શું નવું છે",
+  "updateNow": "હવે અપડેટ કરો",
+  "later": "પછીથી",
+  "downloadingUpdate": "અપડેટ ડાઉનલોડ થઈ રહ્યું છે...",
+  "downloadFailed": "અપડેટ ડાઉનલોડ નિષ્ફળ રહ્યું",
+  "permissionRequired": "પરવાનગી જરૂરી છે",
+  "installPermissionNotice": "અપડેટ્સ ઇન્સ્ટોલ કરવા માટે, કૃપા કરીને એન્ડ્રોઇડ સેટિંગ્સમાં કિસાનસેતુને અજાણી એપ ઇન્સ્ટોલ કરવાની મંજૂરી આપો.",
+  "openSettings": "સેટીંગ્સ ખોલો",
+  "openingInstaller": "સિસ્ટમ પેકેજ ઇન્સ્ટોલર ખોલી રહ્યું છે..."
 }

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:farmer_market_app/core/constants/app_spacing.dart';
-import 'package:farmer_market_app/core/widgets/app_bar/app_top_bar.dart';
 import 'package:farmer_market_app/core/widgets/app_card.dart';
 import 'package:farmer_market_app/core/widgets/buttons/app_button.dart';
 import 'package:farmer_market_app/core/widgets/empty_state_widget.dart';

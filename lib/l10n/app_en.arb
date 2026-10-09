@@ -319,5 +319,18 @@
   "cancelOfferConfirmMessage": "Are you sure you want to cancel this pending offer of",
   "messageLabelColon": "Message:",
   "listedLabel": "Listed",
-  "deleteProduceConfirmMessage": "Are you sure you want to delete"
+  "deleteProduceConfirmMessage": "Are you sure you want to delete",
+  "updateAvailable": "Update Available",
+  "newVersionAvailable": "A new version of KisanSetu is available.",
+  "currentVersion": "Current Version",
+  "latestVersion": "Latest Version",
+  "whatsNew": "What's New",
+  "updateNow": "Update Now",
+  "later": "Later",
+  "downloadingUpdate": "Downloading update...",
+  "downloadFailed": "Failed to download update",
+  "permissionRequired": "Permission Required",
+  "installPermissionNotice": "To install updates, please allow KisanSetu to install unknown apps in Android Settings.",
+  "openSettings": "Open Settings",
+  "openingInstaller": "Opening system package installer..."
 }

@@ -15,6 +15,7 @@ import 'package:farmer_market_app/core/widgets/error_state_widget.dart';
 import 'package:farmer_market_app/core/widgets/fade_indexed_stack.dart';
 import 'package:farmer_market_app/core/widgets/hero_welcome_card.dart';
 import 'package:farmer_market_app/core/widgets/navigation/app_bottom_nav.dart';
+import 'package:farmer_market_app/core/widgets/snackbars/app_snack_bar.dart';
 import 'package:farmer_market_app/core/widgets/states/shimmer_loading.dart';
 import 'package:farmer_market_app/features/auth/domain/models/user_profile.dart';
 import 'package:farmer_market_app/features/auth/presentation/controllers/auth_providers.dart';
@@ -30,6 +31,8 @@ import 'package:farmer_market_app/features/buyer/presentation/widgets/featured_p
 import 'package:farmer_market_app/features/buyer/presentation/widgets/marketplace_summary_cards.dart';
 import 'package:farmer_market_app/features/farmer/presentation/screens/market_prices_screen.dart';
 import 'package:farmer_market_app/features/farmer/presentation/widgets/market_price_highlights.dart';
+import 'package:farmer_market_app/features/update/presentation/controllers/update_controller.dart';
+import 'package:farmer_market_app/features/update/presentation/widgets/update_dialog.dart';
 
 /// Role-specific home shell & dashboard for authenticated buyers.
 class BuyerHomeScreen extends ConsumerStatefulWidget {
@@ -363,6 +366,27 @@ class _BuyerHomeScreenState extends ConsumerState<BuyerHomeScreen> {
               subtitle: Text(kycStatus[0].toUpperCase() + kycStatus.substring(1)),
               trailing: const Icon(Icons.chevron_right_rounded),
               onTap: () => context.push(RouteNames.kycVerification),
+            ),
+            ListTile(
+              leading: const Icon(Icons.system_update_rounded),
+              title: const Text('Check for Updates'),
+              subtitle: const Text('KisanSetu v1.0.5+5'),
+              trailing: const Icon(Icons.chevron_right_rounded),
+              onTap: () async {
+                final updateNotifier = ref.read(updateNotifierProvider.notifier);
+                final info = await updateNotifier.checkForUpdate(isManual: true);
+                if (context.mounted) {
+                  if (info != null) {
+                    UpdateDialog.show(context);
+                  } else {
+                    AppSnackBar.show(
+                      context,
+                      message: 'You are on the latest version of KisanSetu.',
+                      type: SnackBarType.success,
+                    );
+                  }
+                }
+              },
             ),
             const SizedBox(height: AppSpacing.md),
             AppButton(

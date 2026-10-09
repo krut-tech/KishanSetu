@@ -6,6 +6,7 @@ import 'package:farmer_market_app/core/logging/app_logger.dart';
 import 'package:farmer_market_app/core/network/supabase_client_provider.dart';
 import 'package:farmer_market_app/core/notifications/push_notification_service.dart';
 import 'package:farmer_market_app/features/auth/presentation/controllers/auth_providers.dart';
+import 'package:farmer_market_app/features/update/presentation/controllers/update_controller.dart';
 
 /// Immutable state representing application bootstrap/initialization.
 class AppBootstrapState extends Equatable {
@@ -74,6 +75,9 @@ class AppBootstrapNotifier extends StateNotifier<AppBootstrapState> {
         isLoading: false,
         isInitialized: true,
       );
+
+      // Asynchronously trigger update check without blocking startup
+      _ref.read(updateNotifierProvider.notifier).checkForUpdate();
     } catch (e, stackTrace) {
       AppLogger.error('App bootstrap initialization failed: $e', e, stackTrace);
       state = AppBootstrapState(

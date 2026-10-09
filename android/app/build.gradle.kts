@@ -5,6 +5,11 @@ plugins {
     id("com.google.gms.google-services")
 }
 
+val keystorePath = System.getenv("ANDROID_KEYSTORE_PATH")
+val keystorePassword = System.getenv("ANDROID_KEYSTORE_PASSWORD")
+val keyAliasVal = System.getenv("ANDROID_KEY_ALIAS")
+val keyPasswordVal = System.getenv("ANDROID_KEY_PASSWORD")
+
 android {
     namespace = "com.farmermarket.farmer_market_app"
     compileSdk = flutter.compileSdkVersion
@@ -14,6 +19,17 @@ android {
         isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
+    }
+
+    signingConfigs {
+        create("release") {
+            if (!keystorePath.isNullOrEmpty() && File(keystorePath).exists()) {
+                storeFile = File(keystorePath)
+                storePassword = keystorePassword
+                keyAlias = keyAliasVal
+                keyPassword = keyPasswordVal
+            }
+        }
     }
 
     defaultConfig {
@@ -33,9 +49,12 @@ android {
 
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            val releaseSigning = signingConfigs.findByName("release")
+            if (releaseSigning?.storeFile?.exists() == true) {
+                signingConfig = releaseSigning
+            } else {
+                signingConfig = signingConfigs.getByName("debug")
+            }
         }
     }
 }

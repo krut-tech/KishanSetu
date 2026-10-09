@@ -30,6 +30,8 @@ import 'package:farmer_market_app/features/farmer/presentation/widgets/market_pr
 import 'package:farmer_market_app/features/farmer/presentation/widgets/produce_summary_cards.dart';
 import 'package:farmer_market_app/features/farmer/presentation/widgets/quick_actions_grid.dart';
 import 'package:farmer_market_app/features/farmer/presentation/widgets/recent_offers_list.dart';
+import 'package:farmer_market_app/features/update/presentation/controllers/update_controller.dart';
+import 'package:farmer_market_app/features/update/presentation/widgets/update_dialog.dart';
 
 /// Role-specific home dashboard for authenticated farmers.
 class FarmerHomeScreen extends ConsumerStatefulWidget {
@@ -372,6 +374,27 @@ class _FarmerHomeScreenState extends ConsumerState<FarmerHomeScreen> {
               subtitle: Text(kycStatus[0].toUpperCase() + kycStatus.substring(1)),
               trailing: const Icon(Icons.chevron_right_rounded),
               onTap: () => context.push(RouteNames.kycVerification),
+            ),
+            ListTile(
+              leading: const Icon(Icons.system_update_rounded),
+              title: const Text('Check for Updates'),
+              subtitle: const Text('KisanSetu v1.0.5+5'),
+              trailing: const Icon(Icons.chevron_right_rounded),
+              onTap: () async {
+                final updateNotifier = ref.read(updateNotifierProvider.notifier);
+                final info = await updateNotifier.checkForUpdate(isManual: true);
+                if (context.mounted) {
+                  if (info != null) {
+                    UpdateDialog.show(context);
+                  } else {
+                    AppSnackBar.show(
+                      context,
+                      message: 'You are on the latest version of KisanSetu.',
+                      type: SnackBarType.success,
+                    );
+                  }
+                }
+              },
             ),
             const SizedBox(height: AppSpacing.md),
             AppButton(

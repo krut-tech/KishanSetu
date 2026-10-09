@@ -319,5 +319,18 @@
   "cancelOfferConfirmMessage": "क्या आप इस लंबित प्रस्ताव को रद्द करना चाहते हैं",
   "messageLabelColon": "संदेश:",
   "listedLabel": "सूचीबद्ध",
-  "deleteProduceConfirmMessage": "क्या आप हटाना चाहते हैं"
+  "deleteProduceConfirmMessage": "क्या आप हटाना चाहते हैं",
+  "updateAvailable": "अपडेट उपलब्ध है",
+  "newVersionAvailable": "किसानसेतु का नया वर्ज़न उपलब्ध है।",
+  "currentVersion": "वर्तमान वर्ज़न",
+  "latestVersion": "नवीनतम वर्ज़न",
+  "whatsNew": "नया क्या है",
+  "updateNow": "अभी अपडेट करें",
+  "later": "बाद में",
+  "downloadingUpdate": "अपडेट डाउनलोड हो रहा है...",
+  "downloadFailed": "अपडेट डाउनलोड विफल रहा",
+  "permissionRequired": "अनुमति आवश्यक है",
+  "installPermissionNotice": "अपडेट इंस्टॉल करने के लिए, कृपया एंड्रॉइड सेटिंग्स में किसानसेतु को अज्ञात ऐप इंस्टॉल करने की अनुमति दें।",
+  "openSettings": "सेटिंग्स खोलें",
+  "openingInstaller": "सिस्टम पैकेज इंस्टॉलर खोला जा रहा है..."
 }

@@ -29,8 +29,17 @@ jobs:
           echo "SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}" >> .env
           echo "APP_ENV=production" >> .env
 
+      - name: Decode Keystore
+        run: |
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > ${{ runner.temp }}/keystore.jks
+
       - name: Build release APK
         run: flutter build apk --release
+        env:
+          ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/keystore.jks
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
 
       # IMPORTANT: filename hamesha same rakha (app-release.apk)
       # taaki /releases/latest/download/app-release.apk link hamesha kaam kare
@@ -45,3 +54,7 @@ jobs:
           tag_name: ${{ github.ref_name }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Clean up Keystore
+        if: always()
+        run: rm -f ${{ runner.temp }}/keystore.jks
