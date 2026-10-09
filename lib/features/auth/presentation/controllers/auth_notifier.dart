@@ -325,6 +325,7 @@ class AuthNotifier extends ChangeNotifier {
                   clearError: true,
                 ));
                 _setupProfileRealtime(authResponse.user!.id);
+                _syncPushToken(savedProfile.id);
                 return true;
               },
             );

@@ -29,6 +29,8 @@ class _OffersScreenState extends ConsumerState<OffersScreen> {
     'pending',
     'accepted',
     'rejected',
+    'countered',
+    'cancelled',
   ];
 
   @override
@@ -162,6 +164,7 @@ class _OffersScreenState extends ConsumerState<OffersScreen> {
           'pending' => AppStatusType.pending,
           'accepted' => AppStatusType.accepted,
           'rejected' => AppStatusType.rejected,
+          'cancelled' => AppStatusType.expired,
           'in_transit' => AppStatusType.inTransit,
           'completed' => AppStatusType.completed,
           _ => AppStatusType.pending,
@@ -201,6 +204,17 @@ class _OffersScreenState extends ConsumerState<OffersScreen> {
                 ref.read(farmerDashboardNotifierProvider.notifier).refreshDashboard();
                 if (context.mounted) {
                   AppSnackBar.show(context, message: context.l10n.offerRejectedStatus, type: SnackBarType.info);
+                }
+              }
+            },
+            onCancel: () async {
+              final ok = await ref
+                  .read(offerControllerProvider.notifier)
+                  .respondToOffer(offer.id, 'cancelled');
+              if (ok) {
+                ref.read(farmerDashboardNotifierProvider.notifier).refreshDashboard();
+                if (context.mounted) {
+                  AppSnackBar.show(context, message: 'Offer Cancelled', type: SnackBarType.info);
                 }
               }
             },

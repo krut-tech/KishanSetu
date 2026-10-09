@@ -31,6 +31,7 @@ class _BuyerOffersScreenState extends ConsumerState<BuyerOffersScreen> {
     'Pending',
     'Accepted',
     'Rejected',
+    'Countered',
     'Cancelled',
   ];
 
@@ -67,6 +68,8 @@ class _BuyerOffersScreenState extends ConsumerState<BuyerOffersScreen> {
         return AppStatusType.accepted;
       case 'rejected':
         return AppStatusType.rejected;
+      case 'countered':
+        return AppStatusType.pending;
       case 'cancelled':
         return AppStatusType.expired;
       case 'pending':

@@ -295,39 +295,81 @@ class _OfferCardState extends State<OfferCard> {
                   ),
                 ],
               ),
+            ] else if (widget.onAccept != null || widget.onReject != null || widget.onCounter != null) ...[
+              if (widget.onCancel != null) ...[
+                Row(
+                  children: [
+                    Expanded(
+                      child: AppButton(
+                        label: 'Reject',
+                        style: AppButtonStyle.outlined,
+                        onPressed: widget.onReject,
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
+                    Expanded(
+                      child: AppButton(
+                        label: widget.cancelLabel ?? 'Cancel',
+                        style: AppButtonStyle.outlined,
+                        onPressed: widget.onCancel,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.xs),
+                Row(
+                  children: [
+                    Expanded(
+                      child: AppButton(
+                        label: 'Counter',
+                        style: AppButtonStyle.secondary,
+                        onPressed: widget.onCounter,
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
+                    Expanded(
+                      child: AppButton(
+                        label: 'Accept',
+                        style: AppButtonStyle.primary,
+                        onPressed: widget.onAccept,
+                      ),
+                    ),
+                  ],
+                ),
+              ] else ...[
+                Row(
+                  children: [
+                    Expanded(
+                      child: AppButton(
+                        label: 'Reject',
+                        style: AppButtonStyle.outlined,
+                        onPressed: widget.onReject,
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
+                    Expanded(
+                      child: AppButton(
+                        label: 'Counter',
+                        style: AppButtonStyle.secondary,
+                        onPressed: widget.onCounter,
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
+                    Expanded(
+                      child: AppButton(
+                        label: 'Accept',
+                        style: AppButtonStyle.primary,
+                        onPressed: widget.onAccept,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ] else if (widget.onCancel != null) ...[
               AppButton(
                 label: widget.cancelLabel ?? 'Cancel Offer',
                 style: AppButtonStyle.outlined,
                 onPressed: widget.onCancel,
-              ),
-            ] else if (widget.onAccept != null || widget.onReject != null || widget.onCounter != null) ...[
-              Row(
-                children: [
-                  Expanded(
-                    child: AppButton(
-                      label: 'Reject',
-                      style: AppButtonStyle.outlined,
-                      onPressed: widget.onReject,
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.sm),
-                  Expanded(
-                    child: AppButton(
-                      label: 'Counter',
-                      style: AppButtonStyle.secondary,
-                      onPressed: widget.onCounter,
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.sm),
-                  Expanded(
-                    child: AppButton(
-                      label: 'Accept',
-                      style: AppButtonStyle.primary,
-                      onPressed: widget.onAccept,
-                    ),
-                  ),
-                ],
               ),
             ],
           ],

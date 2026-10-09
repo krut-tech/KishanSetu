@@ -225,7 +225,7 @@ class PushNotificationService {
     }
   }
 
-  /// Syncs FCM device push token to Supabase `public.user_devices` table.
+  /// Syncs FCM device push token to Supabase `public.user_devices` table via secure RPC.
   Future<void> syncDeviceToken(
     String userId,
     SupabaseClient supabaseClient, {
@@ -252,18 +252,12 @@ class PushNotificationService {
 
       AppLogger.info('Syncing FCM device token to Supabase user_devices for user: $userId');
 
-      await supabaseClient.from('user_devices').upsert(
-        {
-          'user_id': userId,
-          'push_token': token,
-          'platform': 'android',
-          'device_id': deviceId,
-          'app_version': appVersion ?? '1.0.0+1',
-          'is_active': true,
-          'updated_at': DateTime.now().toUtc().toIso8601String(),
-        },
-        onConflict: 'push_token',
-      );
+      await supabaseClient.rpc('register_device_token', params: {
+        'p_push_token': token,
+        'p_platform': 'android',
+        'p_device_id': deviceId,
+        'p_app_version': appVersion ?? '1.0.0+1',
+      });
 
       _lastSyncedToken = token;
       _lastSyncedUserId = userId;
@@ -273,18 +267,12 @@ class PushNotificationService {
       _tokenRefreshSubscription = FirebaseMessaging.instance.onTokenRefresh.listen((newToken) async {
         AppLogger.info('FCM token refreshed. Updating Supabase user_devices...');
         try {
-          await supabaseClient.from('user_devices').upsert(
-            {
-              'user_id': userId,
-              'push_token': newToken,
-              'platform': 'android',
-              'device_id': deviceId,
-              'app_version': appVersion ?? '1.0.0+1',
-              'is_active': true,
-              'updated_at': DateTime.now().toUtc().toIso8601String(),
-            },
-            onConflict: 'push_token',
-          );
+          await supabaseClient.rpc('register_device_token', params: {
+            'p_push_token': newToken,
+            'p_platform': 'android',
+            'p_device_id': deviceId,
+            'p_app_version': appVersion ?? '1.0.0+1',
+          });
           _lastSyncedToken = newToken;
         } catch (e) {
           AppLogger.error('Failed to update refreshed FCM token in Supabase: $e');
@@ -295,7 +283,7 @@ class PushNotificationService {
     }
   }
 
-  /// Deactivates FCM device push token in Supabase on logout.
+  /// Deactivates FCM device push token in Supabase on logout via secure RPC.
   Future<void> deactivateDeviceToken(String userId, SupabaseClient supabaseClient) async {
     try {
       _tokenRefreshSubscription?.cancel();
@@ -304,10 +292,11 @@ class PushNotificationService {
       final token = _lastSyncedToken ?? await FirebaseMessaging.instance.getToken();
       if (token != null && token.isNotEmpty) {
         AppLogger.info('Deactivating FCM push token in Supabase for user: $userId');
-        await supabaseClient.from('user_devices').update({
-          'is_active': false,
-          'updated_at': DateTime.now().toUtc().toIso8601String(),
-        }).eq('push_token', token).eq('user_id', userId);
+        await supabaseClient.rpc('deactivate_device_token', params: {
+          'p_push_token': token,
+        });
+      } else {
+        await supabaseClient.rpc('deactivate_device_token');
       }
     } catch (e, stack) {
       AppLogger.error('Error deactivating device token on logout: $e', e, stack);

@@ -251,7 +251,7 @@ class SupabaseFarmerRepository implements FarmerRepository {
       if (currentUser == null) {
         return left(const AuthFailure('Your session has expired. Please sign in again.'));
       }
-      const allowedStatuses = {'accepted', 'rejected', 'countered'};
+      const allowedStatuses = {'accepted', 'rejected', 'countered', 'cancelled'};
       final normalizedStatus = status.toLowerCase();
       if (!allowedStatuses.contains(normalizedStatus)) {
         return left(const DatabaseFailure('Invalid offer status transition.'));
