@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -60,6 +61,7 @@ class MarketPriceState extends Equatable {
 class MarketPriceController extends StateNotifier<MarketPriceState> {
   final FarmerRepository _repository;
   RealtimeChannel? _marketPriceChannel;
+  Timer? _realtimeDebounce;
 
   MarketPriceController(this._repository) : super(const MarketPriceState());
 
@@ -68,9 +70,12 @@ class MarketPriceController extends StateNotifier<MarketPriceState> {
     String? category,
     String? marketName,
     String? sortBy,
+    // When true and prices are already on screen, refresh in the background
+    // without flipping to the loading shimmer (used for Realtime refreshes).
+    bool silent = false,
   }) async {
     state = state.copyWith(
-      isLoading: true,
+      isLoading: silent && state.prices.isNotEmpty ? state.isLoading : true,
       searchQuery: produceName ?? state.searchQuery,
       selectedCategory: category ?? state.selectedCategory,
       selectedMarket: marketName ?? state.selectedMarket,
@@ -107,8 +112,14 @@ class MarketPriceController extends StateNotifier<MarketPriceState> {
     if (_marketPriceChannel != null) return;
     try {
       _marketPriceChannel = _repository.subscribeToMarketPrices(() {
-        AppLogger.info('Realtime market price change event in MarketPriceController -> refreshing');
-        fetchMarketPrices();
+        // A price sync upserts hundreds of rows at once and Realtime emits
+        // one event per row; coalesce them into a single refresh instead of
+        // refetching (and flashing the loading shimmer) for every event.
+        _realtimeDebounce?.cancel();
+        _realtimeDebounce = Timer(const Duration(seconds: 2), () {
+          AppLogger.info('Realtime market price change -> refreshing (debounced)');
+          fetchMarketPrices(silent: true);
+        });
       });
     } catch (e) {
       AppLogger.warning('Failed to subscribe in MarketPriceController: $e');
@@ -116,6 +127,7 @@ class MarketPriceController extends StateNotifier<MarketPriceState> {
   }
 
   void reset() {
+    _realtimeDebounce?.cancel();
     _marketPriceChannel?.unsubscribe();
     _marketPriceChannel = null;
     state = const MarketPriceState();
@@ -123,6 +135,7 @@ class MarketPriceController extends StateNotifier<MarketPriceState> {
 
   @override
   void dispose() {
+    _realtimeDebounce?.cancel();
     _marketPriceChannel?.unsubscribe();
     super.dispose();
   }
