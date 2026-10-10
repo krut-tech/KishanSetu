@@ -29,6 +29,21 @@ void main() {
       expect(profile.isProfileComplete, isTrue);
     });
 
+    test('parses and serializes optional shared map coordinates', () {
+      final profile = UserProfile.fromMap({
+        'id': 'map-user',
+        'role': 'farmer',
+        'full_name': 'Map Farmer',
+        'latitude': 22.3039,
+        'longitude': 70.8022,
+      });
+
+      expect(profile.latitude, 22.3039);
+      expect(profile.longitude, 70.8022);
+      expect(profile.toMap()['latitude'], 22.3039);
+      expect(profile.toMap()['longitude'], 70.8022);
+    });
+
     test('converts UserProfile to map correctly', () {
       const profile = UserProfile(
         id: 'user-456',
