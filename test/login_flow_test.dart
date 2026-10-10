@@ -671,7 +671,8 @@ void main() {
       await tester.enterText(emailFields.at(1), 'Password123');
 
       await tester.tap(find.widgetWithText(ElevatedButton, 'Login'));
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
 
       expect(find.text('Farmer Dashboard'), findsOneWidget);
     });
@@ -701,7 +702,8 @@ void main() {
       await tester.enterText(fields.at(1), 'Password123');
 
       await tester.tap(find.widgetWithText(ElevatedButton, 'Login'));
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
 
       expect(find.text('Buyer Dashboard'), findsOneWidget);
     });
@@ -821,7 +823,8 @@ void main() {
       final googleBtn = find.text('Sign in with Google');
       await tester.ensureVisible(googleBtn);
       await tester.tap(googleBtn);
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
 
       // Directly on Farmer Dashboard
       expect(find.text('Farmer Dashboard'), findsOneWidget);
@@ -843,7 +846,8 @@ void main() {
       final googleBtn = find.text('Sign in with Google');
       await tester.ensureVisible(googleBtn);
       await tester.tap(googleBtn);
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
 
       // Directly on Buyer Dashboard
       expect(find.text('Buyer Dashboard'), findsOneWidget);
@@ -904,10 +908,11 @@ void main() {
       // Submit
       final saveBtn = find.text('Save & Continue');
       await tester.drag(find.byType(SingleChildScrollView).last, const Offset(0, -300));
-      await tester.pumpAndSettle();
+      await tester.pump();
       await tester.ensureVisible(saveBtn);
       await tester.tap(saveBtn);
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
 
       // Verified saved profile has role = farmer and isProfileComplete = true
       expect(fakeAuthRepository.savedProfile, isNotNull);
@@ -964,10 +969,12 @@ void main() {
 
       // Submit
       final saveBtnBuyer = find.text('Save & Continue');
+      await tester.drag(find.byType(SingleChildScrollView).last, const Offset(0, -300));
+      await tester.pump();
       await tester.ensureVisible(saveBtnBuyer);
-      await tester.pumpAndSettle();
       await tester.tap(saveBtnBuyer);
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
 
       // Verified saved profile has role = buyer and isProfileComplete = true
       expect(fakeAuthRepository.savedProfile, isNotNull);
@@ -1019,7 +1026,8 @@ void main() {
       await tester.enterText(fields.at(0), 'buyer@example.com');
       await tester.enterText(fields.at(1), 'Password123');
       await tester.tap(find.widgetWithText(ElevatedButton, 'Login'));
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
 
       expect(find.text('Buyer Dashboard'), findsOneWidget);
 
@@ -1027,7 +1035,8 @@ void main() {
       final container = tester.element(find.byType(BuyerHomeScreen).first);
       final router = GoRouter.of(container);
       router.go(RouteNames.addProduce);
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
 
       // Should be redirected back to Buyer Dashboard
       expect(find.text('Buyer Dashboard'), findsOneWidget);

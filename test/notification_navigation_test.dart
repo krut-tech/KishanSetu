@@ -82,7 +82,8 @@ void main() {
       await tester.enterText(emailFields.at(1), 'Password123');
 
       await tester.tap(find.widgetWithText(ElevatedButton, 'Login'));
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
 
       expect(find.text('Farmer Dashboard'), findsOneWidget);
 
@@ -90,7 +91,8 @@ void main() {
       expect(badgeIcon, findsOneWidget);
 
       await tester.tap(badgeIcon);
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
 
       expect(find.text('Notifications'), findsOneWidget);
     });
@@ -120,7 +122,8 @@ void main() {
       await tester.enterText(emailFields.at(1), 'Password123');
 
       await tester.tap(find.widgetWithText(ElevatedButton, 'Login'));
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
 
       expect(find.text('Farmer Dashboard'), findsOneWidget);
 
@@ -128,7 +131,8 @@ void main() {
       expect(headerBell, findsOneWidget);
 
       await tester.tap(headerBell);
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
 
       expect(find.text('Notifications'), findsOneWidget);
     });
@@ -158,7 +162,8 @@ void main() {
       await tester.enterText(emailFields.at(1), 'Password123');
 
       await tester.tap(find.widgetWithText(ElevatedButton, 'Login'));
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
 
       expect(find.text('Buyer Dashboard'), findsOneWidget);
 
@@ -166,7 +171,8 @@ void main() {
       expect(badgeIcon, findsOneWidget);
 
       await tester.tap(badgeIcon);
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
 
       expect(find.text('Notifications'), findsOneWidget);
     });
@@ -196,13 +202,15 @@ void main() {
       await tester.enterText(emailFields.at(1), 'Password123');
 
       await tester.tap(find.widgetWithText(ElevatedButton, 'Login'));
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
 
       expect(find.text('Buyer Dashboard'), findsOneWidget);
 
       final headerBell = find.byIcon(Icons.notifications_outlined).last;
       await tester.tap(headerBell);
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
 
       expect(find.text('Notifications'), findsOneWidget);
     });

@@ -123,7 +123,8 @@ void main() {
     await tester.pump();
 
     // Pump frames to allow go_router to redirect from Splash to Login
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 2));
 
     expect(find.byType(FarmerMarketApp), findsOneWidget);
     expect(find.byType(LoginScreen), findsOneWidget);

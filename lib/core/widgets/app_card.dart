@@ -74,7 +74,12 @@ class _AppCardState extends State<AppCard> {
             ),
           ],
         ),
-        child: inner,
+        child: Material(
+          color: Colors.transparent,
+          borderRadius: radius,
+          clipBehavior: Clip.antiAlias,
+          child: inner,
+        ),
       ),
     );
 

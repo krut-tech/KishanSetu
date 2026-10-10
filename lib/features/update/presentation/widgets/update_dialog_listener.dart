@@ -48,7 +48,7 @@ class _UpdateDialogListenerState extends ConsumerState<UpdateDialogListener> {
               await Future<void>.delayed(const Duration(milliseconds: 500));
               if (!mounted) return;
             }
-            if (navContext == null) {
+            if (navContext == null || !navContext.mounted) {
               AppLogger.warning('Update dialog skipped: navigator not ready.');
               return;
             }
