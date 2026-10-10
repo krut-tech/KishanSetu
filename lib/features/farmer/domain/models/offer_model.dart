@@ -66,6 +66,7 @@ class OfferModel extends Equatable {
   // Optional joined data
   final String? buyerName;
   final String? buyerCompany;
+  final String? buyerLocation;
   final String? farmerName;
   final String? produceName;
   final String? produceUnit;
@@ -87,6 +88,7 @@ class OfferModel extends Equatable {
     this.updatedAt,
     this.buyerName,
     this.buyerCompany,
+    this.buyerLocation,
     this.farmerName,
     this.produceName,
     this.produceUnit,
@@ -99,14 +101,25 @@ class OfferModel extends Equatable {
   factory OfferModel.fromMap(Map<String, dynamic> map) {
     String? bName;
     String? bCompany;
+    String? bLocation;
     if (map['buyer_profile'] is Map) {
       final buyerMap = map['buyer_profile'] as Map<String, dynamic>;
       bName = buyerMap['full_name'] as String?;
       bCompany = buyerMap['company_name'] as String?;
+      bLocation = [buyerMap['district'], buyerMap['state']]
+          .whereType<String>()
+          .where((s) => s.trim().isNotEmpty)
+          .join(', ');
+      if (bLocation.isEmpty) bLocation = null;
     } else if (map['buyer'] is Map) {
       final buyerMap = map['buyer'] as Map<String, dynamic>;
       bName = buyerMap['full_name'] as String?;
       bCompany = buyerMap['company_name'] as String?;
+      bLocation = [buyerMap['district'], buyerMap['state']]
+          .whereType<String>()
+          .where((s) => s.trim().isNotEmpty)
+          .join(', ');
+      if (bLocation.isEmpty) bLocation = null;
     }
 
     String? fName;
@@ -160,6 +173,7 @@ class OfferModel extends Equatable {
           : null,
       buyerName: bName ?? map['buyer_name'] as String?,
       buyerCompany: bCompany ?? map['buyer_company'] as String?,
+      buyerLocation: bLocation ?? map['buyer_location'] as String?,
       farmerName: fName ?? map['farmer_name'] as String?,
       produceName: pName ?? map['produce_name'] as String?,
       produceUnit: pUnit ?? map['produce_unit'] as String?,
@@ -196,6 +210,7 @@ class OfferModel extends Equatable {
     DateTime? updatedAt,
     String? buyerName,
     String? buyerCompany,
+    String? buyerLocation,
     String? farmerName,
     String? produceName,
     String? produceUnit,
@@ -217,6 +232,7 @@ class OfferModel extends Equatable {
       updatedAt: updatedAt ?? this.updatedAt,
       buyerName: buyerName ?? this.buyerName,
       buyerCompany: buyerCompany ?? this.buyerCompany,
+      buyerLocation: buyerLocation ?? this.buyerLocation,
       farmerName: farmerName ?? this.farmerName,
       produceName: produceName ?? this.produceName,
       produceUnit: produceUnit ?? this.produceUnit,
@@ -241,6 +257,7 @@ class OfferModel extends Equatable {
         updatedAt,
         buyerName,
         buyerCompany,
+        buyerLocation,
         farmerName,
         produceName,
         produceUnit,
