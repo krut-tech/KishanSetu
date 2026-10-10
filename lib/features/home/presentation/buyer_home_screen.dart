@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:farmer_market_app/core/animations/staggered_reveal.dart';
@@ -370,7 +371,14 @@ class _BuyerHomeScreenState extends ConsumerState<BuyerHomeScreen> {
             ListTile(
               leading: const Icon(Icons.system_update_rounded),
               title: const Text('Check for Updates'),
-              subtitle: const Text('KisanSetu v1.0.5+5'),
+              subtitle: FutureBuilder<PackageInfo>(
+                future: PackageInfo.fromPlatform(),
+                builder: (context, snap) => Text(
+                  snap.hasData
+                      ? 'KisanSetu v${snap.data!.version}+${snap.data!.buildNumber}'
+                      : 'KisanSetu',
+                ),
+              ),
               trailing: const Icon(Icons.chevron_right_rounded),
               onTap: () async {
                 final updateNotifier = ref.read(updateNotifierProvider.notifier);
