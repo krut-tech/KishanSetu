@@ -1,9 +1,4 @@
-import 'package:supabase_flutter/supabase_flutter.dart';
-
-extension _FirstOrNull<T> on Iterable<T> {
-  T? get firstOrNull => isEmpty ? null : first;
-}
-
+import 'package:supabase_flutter/supabase_flutter.dart';undefined
 class ChatConversation {
   final String id;
   final String farmerId;
