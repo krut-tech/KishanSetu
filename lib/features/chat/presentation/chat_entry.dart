@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../data/chat_repository.dart';
+import 'package:farmer_market_app/core/localization/localization_extension.dart';
 import 'chat_screen.dart';
 
 class ChatEntryButton extends StatefulWidget {
@@ -42,6 +43,6 @@ class _ChatEntryButtonState extends State<ChatEntryButton> {
       icon: _loading ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Icons.chat_bubble_outline));
     return OutlinedButton.icon(onPressed: _loading ? null : _openChat,
       icon: _loading ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Icons.chat_bubble_outline),
-      label: const Text('Chat with farmer'));
+      label: Text(context.l10n.openChat));
   }
 }
