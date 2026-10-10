@@ -9,9 +9,9 @@ const corsHeaders = {
 
 const AGMARKNET_BASE_URL = "https://api.agmarknet.gov.in/v1";
 const FILTERS_URL = AGMARKNET_BASE_URL + "/daily-price-arrival/filters";
-const REQUEST_TIMEOUT_MS = 4500;
+const REQUEST_TIMEOUT_MS = 9000;
 const MARKETS_PER_BATCH = 6;
-const MAX_CONCURRENCY = 6;
+const MAX_CONCURRENCY = 8;
 
 // Prioritize common crops that are already relevant to Gujarat farmers.
 // Their IDs are resolved from the live filters response instead of hardcoding IDs.
@@ -272,17 +272,40 @@ async function fetchMarketCommodity(market: MarketRef, commodity: CommodityRef):
     includeExcel: "false",
   });
   const url = AGMARKNET_BASE_URL + "/prices-and-arrivals/commodity-price/lastweek?" + query.toString();
+  let lastMessage = "";
+  // One retry for transient failures (timeouts, connection resets, 429/5xx).
+  // Plain 4xx responses are not retried: they will not succeed the second time.
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    try {
+      const payload = await fetchJson(url);
+      return { market, commodity, rows: rowsFromPayload(payload) };
+    } catch (error) {
+      lastMessage = error instanceof Error ? error.message : String(error);
+      const permanent = /^HTTP 4(?!29)/.test(lastMessage);
+      if (permanent || attempt === 2) break;
+      await new Promise((resolve) => setTimeout(resolve, 500));
+    }
+  }
+  console.warn("Agmarknet request failed for " + market.mkt_name + " / " + commodity.name + ": " + lastMessage);
+  return { market, commodity, rows: [], error: lastMessage.slice(0, 180) };
+}
+
+// Best-effort run log so a silent cron failure can be diagnosed with plain SQL:
+//   select * from market_sync_log order by ran_at desc limit 20;
+async function logSyncRun(
+  supabase: ReturnType<typeof createClient>,
+  entry: AnyRecord,
+): Promise<void> {
   try {
-    const payload = await fetchJson(url);
-    return { market, commodity, rows: rowsFromPayload(payload) };
+    const { error } = await supabase.from("market_sync_log").insert(entry);
+    if (error) console.warn("market_sync_log insert failed:", error.message);
   } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    console.warn("Agmarknet request failed for " + market.mkt_name + " / " + commodity.name + ": " + message);
-    return { market, commodity, rows: [], error: message.slice(0, 180) };
+    console.warn("market_sync_log insert threw:", error instanceof Error ? error.message : String(error));
   }
 }
 
 serve(async (req) => {
+  const startedAt = Date.now();
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
@@ -321,6 +344,10 @@ serve(async (req) => {
       filterPayload = await fetchJson(FILTERS_URL);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
+      await logSyncRun(supabase, {
+        ok: false, provider: "Agmarknet", state: requestedState || null, batch,
+        duration_ms: Date.now() - startedAt, error: ("Could not fetch Agmarknet filters: " + message).slice(0, 400),
+      });
       return jsonResponse({ success: false, provider: "Agmarknet", error: "Could not fetch Agmarknet filters: " + message }, 502);
     }
 
@@ -450,6 +477,12 @@ serve(async (req) => {
     }
 
     if (priceRows.length === 0) {
+      await logSyncRun(supabase, {
+        ok: false, provider: "Agmarknet", state: targetStateName, batch, markets: markets.length,
+        requests: work.length, successful: successfulRequests, failed: failedRequests, rows_upserted: 0,
+        duration_ms: Date.now() - startedAt,
+        error: (results.find((result) => result.error)?.error ?? "No numeric prices returned").slice(0, 400),
+      });
       return jsonResponse({
         success: false,
         provider: "Agmarknet",
@@ -479,6 +512,11 @@ serve(async (req) => {
         .upsert(chunk, { onConflict: "produce_name,market_name,price_date" });
       if (error) {
         console.error("Agmarknet upsert failed:", error.message);
+        await logSyncRun(supabase, {
+          ok: false, provider: "Agmarknet", state: targetStateName, batch, markets: markets.length,
+          requests: work.length, successful: successfulRequests, failed: failedRequests, rows_upserted: upserted,
+          duration_ms: Date.now() - startedAt, error: ("Database upsert failed: " + error.message).slice(0, 400),
+        });
         return jsonResponse({
           success: false,
           provider: "Agmarknet",
@@ -514,6 +552,12 @@ serve(async (req) => {
       message: "Agmarknet prices synchronized. NR values were skipped; prior rows were preserved.",
     };
     console.log("Agmarknet sync summary:", JSON.stringify(responseBody));
+    await logSyncRun(supabase, {
+      ok: true, provider: "Agmarknet", state: targetStateName, batch, markets: markets.length,
+      requests: work.length, successful: successfulRequests, failed: failedRequests, rows_upserted: upserted,
+      duration_ms: Date.now() - startedAt,
+      error: trendError ? ("trend recompute failed: " + trendError.message).slice(0, 400) : null,
+    });
     return jsonResponse(responseBody);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
