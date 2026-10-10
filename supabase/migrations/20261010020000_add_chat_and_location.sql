@@ -120,3 +120,46 @@ $$;
 
 revoke all on function public.get_or_create_chat_conversation(uuid, uuid, uuid) from public, anon;
 grant execute on function public.get_or_create_chat_conversation(uuid, uuid, uuid) to authenticated;
+
+-- Enforce the participant relationship for both existing and new message rows.
+create or replace function public.chat_message_participant_guard()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if not exists (
+    select 1 from public.chat_conversations c
+    where c.id = new.conversation_id
+      and auth.uid() in (c.farmer_id, c.buyer_id)
+  ) then
+    raise exception 'Only conversation participants may modify messages' using errcode = '42501';
+  end if;
+
+  if tg_op = 'INSERT' and new.sender_id <> auth.uid() then
+    raise exception 'Sender must be the authenticated user' using errcode = '42501';
+  end if;
+
+  if tg_op = 'UPDATE' then
+    if old.sender_id <> new.sender_id
+      or old.conversation_id <> new.conversation_id
+      or old.body <> new.body
+      or old.created_at <> new.created_at
+      or old.id <> new.id then
+      raise exception 'Messages cannot be edited through this endpoint' using errcode = '42501';
+    end if;
+    if new.read_at is distinct from old.read_at and old.sender_id = auth.uid() then
+      raise exception 'A sender cannot mark their own message as read' using errcode = '42501';
+    end if;
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists chat_message_participant_guard on public.chat_messages;
+create trigger chat_message_participant_guard
+before insert or update on public.chat_messages
+for each row execute function public.chat_message_participant_guard();
+
+revoke all on function public.chat_message_participant_guard() from public, anon, authenticated;
