@@ -25,9 +25,6 @@ import 'package:farmer_market_app/features/notifications/presentation/widgets/no
 import 'package:farmer_market_app/features/chat/data/chat_repository.dart';
 import 'package:farmer_market_app/features/chat/presentation/chat_list_screen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:farmer_market_app/features/chat/data/chat_repository.dart';
-import 'package:farmer_market_app/features/chat/presentation/chat_list_screen.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:farmer_market_app/features/buyer/presentation/screens/buyer_offers_screen.dart';
 import 'package:farmer_market_app/features/buyer/presentation/screens/marketplace_screen.dart';
 import 'package:farmer_market_app/features/buyer/presentation/screens/produce_details_screen.dart';
@@ -103,17 +100,6 @@ class _BuyerHomeScreenState extends ConsumerState<BuyerHomeScreen> {
               icon: const Icon(Icons.admin_panel_settings_outlined),
               onPressed: () => context.push(RouteNames.adminPanel),
             ),
-          IconButton(
-            tooltip: 'Messages',
-            icon: const Icon(Icons.forum_outlined),
-            onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute<void>(
-                builder: (_) => ChatListScreen(
-                  repository: ChatRepository(Supabase.instance.client),
-                ),
-              ),
-            ),
-          ),
           IconButton(
             tooltip: 'Messages',
             icon: const Icon(Icons.forum_outlined),
