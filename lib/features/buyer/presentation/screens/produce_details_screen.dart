@@ -119,8 +119,7 @@ class _ProduceDetailsScreenState extends ConsumerState<ProduceDetailsScreen> {
                 ),
               ),
             ),
-        ],
-        actions: [
+          ),
           IconButton(
             tooltip: 'Report an issue with this listing or farmer',
             icon: const Icon(Icons.flag_outlined),
