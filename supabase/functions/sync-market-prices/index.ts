@@ -258,7 +258,7 @@ function normalizeProduceName(commodityName: string, varietyRaw: string): string
   if (!varietyRaw || /^unknown$/i.test(varietyRaw)) return commodityName;
   if (/^other$/i.test(varietyRaw)) return commodityName + " (Other)";
   if (varietyRaw.toLowerCase().startsWith(commodityName.toLowerCase())) {
-    const suffix = varietyRaw.slice(commodityName.length).replace(/^\\s*[-–:]\\s*/, "").trim();
+    const suffix = varietyRaw.slice(commodityName.length).replace(/^\s*[-–:]\s*/, "").trim();
     return suffix ? commodityName + " (" + suffix + ")" : commodityName;
   }
   return commodityName + " (" + varietyRaw + ")";
