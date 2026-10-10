@@ -27,6 +27,8 @@ class _FarmerProfileScreenState extends ConsumerState<FarmerProfileScreen> {
   late TextEditingController _villageController;
   late TextEditingController _landSizeController;
   late TextEditingController _cropController;
+  late TextEditingController _latitudeController;
+  late TextEditingController _longitudeController;
   String _selectedLanguage = 'en';
   final _formKey = GlobalKey<FormState>();
   bool _isInitialized = false;
@@ -41,6 +43,8 @@ class _FarmerProfileScreenState extends ConsumerState<FarmerProfileScreen> {
     _villageController = TextEditingController();
     _landSizeController = TextEditingController();
     _cropController = TextEditingController();
+    _latitudeController = TextEditingController();
+    _longitudeController = TextEditingController();
   }
 
   @override
@@ -58,6 +62,8 @@ class _FarmerProfileScreenState extends ConsumerState<FarmerProfileScreen> {
         _villageController.text = profile.village ?? '';
         _landSizeController.text = profile.landSizeAcres?.toString() ?? '';
         _cropController.text = profile.primaryCrop ?? '';
+        _latitudeController.text = profile.latitude?.toString() ?? '';
+        _longitudeController.text = profile.longitude?.toString() ?? '';
         _selectedLanguage = profile.language.isNotEmpty ? profile.language : 'en';
       }
       _isInitialized = true;
@@ -73,6 +79,8 @@ class _FarmerProfileScreenState extends ConsumerState<FarmerProfileScreen> {
     _villageController.dispose();
     _landSizeController.dispose();
     _cropController.dispose();
+    _latitudeController.dispose();
+    _longitudeController.dispose();
     super.dispose();
   }
 
@@ -81,6 +89,19 @@ class _FarmerProfileScreenState extends ConsumerState<FarmerProfileScreen> {
 
     final currentProfile = ref.read(authNotifierProvider).profile;
     if (currentProfile == null) return;
+
+    final latText = _latitudeController.text.trim();
+    final lngText = _longitudeController.text.trim();
+    final latitude = latText.isEmpty ? null : double.tryParse(latText);
+    final longitude = lngText.isEmpty ? null : double.tryParse(lngText);
+    if ((latText.isEmpty) != (lngText.isEmpty) ||
+        (latText.isNotEmpty && latitude == null) ||
+        (lngText.isNotEmpty && longitude == null) ||
+        (latitude != null && (!latitude.isFinite || latitude < -90 || latitude > 90)) ||
+        (longitude != null && (!longitude.isFinite || longitude < -180 || longitude > 180))) {
+      AppSnackBar.show(context, message: 'Enter valid latitude and longitude together, or leave both empty.', type: SnackBarType.error);
+      return;
+    }
 
     ref.read(localeControllerProvider.notifier).setLocale(_selectedLanguage);
 
@@ -93,6 +114,9 @@ class _FarmerProfileScreenState extends ConsumerState<FarmerProfileScreen> {
       village: _villageController.text.trim(),
       landSizeAcres: double.tryParse(_landSizeController.text.trim()),
       primaryCrop: _cropController.text.trim(),
+      latitude: latitude,
+      longitude: longitude,
+      clearCoordinates: latitude == null && longitude == null,
       isProfileComplete: true,
     );
 
@@ -219,6 +243,20 @@ class _FarmerProfileScreenState extends ConsumerState<FarmerProfileScreen> {
                       controller: _landSizeController,
                       keyboardType: TextInputType.number,
                       hint: 'e.g. 5.5 Acres',
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                    AppTextField(
+                      label: context.l10n.mapLatitudeOptional,
+                      controller: _latitudeController,
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
+                      hint: 'e.g. 22.123456',
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                    AppTextField(
+                      label: context.l10n.mapLongitudeOptional,
+                      controller: _longitudeController,
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
+                      hint: 'e.g. 70.123456',
                     ),
                     const SizedBox(height: AppSpacing.md),
                     AppTextField(

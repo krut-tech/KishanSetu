@@ -332,5 +332,9 @@
   "permissionRequired": "Permission Required",
   "installPermissionNotice": "To install updates, please allow KisanSetu to install unknown apps in Android Settings.",
   "openSettings": "Open Settings",
-  "openingInstaller": "Opening system package installer..."
+  "openingInstaller": "Opening system package installer...",
+  "viewOnMap": "View on Map",
+  "openChat": "Chat with farmer",
+  "mapLatitudeOptional": "Map Latitude (optional)",
+  "mapLongitudeOptional": "Map Longitude (optional)"
 }

@@ -47,6 +47,18 @@ Farmers and buyers often work with fragmented market information and disconnecte
 
 Google OAuth uses a mobile deep-link callback. Configure the same redirect URI in the Supabase Auth URL configuration and Google OAuth client configuration before testing OAuth.
 
+### Farmer–Buyer Chat and Location (new feature branch)
+
+- Direct buyer-to-farmer chat from a produce listing
+- Message history and Supabase Realtime updates
+- Basic read receipts and a conversation inbox
+- Row Level Security policies restrict conversations and messages to participants
+- Optional profile latitude / longitude that users enter themselves
+- Google Maps opens the saved coordinate when available; otherwise it uses the listing address
+- No background or silent live-location tracking
+
+Apply the migration `supabase/migrations/20261010020000_add_chat_and_location.sql` to the linked Supabase project before testing chat. Add `public.chat_messages` to the Supabase Realtime publication if the migration runner cannot add it automatically. The new work is on `feature/chat-and-location`; it has not been merged to `main`.
+
 ## Technology stack
 
 | Area | Technology |

@@ -332,5 +332,9 @@
   "permissionRequired": "अनुमति आवश्यक है",
   "installPermissionNotice": "अपडेट इंस्टॉल करने के लिए, कृपया एंड्रॉइड सेटिंग्स में किसानसेतु को अज्ञात ऐप इंस्टॉल करने की अनुमति दें।",
   "openSettings": "सेटिंग्स खोलें",
-  "openingInstaller": "सिस्टम पैकेज इंस्टॉलर खोला जा रहा है..."
+  "openingInstaller": "सिस्टम पैकेज इंस्टॉलर खोला जा रहा है...",
+  "viewOnMap": "नक्शे पर देखें",
+  "openChat": "किसान से चैट करें",
+  "mapLatitudeOptional": "मैप अक्षांश (वैकल्पिक)",
+  "mapLongitudeOptional": "मैप देशांतर (वैकल्पिक)"
 }

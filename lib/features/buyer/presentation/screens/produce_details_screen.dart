@@ -10,6 +10,11 @@ import 'package:farmer_market_app/core/widgets/price/app_price_text.dart';
 import 'package:farmer_market_app/features/auth/presentation/controllers/auth_providers.dart';
 import 'package:farmer_market_app/features/buyer/presentation/controllers/buyer_providers.dart';
 import 'package:farmer_market_app/features/buyer/presentation/screens/make_offer_dialog.dart';
+import 'package:farmer_market_app/features/chat/presentation/chat_entry.dart';
+import 'package:farmer_market_app/core/widgets/buttons/location_picker_link.dart';
+import 'package:farmer_market_app/features/chat/data/chat_repository.dart';
+import 'package:farmer_market_app/features/chat/presentation/chat_list_screen.dart';
+import 'package:farmer_market_app/core/widgets/buttons/map_link_button.dart';
 import 'package:farmer_market_app/features/farmer/domain/models/offer_model.dart';
 import 'package:farmer_market_app/features/farmer/domain/models/produce_model.dart';
 
@@ -104,6 +109,17 @@ class _ProduceDetailsScreenState extends ConsumerState<ProduceDetailsScreen> {
       appBar: AppBar(
         title: Text(context.l10n.produceDetailsTitle),
         actions: [
+          IconButton(
+            tooltip: 'Messages',
+            icon: const Icon(Icons.forum_outlined),
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => ChatListScreen(
+                  repository: ChatRepository(Supabase.instance.client),
+                ),
+              ),
+            ),
+          ),
           IconButton(
             tooltip: 'Report an issue with this listing or farmer',
             icon: const Icon(Icons.flag_outlined),
@@ -308,6 +324,35 @@ class _ProduceDetailsScreenState extends ConsumerState<ProduceDetailsScreen> {
                             ),
                             title: Text(farmerName, style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.onSurface)),
                             subtitle: Text('Verified Seller • ${context.l10n.locationLabel}: $locationText', style: TextStyle(color: colorScheme.onSurfaceVariant)),
+                          ),
+                          const SizedBox(height: AppSpacing.sm),
+                          Wrap(
+                            spacing: AppSpacing.sm,
+                            runSpacing: AppSpacing.sm,
+                            children: [
+                              FutureBuilder<Map<String, dynamic>?>(
+                                future: Supabase.instance.client
+                                    .from('profiles')
+                                    .select('latitude,longitude')
+                                    .eq('id', produce.farmerId)
+                                    .maybeSingle(),
+                                builder: (context, snapshot) {
+                                  final row = snapshot.data;
+                                  return CoordinateMapButton(
+                                    label: MapStrings.viewOnMap(context),
+                                    address: locationText,
+                                    latitude: row?['latitude'] == null ? null : (row!['latitude'] as num).toDouble(),
+                                    longitude: row?['longitude'] == null ? null : (row!['longitude'] as num).toDouble(),
+                                  );
+                                },
+                              ),
+                              ChatEntryButton(
+                                farmerId: produce.farmerId,
+                                buyerId: ref.read(authNotifierProvider).state.user?.id ?? '',
+                                otherUserName: farmerName,
+                                produceId: produce.id,
+                              ),
+                            ],
                           ),
                         ],
                       ),

@@ -32,13 +32,12 @@ class MapStrings {
       );
 }
 
-/// Opens [location] (free text such as "Vasad, Anand, Gujarat") in the
-/// device's maps app / browser via a Google Maps search URL.
+/// Opens the supplied location text (for example, "Vasad, Anand, Gujarat")
+/// in the device's maps app or browser using a Google Maps search URL.
 ///
-/// Deliberately a plain search URL instead of an embedded map SDK: it needs
-/// no API key, no billing account and no location permission, and the maps
-/// app geocodes the text itself - which is all that is needed for a buyer to
-/// see where a farmer is (and vice versa).
+/// This uses a plain search URL instead of an embedded map SDK: it needs no
+/// API key, billing account, or location permission. The maps app geocodes the
+/// text itself, which is sufficient for a buyer or farmer to view a location.
 Future<void> openLocationOnMap(BuildContext context, String location) async {
   final uri = Uri.https('www.google.com', '/maps/search/', {
     'api': '1',
@@ -61,7 +60,7 @@ Future<void> openLocationOnMap(BuildContext context, String location) async {
   }
 }
 
-/// Compact "📍 <location> · View on Map" row that opens the location in maps.
+/// Compact location row that opens the location in a maps app or browser.
 class MapLinkButton extends StatelessWidget {
   final String location;
 

@@ -27,6 +27,8 @@ class _BuyerProfileScreenState extends ConsumerState<BuyerProfileScreen> {
   late TextEditingController _capacityController;
   late TextEditingController _stateController;
   late TextEditingController _districtController;
+  late TextEditingController _latitudeController;
+  late TextEditingController _longitudeController;
   String _businessType = 'Wholesaler / Trader';
   String _selectedLanguage = 'en';
   final _formKey = GlobalKey<FormState>();
@@ -42,6 +44,8 @@ class _BuyerProfileScreenState extends ConsumerState<BuyerProfileScreen> {
     _capacityController = TextEditingController();
     _stateController = TextEditingController(text: 'Gujarat');
     _districtController = TextEditingController();
+    _latitudeController = TextEditingController();
+    _longitudeController = TextEditingController();
   }
 
   @override
@@ -59,6 +63,8 @@ class _BuyerProfileScreenState extends ConsumerState<BuyerProfileScreen> {
           _stateController.text = profile.state!;
         }
         _districtController.text = profile.district ?? '';
+        _latitudeController.text = profile.latitude?.toString() ?? '';
+        _longitudeController.text = profile.longitude?.toString() ?? '';
         if (profile.businessType != null && profile.businessType!.isNotEmpty) {
           _businessType = profile.businessType!;
         }
@@ -77,6 +83,8 @@ class _BuyerProfileScreenState extends ConsumerState<BuyerProfileScreen> {
     _capacityController.dispose();
     _stateController.dispose();
     _districtController.dispose();
+    _latitudeController.dispose();
+    _longitudeController.dispose();
     super.dispose();
   }
 
@@ -85,6 +93,19 @@ class _BuyerProfileScreenState extends ConsumerState<BuyerProfileScreen> {
 
     final currentProfile = ref.read(authNotifierProvider).profile;
     if (currentProfile == null) return;
+
+    final latText = _latitudeController.text.trim();
+    final lngText = _longitudeController.text.trim();
+    final latitude = latText.isEmpty ? null : double.tryParse(latText);
+    final longitude = lngText.isEmpty ? null : double.tryParse(lngText);
+    if ((latText.isEmpty) != (lngText.isEmpty) ||
+        (latText.isNotEmpty && latitude == null) ||
+        (lngText.isNotEmpty && longitude == null) ||
+        (latitude != null && (!latitude.isFinite || latitude < -90 || latitude > 90)) ||
+        (longitude != null && (!longitude.isFinite || longitude < -180 || longitude > 180))) {
+      AppSnackBar.show(context, message: 'Enter valid latitude and longitude together, or leave both empty.', type: SnackBarType.error);
+      return;
+    }
 
     ref.read(localeControllerProvider.notifier).setLocale(_selectedLanguage);
 
@@ -97,6 +118,9 @@ class _BuyerProfileScreenState extends ConsumerState<BuyerProfileScreen> {
       buyingCapacityQuintals: double.tryParse(_capacityController.text.trim()),
       state: _stateController.text.trim(),
       district: _districtController.text.trim(),
+      latitude: latitude,
+      longitude: longitude,
+      clearCoordinates: latitude == null && longitude == null,
       language: _selectedLanguage,
       isProfileComplete: true,
     );
@@ -231,6 +255,20 @@ class _BuyerProfileScreenState extends ConsumerState<BuyerProfileScreen> {
                       controller: _districtController,
                       hint: context.l10n.primaryMandiDistrictCity,
                       validator: (v) => v == null || v.trim().isEmpty ? context.l10n.districtCityRequired : null,
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                    AppTextField(
+                      label: context.l10n.mapLatitudeOptional,
+                      controller: _latitudeController,
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
+                      hint: 'e.g. 22.123456',
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                    AppTextField(
+                      label: context.l10n.mapLongitudeOptional,
+                      controller: _longitudeController,
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
+                      hint: 'e.g. 70.123456',
                     ),
                     const SizedBox(height: AppSpacing.md),
                     AppTextField(
