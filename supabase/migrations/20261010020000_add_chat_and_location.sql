@@ -121,6 +121,8 @@ $$;
 revoke all on function public.get_or_create_chat_conversation(uuid, uuid, uuid) from public, anon;
 grant execute on function public.get_or_create_chat_conversation(uuid, uuid, uuid) to authenticated;
 
+revoke all on function public.get_or_create_chat_conversation(uuid, uuid, uuid) from anon;
+
 -- Enforce the participant relationship for both existing and new message rows.
 create or replace function public.chat_message_participant_guard()
 returns trigger
@@ -129,7 +131,7 @@ security definer
 set search_path = public
 as $$
 begin
-  if not exists (
+  if auth.uid() is null or not exists (
     select 1 from public.chat_conversations c
     where c.id = new.conversation_id
       and auth.uid() in (c.farmer_id, c.buyer_id)
