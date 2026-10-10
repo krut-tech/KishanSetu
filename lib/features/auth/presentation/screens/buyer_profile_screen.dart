@@ -99,6 +99,8 @@ class _BuyerProfileScreenState extends ConsumerState<BuyerProfileScreen> {
     final latitude = latText.isEmpty ? null : double.tryParse(latText);
     final longitude = lngText.isEmpty ? null : double.tryParse(lngText);
     if ((latText.isEmpty) != (lngText.isEmpty) ||
+        (latText.isNotEmpty && latitude == null) ||
+        (lngText.isNotEmpty && longitude == null) ||
         (latitude != null && (!latitude.isFinite || latitude < -90 || latitude > 90)) ||
         (longitude != null && (!longitude.isFinite || longitude < -180 || longitude > 180))) {
       AppSnackBar.show(context, message: 'Enter valid latitude and longitude together, or leave both empty.', type: SnackBarType.error);
