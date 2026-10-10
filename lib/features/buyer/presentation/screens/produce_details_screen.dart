@@ -10,6 +10,8 @@ import 'package:farmer_market_app/core/widgets/price/app_price_text.dart';
 import 'package:farmer_market_app/features/auth/presentation/controllers/auth_providers.dart';
 import 'package:farmer_market_app/features/buyer/presentation/controllers/buyer_providers.dart';
 import 'package:farmer_market_app/features/buyer/presentation/screens/make_offer_dialog.dart';
+import 'package:farmer_market_app/features/chat/presentation/chat_entry.dart';
+import 'package:farmer_market_app/core/widgets/buttons/location_picker_link.dart';
 import 'package:farmer_market_app/features/farmer/domain/models/offer_model.dart';
 import 'package:farmer_market_app/features/farmer/domain/models/produce_model.dart';
 
@@ -308,6 +310,23 @@ class _ProduceDetailsScreenState extends ConsumerState<ProduceDetailsScreen> {
                             ),
                             title: Text(farmerName, style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.onSurface)),
                             subtitle: Text('Verified Seller • ${context.l10n.locationLabel}: $locationText', style: TextStyle(color: colorScheme.onSurfaceVariant)),
+                          ),
+                          const SizedBox(height: AppSpacing.sm),
+                          Wrap(
+                            spacing: AppSpacing.sm,
+                            runSpacing: AppSpacing.sm,
+                            children: [
+                              CoordinateMapButton(
+                                label: context.l10n.viewOnMap,
+                                address: locationText,
+                              ),
+                              ChatEntryButton(
+                                farmerId: produce.farmerId,
+                                buyerId: ref.read(authNotifierProvider).state.user?.id ?? '',
+                                otherUserName: farmerName,
+                                produceId: produce.id,
+                              ),
+                            ],
                           ),
                         ],
                       ),
