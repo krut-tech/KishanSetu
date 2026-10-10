@@ -27,10 +27,17 @@ class _ChatScreenState extends State<ChatScreen> {
     super.initState();
     _load();
     _channel = widget.repository.subscribeToMessages(widget.conversation.id, (message) {
-      if (!mounted || _messages.any((m) => m.id == message.id)) return;
+      if (!mounted) return;
+      final existingIndex = _messages.indexWhere((m) => m.id == message.id);
+      if (existingIndex >= 0) {
+        setState(() => _messages[existingIndex] = message);
+        return;
+      }
       setState(() => _messages.add(message));
       _scrollToBottom();
-      if (message.senderId != _userId) unawaited(widget.repository.markIncomingRead(widget.conversation.id));
+      if (message.senderId != _userId) {
+        unawaited(widget.repository.markIncomingRead(widget.conversation.id));
+      }
     });
   }
 
