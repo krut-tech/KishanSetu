@@ -25,11 +25,13 @@ class UserProfile extends Equatable {
 
   final bool isProfileComplete;
   final DateTime? createdAt;
+  final double? latitude;
+  final double? longitude;
 
-  // Trust & Safety (admin-managed; never written by the normal profile update flow)
+  // Trust & Safety fields are admin-managed.
   final bool isAdmin;
-  final String accountStatus; // active, suspended, banned
-  final String kycStatus; // unverified, pending, verified, rejected
+  final String accountStatus;
+  final String kycStatus;
 
   const UserProfile({
     required this.id,
@@ -49,132 +51,95 @@ class UserProfile extends Equatable {
     this.buyingCapacityQuintals,
     this.isProfileComplete = false,
     this.createdAt,
+    this.latitude,
+    this.longitude,
     this.isAdmin = false,
     this.accountStatus = 'active',
     this.kycStatus = 'unverified',
   });
 
-  factory UserProfile.fromMap(Map<String, dynamic> map) {
-    return UserProfile(
-      id: map['id'] as String,
-      role: UserRole.fromString(map['role'] as String?),
-      fullName: (map['full_name'] as String?) ?? '',
-      phone: map['phone'] as String?,
-      avatarUrl: map['avatar_url'] as String?,
-      language: (map['language'] as String?) ?? 'en',
-      state: map['state'] as String?,
-      district: map['district'] as String?,
-      village: map['village'] as String?,
-      landSizeAcres: map['land_size_acres'] != null
-          ? (map['land_size_acres'] as num).toDouble()
-          : null,
-      primaryCrop: map['primary_crop'] as String?,
-      companyName: map['company_name'] as String?,
-      gstNumber: map['gst_number'] as String?,
-      businessType: map['business_type'] as String?,
-      buyingCapacityQuintals: map['buying_capacity_quintals'] != null
-          ? (map['buying_capacity_quintals'] as num).toDouble()
-          : null,
-      isProfileComplete: (map['is_profile_complete'] as bool?) ?? false,
-      createdAt: map['created_at'] != null
-          ? DateTime.tryParse(map['created_at'] as String)
-          : null,
-      isAdmin: (map['is_admin'] as bool?) ?? false,
-      accountStatus: (map['account_status'] as String?) ?? 'active',
-      kycStatus: (map['kyc_status'] as String?) ?? 'unverified',
-    );
-  }
+  factory UserProfile.fromMap(Map<String, dynamic> map) => UserProfile(
+        id: map['id'] as String,
+        role: UserRole.fromString(map['role'] as String?),
+        fullName: (map['full_name'] as String?) ?? '',
+        phone: map['phone'] as String?,
+        avatarUrl: map['avatar_url'] as String?,
+        language: (map['language'] as String?) ?? 'en',
+        state: map['state'] as String?,
+        district: map['district'] as String?,
+        village: map['village'] as String?,
+        landSizeAcres: map['land_size_acres'] != null ? (map['land_size_acres'] as num).toDouble() : null,
+        primaryCrop: map['primary_crop'] as String?,
+        companyName: map['company_name'] as String?,
+        gstNumber: map['gst_number'] as String?,
+        businessType: map['business_type'] as String?,
+        buyingCapacityQuintals: map['buying_capacity_quintals'] != null ? (map['buying_capacity_quintals'] as num).toDouble() : null,
+        isProfileComplete: (map['is_profile_complete'] as bool?) ?? false,
+        createdAt: map['created_at'] != null ? DateTime.tryParse(map['created_at'] as String) : null,
+        latitude: map['latitude'] == null ? null : (map['latitude'] as num).toDouble(),
+        longitude: map['longitude'] == null ? null : (map['longitude'] as num).toDouble(),
+        isAdmin: (map['is_admin'] as bool?) ?? false,
+        accountStatus: (map['account_status'] as String?) ?? 'active',
+        kycStatus: (map['kyc_status'] as String?) ?? 'unverified',
+      );
 
-  Map<String, dynamic> toMap() {
-    return {
-      'id': id,
-      'role': role?.value,
-      'full_name': fullName,
-      'phone': phone,
-      'avatar_url': avatarUrl,
-      'language': language,
-      'state': state,
-      'district': district,
-      'village': village,
-      'land_size_acres': landSizeAcres,
-      'primary_crop': primaryCrop,
-      'company_name': companyName,
-      'gst_number': gstNumber,
-      'business_type': businessType,
-      'buying_capacity_quintals': buyingCapacityQuintals,
-      'is_profile_complete': isProfileComplete,
-      // is_admin / account_status / kyc_status are intentionally omitted here:
-      // they are admin-managed and a BEFORE UPDATE trigger on the server
-      // silently keeps the existing value for any non-admin caller regardless,
-      // but they're left out of the normal profile-update payload for clarity.
-    };
-  }
+  Map<String, dynamic> toMap() => {
+        'id': id,
+        'role': role?.value,
+        'full_name': fullName,
+        'phone': phone,
+        'avatar_url': avatarUrl,
+        'language': language,
+        'state': state,
+        'district': district,
+        'village': village,
+        'land_size_acres': landSizeAcres,
+        'primary_crop': primaryCrop,
+        'company_name': companyName,
+        'gst_number': gstNumber,
+        'business_type': businessType,
+        'buying_capacity_quintals': buyingCapacityQuintals,
+        'is_profile_complete': isProfileComplete,
+        // Coordinates are optional and only populated when a user chooses to share them.
+        'latitude': latitude,
+        'longitude': longitude,
+      };
 
   UserProfile copyWith({
-    String? id,
-    UserRole? role,
-    String? fullName,
-    String? phone,
-    String? avatarUrl,
-    String? language,
-    String? state,
-    String? district,
-    String? village,
-    double? landSizeAcres,
-    String? primaryCrop,
-    String? companyName,
-    String? gstNumber,
-    String? businessType,
-    double? buyingCapacityQuintals,
-    bool? isProfileComplete,
-    bool? isAdmin,
-    String? accountStatus,
-    String? kycStatus,
-  }) {
-    return UserProfile(
-      id: id ?? this.id,
-      role: role ?? this.role,
-      fullName: fullName ?? this.fullName,
-      phone: phone ?? this.phone,
-      avatarUrl: avatarUrl ?? this.avatarUrl,
-      language: language ?? this.language,
-      state: state ?? this.state,
-      district: district ?? this.district,
-      village: village ?? this.village,
-      landSizeAcres: landSizeAcres ?? this.landSizeAcres,
-      primaryCrop: primaryCrop ?? this.primaryCrop,
-      companyName: companyName ?? this.companyName,
-      gstNumber: gstNumber ?? this.gstNumber,
-      businessType: businessType ?? this.businessType,
-      buyingCapacityQuintals: buyingCapacityQuintals ?? this.buyingCapacityQuintals,
-      isProfileComplete: isProfileComplete ?? this.isProfileComplete,
-      createdAt: createdAt,
-      isAdmin: isAdmin ?? this.isAdmin,
-      accountStatus: accountStatus ?? this.accountStatus,
-      kycStatus: kycStatus ?? this.kycStatus,
-    );
-  }
+    String? id, UserRole? role, String? fullName, String? phone, String? avatarUrl,
+    String? language, String? state, String? district, String? village,
+    double? landSizeAcres, String? primaryCrop, String? companyName, String? gstNumber,
+    String? businessType, double? buyingCapacityQuintals, bool? isProfileComplete,
+    double? latitude, double? longitude, bool? isAdmin, String? accountStatus, String? kycStatus,
+  }) => UserProfile(
+        id: id ?? this.id,
+        role: role ?? this.role,
+        fullName: fullName ?? this.fullName,
+        phone: phone ?? this.phone,
+        avatarUrl: avatarUrl ?? this.avatarUrl,
+        language: language ?? this.language,
+        state: state ?? this.state,
+        district: district ?? this.district,
+        village: village ?? this.village,
+        landSizeAcres: landSizeAcres ?? this.landSizeAcres,
+        primaryCrop: primaryCrop ?? this.primaryCrop,
+        companyName: companyName ?? this.companyName,
+        gstNumber: gstNumber ?? this.gstNumber,
+        businessType: businessType ?? this.businessType,
+        buyingCapacityQuintals: buyingCapacityQuintals ?? this.buyingCapacityQuintals,
+        isProfileComplete: isProfileComplete ?? this.isProfileComplete,
+        createdAt: createdAt,
+        latitude: latitude ?? this.latitude,
+        longitude: longitude ?? this.longitude,
+        isAdmin: isAdmin ?? this.isAdmin,
+        accountStatus: accountStatus ?? this.accountStatus,
+        kycStatus: kycStatus ?? this.kycStatus,
+      );
 
   @override
   List<Object?> get props => [
-        id,
-        role,
-        fullName,
-        phone,
-        avatarUrl,
-        language,
-        state,
-        district,
-        village,
-        landSizeAcres,
-        primaryCrop,
-        companyName,
-        gstNumber,
-        businessType,
-        buyingCapacityQuintals,
-        isProfileComplete,
-        isAdmin,
-        accountStatus,
-        kycStatus,
+        id, role, fullName, phone, avatarUrl, language, state, district, village, landSizeAcres,
+        primaryCrop, companyName, gstNumber, businessType, buyingCapacityQuintals, isProfileComplete,
+        latitude, longitude, isAdmin, accountStatus, kycStatus,
       ];
 }
