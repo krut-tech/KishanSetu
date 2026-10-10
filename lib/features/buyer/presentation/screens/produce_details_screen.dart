@@ -12,6 +12,8 @@ import 'package:farmer_market_app/features/buyer/presentation/controllers/buyer_
 import 'package:farmer_market_app/features/buyer/presentation/screens/make_offer_dialog.dart';
 import 'package:farmer_market_app/features/chat/presentation/chat_entry.dart';
 import 'package:farmer_market_app/core/widgets/buttons/location_picker_link.dart';
+import 'package:farmer_market_app/features/chat/data/chat_repository.dart';
+import 'package:farmer_market_app/features/chat/presentation/chat_list_screen.dart';
 import 'package:farmer_market_app/core/widgets/buttons/map_link_button.dart';
 import 'package:farmer_market_app/features/farmer/domain/models/offer_model.dart';
 import 'package:farmer_market_app/features/farmer/domain/models/produce_model.dart';
@@ -106,6 +108,18 @@ class _ProduceDetailsScreenState extends ConsumerState<ProduceDetailsScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(context.l10n.produceDetailsTitle),
+        actions: [
+          IconButton(
+            tooltip: 'Messages',
+            icon: const Icon(Icons.forum_outlined),
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => ChatListScreen(
+                  repository: ChatRepository(Supabase.instance.client),
+                ),
+              ),
+            ),
+        ],
         actions: [
           IconButton(
             tooltip: 'Report an issue with this listing or farmer',
