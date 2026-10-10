@@ -83,6 +83,27 @@ class _ChatScreenState extends State<ChatScreen> {
     super.dispose();
   }
 
+  /// WhatsApp-style day label ("Today" / "Yesterday" / date) shown once per
+  /// day between messages.
+  String _dayLabel(DateTime dt) {
+    final local = dt.toLocal();
+    final now = DateTime.now();
+    final isToday = local.year == now.year && local.month == now.month && local.day == now.day;
+    if (isToday) return 'Today';
+    final yesterday = now.subtract(const Duration(days: 1));
+    final isYesterday = local.year == yesterday.year && local.month == yesterday.month && local.day == yesterday.day;
+    if (isYesterday) return 'Yesterday';
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return '${local.day} ${months[local.month - 1]} ${local.year}';
+  }
+
+  bool _isNewDay(int index) {
+    if (index == 0) return true;
+    final prev = _messages[index - 1].createdAt.toLocal();
+    final curr = _messages[index].createdAt.toLocal();
+    return prev.year != curr.year || prev.month != curr.month || prev.day != curr.day;
+  }
+
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
@@ -107,7 +128,7 @@ class _ChatScreenState extends State<ChatScreen> {
               : ListView.builder(controller: _scrollController, padding: const EdgeInsets.all(16), itemCount: _messages.length, itemBuilder: (context, index) {
                   final m = _messages[index];
                   final mine = m.senderId == _userId;
-                  return Align(alignment: mine ? Alignment.centerRight : Alignment.centerLeft, child: Container(
+                  final bubble = Align(alignment: mine ? Alignment.centerRight : Alignment.centerLeft, child: Container(
                     constraints: BoxConstraints(maxWidth: MediaQuery.sizeOf(context).width * .78),
                     margin: const EdgeInsets.only(bottom: 10), padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                     decoration: BoxDecoration(color: mine ? colors.primaryContainer : colors.surfaceContainerHighest, borderRadius: BorderRadius.circular(16)),
@@ -117,6 +138,20 @@ class _ChatScreenState extends State<ChatScreen> {
                       Text('${m.createdAt.toLocal().hour.toString().padLeft(2, '0')}:${m.createdAt.toLocal().minute.toString().padLeft(2, '0')}${mine && m.readAt != null ? '  ✓✓' : ''}', style: Theme.of(context).textTheme.labelSmall),
                     ]),
                   ));
+
+                  if (!_isNewDay(index)) return bubble;
+
+                  return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                    Center(
+                      child: Container(
+                        margin: const EdgeInsets.only(bottom: 10),
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                        decoration: BoxDecoration(color: colors.surfaceContainerHighest, borderRadius: BorderRadius.circular(10)),
+                        child: Text(_dayLabel(m.createdAt), style: Theme.of(context).textTheme.labelSmall),
+                      ),
+                    ),
+                    bubble,
+                  ]);
                 })),
         SafeArea(top: false, child: Padding(padding: const EdgeInsets.fromLTRB(12, 8, 12, 12), child: Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
           Expanded(child: TextField(controller: _textController, minLines: 1, maxLines: 5, maxLength: 4000, textCapitalization: TextCapitalization.sentences,

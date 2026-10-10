@@ -1,4 +1,5 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+
 class ChatConversation {
   final String id;
   final String farmerId;
@@ -20,6 +21,68 @@ class ChatConversation {
         buyerId: map['buyer_id'] as String,
         produceId: map['produce_id'] as String?,
         createdAt: DateTime.parse(map['created_at'] as String),
+      );
+}
+
+/// A conversation enriched with the other participant's profile and a
+/// preview of the last message, as returned by `list_my_chat_conversations`.
+/// This is what powers the WhatsApp-style chat list (last message, time,
+/// unread badge) without doing one extra query per row.
+class ChatConversationSummary {
+  final String conversationId;
+  final String farmerId;
+  final String buyerId;
+  final String? produceId;
+  final String otherUserId;
+  final String otherUserName;
+  final String? otherUserRole;
+  final String? otherUserAvatar;
+  final String? otherUserDistrict;
+  final String? lastMessage;
+  final DateTime? lastMessageAt;
+  final String? lastMessageSenderId;
+  final int unreadCount;
+
+  const ChatConversationSummary({
+    required this.conversationId,
+    required this.farmerId,
+    required this.buyerId,
+    required this.produceId,
+    required this.otherUserId,
+    required this.otherUserName,
+    required this.otherUserRole,
+    required this.otherUserAvatar,
+    required this.otherUserDistrict,
+    required this.lastMessage,
+    required this.lastMessageAt,
+    required this.lastMessageSenderId,
+    required this.unreadCount,
+  });
+
+  ChatConversation toConversation() => ChatConversation(
+        id: conversationId,
+        farmerId: farmerId,
+        buyerId: buyerId,
+        produceId: produceId,
+        createdAt: lastMessageAt ?? DateTime.now(),
+      );
+
+  factory ChatConversationSummary.fromMap(Map<String, dynamic> map) => ChatConversationSummary(
+        conversationId: map['conversation_id'] as String,
+        farmerId: map['farmer_id'] as String,
+        buyerId: map['buyer_id'] as String,
+        produceId: map['produce_id'] as String?,
+        otherUserId: map['other_user_id'] as String,
+        otherUserName: (map['other_user_name'] as String?)?.trim().isNotEmpty == true
+            ? (map['other_user_name'] as String).trim()
+            : 'KisanSetu user',
+        otherUserRole: map['other_user_role'] as String?,
+        otherUserAvatar: map['other_user_avatar'] as String?,
+        otherUserDistrict: map['other_user_district'] as String?,
+        lastMessage: map['last_message'] as String?,
+        lastMessageAt: map['last_message_at'] == null ? null : DateTime.parse(map['last_message_at'] as String),
+        lastMessageSenderId: map['last_message_sender_id'] as String?,
+        unreadCount: (map['unread_count'] as num?)?.toInt() ?? 0,
       );
 }
 
@@ -67,7 +130,10 @@ class ChatRepository {
       throw const AuthException('You are not a participant in this conversation.');
     }
 
-    // Create-or-reuse is atomic and safe against two participants tapping at once.
+    // Create-or-reuse is atomic and safe against two participants tapping at
+    // once. The conversation identity is the farmer/buyer pair only (not the
+    // produce item), so opening chat from a different listing with the same
+    // person reuses the same thread instead of creating a duplicate one.
     try {
       final row = await _client.rpc('get_or_create_chat_conversation', params: {
         'p_farmer_id': farmerId,
@@ -80,8 +146,7 @@ class ChatRepository {
       // Compatible fallback while the new migration/RPC has not been applied.
       final existingRows = await _client.from('chat_conversations').select()
           .eq('farmer_id', farmerId).eq('buyer_id', buyerId);
-      final matches = (existingRows as List).cast<Map<String, dynamic>>()
-          .where((item) => item['produce_id'] == produceId);
+      final matches = (existingRows as List).cast<Map<String, dynamic>>();
       if (matches.isNotEmpty) return ChatConversation.fromMap(matches.first);
       final created = await _client.from('chat_conversations').insert({
         'farmer_id': farmerId,
@@ -92,11 +157,52 @@ class ChatRepository {
     }
   }
 
+  /// Chat list rows, each already carrying the other participant's profile
+  /// and a last-message preview, ordered oldest activity first (ascending).
+  Future<List<ChatConversationSummary>> listConversationSummaries() async {
+    final uid = currentUserId;
+    if (uid == null) throw const AuthException('Please sign in to view chats.');
+    try {
+      final rows = await _client.rpc('list_my_chat_conversations');
+      return (rows as List)
+          .map((row) => ChatConversationSummary.fromMap(Map<String, dynamic>.from(row as Map)))
+          .toList();
+    } on PostgrestException catch (error) {
+      if (error.code != 'PGRST202' && error.code != '42883') rethrow;
+      // Compatible fallback while the new migration/RPC has not been applied.
+      final conversations = await listConversations();
+      final summaries = <ChatConversationSummary>[];
+      for (final conversation in conversations) {
+        final otherId = uid == conversation.farmerId ? conversation.buyerId : conversation.farmerId;
+        final other = await getOtherParticipant(otherId);
+        summaries.add(ChatConversationSummary(
+          conversationId: conversation.id,
+          farmerId: conversation.farmerId,
+          buyerId: conversation.buyerId,
+          produceId: conversation.produceId,
+          otherUserId: otherId,
+          otherUserName: (other?['full_name'] as String?)?.trim().isNotEmpty == true
+              ? (other!['full_name'] as String).trim()
+              : 'KisanSetu user',
+          otherUserRole: other?['role'] as String?,
+          otherUserAvatar: other?['avatar_url'] as String?,
+          otherUserDistrict: other?['district'] as String?,
+          lastMessage: null,
+          lastMessageAt: null,
+          lastMessageSenderId: null,
+          unreadCount: 0,
+        ));
+      }
+      return summaries;
+    }
+  }
+
+  /// Oldest-conversation-first, per the in-app ordering preference.
   Future<List<ChatConversation>> listConversations() async {
     final uid = currentUserId;
     if (uid == null) throw const AuthException('Please sign in to view chats.');
     final rows = await _client.from('chat_conversations').select()
-        .or('farmer_id.eq.$uid,buyer_id.eq.$uid').order('updated_at', ascending: false);
+        .or('farmer_id.eq.$uid,buyer_id.eq.$uid').order('updated_at', ascending: true);
     return (rows as List).map((row) => ChatConversation.fromMap(row as Map<String, dynamic>)).toList();
   }
 
@@ -135,6 +241,20 @@ class ChatRepository {
             final row = payload.newRecord;
             if (row.isNotEmpty) onMessage(ChatMessage.fromMap(row));
           },
+        ).subscribe();
+  }
+
+  /// Live updates for the chat list itself: fires whenever any message in
+  /// any of the current user's conversations changes, so the list (last
+  /// message preview, ordering, unread badge) stays in sync immediately.
+  RealtimeChannel subscribeToConversationUpdates(void Function() onChanged) {
+    final uid = currentUserId ?? 'anon';
+    return _client.channel('chat-list-$uid')
+        .onPostgresChanges(
+          event: PostgresChangeEvent.all,
+          schema: 'public',
+          table: 'chat_messages',
+          callback: (_) => onChanged(),
         ).subscribe();
   }
 
