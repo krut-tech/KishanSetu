@@ -399,11 +399,9 @@ class UpdateDialog extends ConsumerWidget {
                           ],
                           Expanded(
                             child: AppButton(
-                              label: isPermissionRequired
-                                  ? 'Retry Install'
-                                  : (isError
-                                      ? context.l10n.retry
-                                      : context.l10n.updateNow),
+                              label: (isPermissionRequired || isError)
+                                  ? context.l10n.retry
+                                  : context.l10n.updateNow,
                               isLoading: isDownloading || isInstalling,
                               onPressed: isDownloading
                                   ? null

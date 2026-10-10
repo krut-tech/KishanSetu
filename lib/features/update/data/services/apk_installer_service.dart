@@ -39,6 +39,10 @@ class ApkInstallerService {
         {'filePath': filePath},
       );
       return result ?? false;
+    } on PlatformException catch (e) {
+      AppLogger.error(
+          'PlatformException in installApk: code=${e.code}, message=${e.message}, details=${e.details}');
+      rethrow;
     } catch (e) {
       AppLogger.error('Failed to trigger installApk: $e');
       return false;

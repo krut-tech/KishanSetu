@@ -1,4 +1,6 @@
 import 'dart:io';
+import 'package:flutter/widgets.dart';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:equatable/equatable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -67,7 +69,8 @@ class UpdateState extends Equatable {
       ];
 }
 
-class UpdateNotifier extends StateNotifier<UpdateState> {
+class UpdateNotifier extends StateNotifier<UpdateState>
+    with WidgetsBindingObserver {
   final UpdateService _updateService;
   final ApkInstallerService _installerService;
 
@@ -76,7 +79,66 @@ class UpdateNotifier extends StateNotifier<UpdateState> {
     ApkInstallerService? installerService,
   })  : _updateService = updateService ?? UpdateService(),
         _installerService = installerService ?? ApkInstallerService(),
-        super(const UpdateState());
+        super(const UpdateState()) {
+    try {
+      WidgetsBinding.instance.addObserver(this);
+    } catch (_) {}
+  }
+
+  @override
+  void dispose() {
+    try {
+      WidgetsBinding.instance.removeObserver(this);
+    } catch (_) {}
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      onAppResumed();
+    }
+  }
+
+  /// Rechecks installation permissions when app resumes from Android Settings.
+  Future<void> onAppResumed() async {
+    if (state.status == UpdateStatus.permissionRequired) {
+      AppLogger.info(
+        'App resumed while permission required. Rechecking install permission...',
+      );
+      await recheckPermissionAndInstall();
+    }
+  }
+
+  /// Checks if install permission is now granted and triggers installation of downloaded APK.
+  Future<void> recheckPermissionAndInstall() async {
+    final path = state.downloadedApkPath;
+    if (path == null || path.isEmpty) return;
+
+    final file = File(path);
+    if (!await file.exists() || await file.length() < 1000000) {
+      AppLogger.warning(
+        'Downloaded APK is missing or invalid when rechecking on resume.',
+      );
+      state = state.copyWith(
+        status: UpdateStatus.error,
+        errorMessage: 'Downloaded APK file is missing or incomplete.',
+      );
+      return;
+    }
+
+    final canInstall = await _installerService.canRequestPackageInstalls();
+    if (canInstall) {
+      AppLogger.info(
+        'Install permission granted on resume. Proceeding with installation.',
+      );
+      state = state.copyWith(
+        status: UpdateStatus.downloaded,
+        errorMessage: null,
+      );
+      await triggerInstall();
+    }
+  }
 
   /// Checks for update via GitHub API asynchronously.
   Future<AppUpdateInfo?> checkForUpdate({bool isManual = false}) async {
@@ -115,6 +177,27 @@ class UpdateNotifier extends StateNotifier<UpdateState> {
       return;
     }
 
+    // Check if the downloaded APK already exists and is complete
+    final existingPath = state.downloadedApkPath;
+    if (existingPath != null && existingPath.isNotEmpty) {
+      final existingFile = File(existingPath);
+      if (await existingFile.exists()) {
+        final actualSize = await existingFile.length();
+        final expectedSize = info.apkSizeBytes;
+        if (actualSize >= 1000000 &&
+            (expectedSize == null || expectedSize == 0 || actualSize == expectedSize)) {
+          AppLogger.info('Found complete previously downloaded APK at: $existingPath');
+          state = state.copyWith(
+            status: UpdateStatus.downloaded,
+            downloadProgress: 1.0,
+            errorMessage: null,
+          );
+          await triggerInstall();
+          return;
+        }
+      }
+    }
+
     state = state.copyWith(
       status: UpdateStatus.downloading,
       downloadProgress: 0.0,
@@ -139,7 +222,8 @@ class UpdateNotifier extends StateNotifier<UpdateState> {
       final client = http.Client();
       try {
         final request = http.Request('GET', Uri.parse(info.downloadUrl));
-        final response = await client.send(request).timeout(const Duration(seconds: 30));
+        final response =
+            await client.send(request).timeout(const Duration(seconds: 30));
 
         if (response.statusCode != 200) {
           state = state.copyWith(
@@ -153,7 +237,8 @@ class UpdateNotifier extends StateNotifier<UpdateState> {
         final sink = apkFile.openWrite();
         int downloaded = 0;
 
-        await for (final chunk in response.stream.timeout(const Duration(seconds: 15))) {
+        await for (final chunk
+            in response.stream.timeout(const Duration(seconds: 15))) {
           downloaded += chunk.length;
           sink.add(chunk);
           if (contentLength > 0) {
@@ -168,8 +253,10 @@ class UpdateNotifier extends StateNotifier<UpdateState> {
         // Validate the downloaded file size
         final actualSize = await apkFile.length();
         if (contentLength > 0 && actualSize != contentLength) {
-          throw Exception('Download incomplete. Expected $contentLength bytes but got $actualSize.');
-        } else if (actualSize < 1000000) { // APK should reasonably be > 1MB
+          throw Exception(
+              'Download incomplete. Expected $contentLength bytes but got $actualSize.');
+        } else if (actualSize < 1000000) {
+          // APK should reasonably be > 1MB
           throw Exception('Downloaded file is too small to be a valid APK.');
         }
       } finally {
@@ -182,6 +269,7 @@ class UpdateNotifier extends StateNotifier<UpdateState> {
         status: UpdateStatus.downloaded,
         downloadProgress: 1.0,
         downloadedApkPath: apkFile.path,
+        errorMessage: null,
       );
 
       await triggerInstall();
@@ -197,7 +285,7 @@ class UpdateNotifier extends StateNotifier<UpdateState> {
           await apkFile.delete();
         }
       } catch (_) {}
-      
+
       state = state.copyWith(
         status: UpdateStatus.error,
         errorMessage: 'Failed to download update: ${e.toString()}',
@@ -211,7 +299,33 @@ class UpdateNotifier extends StateNotifier<UpdateState> {
     if (path == null || path.isEmpty) {
       state = state.copyWith(
         status: UpdateStatus.error,
-        errorMessage: 'Downloaded file not found',
+        errorMessage: 'Downloaded file not found. Please redownload.',
+      );
+      return;
+    }
+
+    final file = File(path);
+    if (!await file.exists()) {
+      state = state.copyWith(
+        status: UpdateStatus.error,
+        errorMessage: 'Downloaded APK file no longer exists. Please redownload.',
+      );
+      return;
+    }
+
+    final actualSize = await file.length();
+    final expectedSize = state.updateInfo?.apkSizeBytes;
+    if (expectedSize != null && expectedSize > 0 && actualSize != expectedSize) {
+      state = state.copyWith(
+        status: UpdateStatus.error,
+        errorMessage:
+            'Downloaded APK file is incomplete ($actualSize / $expectedSize bytes). Please redownload.',
+      );
+      return;
+    } else if (actualSize < 1000000) {
+      state = state.copyWith(
+        status: UpdateStatus.error,
+        errorMessage: 'Downloaded APK file is invalid or corrupted. Please redownload.',
       );
       return;
     }
@@ -219,26 +333,49 @@ class UpdateNotifier extends StateNotifier<UpdateState> {
     final canInstall = await _installerService.canRequestPackageInstalls();
     if (!canInstall) {
       AppLogger.info('REQUEST_INSTALL_PACKAGES permission not granted yet');
-      state = state.copyWith(status: UpdateStatus.permissionRequired);
+      state = state.copyWith(
+        status: UpdateStatus.permissionRequired,
+        errorMessage: null,
+      );
       return;
     }
 
-    state = state.copyWith(status: UpdateStatus.installing);
-    final success = await _installerService.installApk(path);
+    state = state.copyWith(
+      status: UpdateStatus.installing,
+      errorMessage: null,
+    );
 
-    if (!success) {
+    try {
+      final success = await _installerService.installApk(path);
+
+      if (!success) {
+        state = state.copyWith(
+          status: UpdateStatus.error,
+          errorMessage: 'Failed to open package installer.',
+        );
+      } else {
+        // Revert to downloaded state after launching installer so user can retry if cancelled
+        Future.delayed(const Duration(seconds: 2), () {
+          if (mounted && state.status == UpdateStatus.installing) {
+            state = state.copyWith(
+              status: UpdateStatus.downloaded,
+              errorMessage: null,
+            );
+          }
+        });
+      }
+    } on PlatformException catch (e) {
+      AppLogger.error('PlatformException launching installer: ${e.message}');
       state = state.copyWith(
         status: UpdateStatus.error,
-        errorMessage: 'Failed to open package installer',
+        errorMessage: e.message ?? 'Failed to open package installer.',
       );
-    } else {
-      // Revert to downloaded state after launching the installer so the user
-      // can retry if they cancelled the installation.
-      Future.delayed(const Duration(seconds: 2), () {
-        if (mounted && state.status == UpdateStatus.installing) {
-          state = state.copyWith(status: UpdateStatus.downloaded);
-        }
-      });
+    } catch (e) {
+      AppLogger.error('Error launching installer: $e');
+      state = state.copyWith(
+        status: UpdateStatus.error,
+        errorMessage: 'Error launching package installer: $e',
+      );
     }
   }
 

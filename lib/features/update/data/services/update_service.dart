@@ -40,18 +40,24 @@ class UpdateService {
 
       final decoded = jsonDecode(response.body);
       if (decoded is! List) {
-        AppLogger.warning('GitHub releases API returned unexpected format (possibly rate limited): $decoded');
+        AppLogger.warning(
+            'GitHub releases API returned unexpected format (possibly rate limited): $decoded');
         return null;
       }
       final releases = decoded;
-      
+
       Map<String, dynamic>? targetRelease;
       Map<String, dynamic>? targetApkAsset;
-      
+
       for (final release in releases) {
         if (release is Map<String, dynamic>) {
           if (release['draft'] == true) continue;
-          
+
+          final tagName = release['tag_name'] as String? ?? '';
+          if (!isVersionNewer(tagName, installedVersionStr)) {
+            continue;
+          }
+
           final assets = release['assets'] as List<dynamic>? ?? [];
           for (final asset in assets) {
             if (asset is Map<String, dynamic>) {
@@ -67,13 +73,15 @@ class UpdateService {
       }
 
       if (targetRelease == null || targetApkAsset == null) {
-        AppLogger.info('No GitHub release found with an app-release.apk asset.');
+        AppLogger.info(
+            'No newer GitHub release found with an app-release.apk asset.');
         return null;
       }
 
       final tagName = targetRelease['tag_name'] as String? ?? '';
       final body = targetRelease['body'] as String? ?? '';
-      final downloadUrl = targetApkAsset['browser_download_url'] as String? ?? '';
+      final downloadUrl =
+          targetApkAsset['browser_download_url'] as String? ?? '';
       final sizeBytes = targetApkAsset['size'] as int?;
 
       if (downloadUrl.isEmpty) {
@@ -81,23 +89,21 @@ class UpdateService {
         return null;
       }
 
-      final hasNewerVersion = isVersionNewer(tagName, installedVersionStr);
       AppLogger.info(
-        'Version check result: Latest tag=$tagName, Installed=$installedVersionStr, Newer=$hasNewerVersion',
+        'Version check result: Found newer update tag=$tagName for installed=$installedVersionStr',
       );
 
-      if (hasNewerVersion) {
-        return AppUpdateInfo(
-          installedVersion: installedVersionStr,
-          latestVersion: tagName,
-          releaseNotes: body,
-          downloadUrl: downloadUrl,
-          apkFileName: 'app-release.apk',
-          apkSizeBytes: sizeBytes,
-        );
-      }
+      return AppUpdateInfo(
+        installedVersion: installedVersionStr,
+        latestVersion: tagName,
+        releaseNotes: body,
+        downloadUrl: downloadUrl,
+        apkFileName: 'app-release.apk',
+        apkSizeBytes: sizeBytes,
+      );
     } catch (e) {
-      AppLogger.warning('Update check completed without update (offline or timeout): $e');
+      AppLogger.warning(
+          'Update check completed without update (offline or timeout): $e');
     }
     return null;
   }
@@ -106,7 +112,8 @@ class UpdateService {
   /// Returns true if [latestTag] is strictly newer than [installedVersion].
   static bool isVersionNewer(String latestTag, String installedVersion) {
     final cleanLatest = latestTag.trim().replaceFirst(RegExp(r'^[vV]'), '');
-    final cleanInstalled = installedVersion.trim().replaceFirst(RegExp(r'^[vV]'), '');
+    final cleanInstalled =
+        installedVersion.trim().replaceFirst(RegExp(r'^[vV]'), '');
 
     final latestParsed = _parseVersionComponents(cleanLatest);
     final installedParsed = _parseVersionComponents(cleanInstalled);
@@ -121,19 +128,38 @@ class UpdateService {
 
   /// Parses version into `[major, minor, patch, buildNumber]`.
   static List<int> _parseVersionComponents(String versionStr) {
-    final splitPlus = versionStr.split('+');
-    final semverPart = splitPlus[0];
-    final buildPart = splitPlus.length > 1 ? int.tryParse(splitPlus[1]) ?? 0 : 0;
+    final clean = versionStr.trim().replaceFirst(RegExp(r'^[vV]'), '');
+    int buildPart = 0;
+    String mainPart = clean;
 
-    final semverNums = semverPart
+    if (clean.contains('+')) {
+      final parts = clean.split('+');
+      mainPart = parts[0];
+      buildPart =
+          int.tryParse(RegExp(r'\d+').firstMatch(parts[1])?.group(0) ?? '') ??
+              0;
+    } else if (clean.contains('-')) {
+      final parts = clean.split('-');
+      mainPart = parts[0];
+      if (parts.length > 1) {
+        buildPart =
+            int.tryParse(RegExp(r'^\d+').firstMatch(parts[1])?.group(0) ?? '') ??
+                0;
+      }
+    }
+
+    final semverNums = mainPart
         .split('.')
         .map((s) => int.tryParse(RegExp(r'\d+').firstMatch(s)?.group(0) ?? '') ?? 0)
         .toList();
 
-    while (semverNums.length < 3) {
-      semverNums.add(0);
+    int major = semverNums.isNotEmpty ? semverNums[0] : 0;
+    int minor = semverNums.length > 1 ? semverNums[1] : 0;
+    int patch = semverNums.length > 2 ? semverNums[2] : 0;
+    if (buildPart == 0 && semverNums.length > 3) {
+      buildPart = semverNums[3];
     }
 
-    return [semverNums[0], semverNums[1], semverNums[2], buildPart];
+    return [major, minor, patch, buildPart];
   }
 }
