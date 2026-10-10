@@ -1,0 +1,36 @@
+name: Flutter Quality Checks
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main, 'feature/**']
+
+permissions:
+  contents: read
+
+jobs:
+  analyze-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Install Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - name: Resolve dependencies
+        run: flutter pub get
+      - name: Validate localization files
+        run: |
+          python3 - <<'PY'
+          import json, pathlib
+          for path in pathlib.Path('lib/l10n').glob('app_*.arb'):
+              json.loads(path.read_text(encoding='utf-8'))
+              print('Valid ARB:', path)
+          PY
+      - name: Analyze Dart code
+        run: flutter analyze
+      - name: Run tests
+        run: flutter test
