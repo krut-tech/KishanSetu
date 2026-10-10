@@ -17,7 +17,8 @@ class _ChatEntryButtonState extends State<ChatEntryButton> {
 
   Future<void> _openChat() async {
     if (_loading) return;
-    final client = Supabase.instance.client, uid = Supabase.instance.client.auth.currentUser?.id;
+    final client = Supabase.instance.client;
+    final uid = client.auth.currentUser?.id;
     if (uid == null) { ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please sign in to chat.'))); return; }
     if (uid != widget.farmerId && uid != widget.buyerId) { ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Only the farmer and buyer can open this chat.'))); return; }
     setState(() => _loading = true);
