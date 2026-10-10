@@ -166,21 +166,21 @@ for each row execute function public.chat_message_participant_guard();
 
 revoke all on function public.chat_message_participant_guard() from public, anon, authenticated;
 
--- Keep inbox ordering fresh after each message, without granting clients
+-- Keep inbox ordering fresh after each message without granting clients
 -- broad UPDATE access to conversation rows.
 create or replace function public.touch_chat_conversation_after_message()
 returns trigger
 language plpgsql
 security definer
 set search_path = public
-as $
+as $$
 begin
   update public.chat_conversations
     set updated_at = new.created_at
     where id = new.conversation_id;
   return new;
 end;
-$;
+$$;
 
 revoke all on function public.touch_chat_conversation_after_message() from public, anon, authenticated;
 drop trigger if exists chat_message_touch_conversation on public.chat_messages;
