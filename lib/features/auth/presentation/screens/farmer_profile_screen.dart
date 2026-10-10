@@ -246,14 +246,14 @@ class _FarmerProfileScreenState extends ConsumerState<FarmerProfileScreen> {
                     ),
                     const SizedBox(height: AppSpacing.md),
                     AppTextField(
-                      label: 'Map Latitude (optional)',
+                      label: context.l10n.mapLatitudeOptional,
                       controller: _latitudeController,
                       keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
                       hint: 'e.g. 22.123456',
                     ),
                     const SizedBox(height: AppSpacing.md),
                     AppTextField(
-                      label: 'Map Longitude (optional)',
+                      label: context.l10n.mapLongitudeOptional,
                       controller: _longitudeController,
                       keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
                       hint: 'e.g. 70.123456',
