@@ -12,6 +12,7 @@ import 'package:farmer_market_app/features/buyer/presentation/controllers/buyer_
 import 'package:farmer_market_app/features/buyer/presentation/screens/make_offer_dialog.dart';
 import 'package:farmer_market_app/features/chat/presentation/chat_entry.dart';
 import 'package:farmer_market_app/core/widgets/buttons/location_picker_link.dart';
+import 'package:farmer_market_app/core/widgets/buttons/map_link_button.dart';
 import 'package:farmer_market_app/features/farmer/domain/models/offer_model.dart';
 import 'package:farmer_market_app/features/farmer/domain/models/produce_model.dart';
 
@@ -325,7 +326,7 @@ class _ProduceDetailsScreenState extends ConsumerState<ProduceDetailsScreen> {
                                 builder: (context, snapshot) {
                                   final row = snapshot.data;
                                   return CoordinateMapButton(
-                                    label: context.l10n.viewOnMap,
+                                    label: MapStrings.viewOnMap(context),
                                     address: locationText,
                                     latitude: row?['latitude'] == null ? null : (row!['latitude'] as num).toDouble(),
                                     longitude: row?['longitude'] == null ? null : (row!['longitude'] as num).toDouble(),
