@@ -316,9 +316,21 @@ class _ProduceDetailsScreenState extends ConsumerState<ProduceDetailsScreen> {
                             spacing: AppSpacing.sm,
                             runSpacing: AppSpacing.sm,
                             children: [
-                              CoordinateMapButton(
-                                label: context.l10n.viewOnMap,
-                                address: locationText,
+                              FutureBuilder<Map<String, dynamic>?>(
+                                future: Supabase.instance.client
+                                    .from('profiles')
+                                    .select('latitude,longitude')
+                                    .eq('id', produce.farmerId)
+                                    .maybeSingle(),
+                                builder: (context, snapshot) {
+                                  final row = snapshot.data;
+                                  return CoordinateMapButton(
+                                    label: context.l10n.viewOnMap,
+                                    address: locationText,
+                                    latitude: row?['latitude'] == null ? null : (row!['latitude'] as num).toDouble(),
+                                    longitude: row?['longitude'] == null ? null : (row!['longitude'] as num).toDouble(),
+                                  );
+                                },
                               ),
                               ChatEntryButton(
                                 farmerId: produce.farmerId,
