@@ -118,6 +118,7 @@ class _BuyerProfileScreenState extends ConsumerState<BuyerProfileScreen> {
       district: _districtController.text.trim(),
       latitude: latitude,
       longitude: longitude,
+      clearCoordinates: latitude == null && longitude == null,
       language: _selectedLanguage,
       isProfileComplete: true,
     );
