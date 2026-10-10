@@ -9,28 +9,28 @@ const corsHeaders = {
 
 const AGMARKNET_BASE_URL = "https://api.agmarknet.gov.in/v1";
 const FILTERS_URL = AGMARKNET_BASE_URL + "/daily-price-arrival/filters";
-const REQUEST_TIMEOUT_MS = 6500;
+const REQUEST_TIMEOUT_MS = 4500;
 const MARKETS_PER_BATCH = 6;
-const MAX_CONCURRENCY = 8;
+const MAX_CONCURRENCY = 6;
 
 // Prioritize common crops that are already relevant to Gujarat farmers.
 // Their IDs are resolved from the live filters response instead of hardcoding IDs.
 const TARGET_COMMODITIES = [
-  "Groundnut",
-  "Cotton",
-  "Onion",
-  "Tomato",
-  "Wheat",
-  "Bajra",
-  "Potato",
-  "Cumin",
+  { name: "Groundnut", aliases: ["groundnut"] },
+  { name: "Cotton", aliases: ["cotton"] },
+  { name: "Onion", aliases: ["onion"] },
+  { name: "Tomato", aliases: ["tomato"] },
+  { name: "Wheat", aliases: ["wheat"] },
+  { name: "Bajra", aliases: ["bajra"] },
+  { name: "Potato", aliases: ["potato"] },
+  { name: "Cumin", aliases: ["cumin", "jeera"] },
 ];
 
 const GUJARAT_MARKET_PRIORITY = [
   "Rajkot",
   "Gondal",
   "Jamnagar",
-  "Jetpur",
+  "Jetpur(Dist.Rajkot)",
   "Junagadh",
   "Morbi",
   "Upleta",
@@ -73,7 +73,7 @@ const INDIA_MARKET_PRIORITY = [
   "Rajkot",
   "Gondal",
   "Jamnagar",
-  "Jetpur",
+  "Jetpur(Dist.Rajkot)",
   "Junagadh",
   "Morbi",
   "Upleta",
@@ -233,18 +233,35 @@ function selectMarkets(
 function selectCommodities(rawCommodities: AnyRecord[]): CommodityRef[] {
   const output: CommodityRef[] = [];
   const seen = new Set<number>();
-  for (const targetName of TARGET_COMMODITIES) {
-    const match = rawCommodities.find((item) =>
-      typeof item.cmdt_name === "string" &&
-      item.cmdt_name.trim().toLowerCase() === targetName.toLowerCase()
-    );
+  for (const target of TARGET_COMMODITIES) {
+    const names = rawCommodities
+      .filter((item) => typeof item.cmdt_name === "string")
+      .map((item) => ({ item, name: String(item.cmdt_name).trim().toLowerCase() }));
+    let match = names.find((candidate) => target.aliases.includes(candidate.name));
+    if (!match) {
+      match = names.find((candidate) =>
+        target.aliases.some((alias) =>
+          candidate.name.startsWith(alias + " ") || candidate.name.startsWith(alias + "(")
+        )
+      );
+    }
     if (!match) continue;
-    const id = Number(match.cmdt_id);
+    const id = Number(match.item.cmdt_id);
     if (!Number.isFinite(id) || id <= 0 || seen.has(id)) continue;
-    output.push({ id, name: targetName });
+    output.push({ id, name: target.name });
     seen.add(id);
   }
   return output;
+}
+
+function normalizeProduceName(commodityName: string, varietyRaw: string): string {
+  if (!varietyRaw || /^unknown$/i.test(varietyRaw)) return commodityName;
+  if (/^other$/i.test(varietyRaw)) return commodityName + " (Other)";
+  if (varietyRaw.toLowerCase().startsWith(commodityName.toLowerCase())) {
+    const suffix = varietyRaw.slice(commodityName.length).replace(/^\\s*[-–:]\\s*/, "").trim();
+    return suffix ? commodityName + " (" + suffix + ")" : commodityName;
+  }
+  return commodityName + " (" + varietyRaw + ")";
 }
 
 async function fetchMarketCommodity(market: MarketRef, commodity: CommodityRef): Promise<MarketCommodityResult> {
@@ -360,7 +377,7 @@ serve(async (req) => {
 
       for (const item of result.rows) {
         const varietyRaw = typeof item.variety === "string" ? item.variety.trim() : "";
-        const produceName = !varietyRaw || /^unknown$/i.test(varietyRaw) ? result.commodity.name : varietyRaw;
+        const produceName = normalizeProduceName(result.commodity.name, varietyRaw);
         const districtName = result.market.district_id === null
           ? ""
           : districtNames.get(result.market.district_id) ?? "";
