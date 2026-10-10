@@ -70,7 +70,7 @@ create policy "Participants can mark incoming messages read" on public.chat_mess
       where c.id = conversation_id and auth.uid() in (c.farmer_id, c.buyer_id))
   );
 
--- Realtime publication exists in standard Supabase projects. Add only if missing.
+-- Add the chat message table to Supabase Realtime when publication exists.
 do $$
 begin
   if exists (select 1 from pg_publication where pubname = 'supabase_realtime')
@@ -80,7 +80,7 @@ begin
      ) then
     alter publication supabase_realtime add table public.chat_messages;
   end if;
-end $;
+end $$;
 
 -- Atomic conversation creation. The RPC verifies both roles and that the caller
 -- is one of the participants; security-definer access is narrowly scoped.
