@@ -114,6 +114,7 @@ class _FarmerProfileScreenState extends ConsumerState<FarmerProfileScreen> {
       primaryCrop: _cropController.text.trim(),
       latitude: latitude,
       longitude: longitude,
+      clearCoordinates: latitude == null && longitude == null,
       isProfileComplete: true,
     );
 
