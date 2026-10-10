@@ -6,8 +6,8 @@ import 'package:farmer_market_app/features/update/domain/models/app_update_info.
 
 /// Interacts with GitHub API to check for published app updates.
 class UpdateService {
-  static const String _latestReleaseUrl =
-      'https://api.github.com/repos/krut-tech/KishanSetu/releases/latest';
+  static const String _releasesUrl =
+      'https://api.github.com/repos/krut-tech/KishanSetu/releases';
 
   final http.Client _client;
 
@@ -24,12 +24,12 @@ class UpdateService {
       AppLogger.info('Checking for update... Installed: $installedVersionStr');
 
       final response = await _client.get(
-        Uri.parse(_latestReleaseUrl),
+        Uri.parse(_releasesUrl),
         headers: {
           'Accept': 'application/vnd.github.v3+json',
           'User-Agent': 'KishanSetu-App',
         },
-      ).timeout(const Duration(seconds: 10));
+      ).timeout(const Duration(seconds: 15));
 
       if (response.statusCode != 200) {
         AppLogger.warning(
@@ -38,36 +38,43 @@ class UpdateService {
         return null;
       }
 
-      final json = jsonDecode(response.body) as Map<String, dynamic>;
-      final tagName = json['tag_name'] as String? ?? '';
-      final body = json['body'] as String? ?? '';
-      final assets = json['assets'] as List<dynamic>? ?? [];
-
-      if (tagName.isEmpty) {
-        AppLogger.warning('GitHub release payload missing tag_name');
+      final decoded = jsonDecode(response.body);
+      if (decoded is! List) {
+        AppLogger.warning('GitHub releases API returned unexpected format (possibly rate limited): $decoded');
         return null;
       }
-
-      Map<String, dynamic>? apkAsset;
-      for (final asset in assets) {
-        if (asset is Map<String, dynamic>) {
-          final assetName = asset['name'] as String? ?? '';
-          if (assetName == 'app-release.apk') {
-            apkAsset = asset;
-            break;
+      final releases = decoded;
+      
+      Map<String, dynamic>? targetRelease;
+      Map<String, dynamic>? targetApkAsset;
+      
+      for (final release in releases) {
+        if (release is Map<String, dynamic>) {
+          if (release['draft'] == true) continue;
+          
+          final assets = release['assets'] as List<dynamic>? ?? [];
+          for (final asset in assets) {
+            if (asset is Map<String, dynamic>) {
+              if (asset['name'] == 'app-release.apk') {
+                targetRelease = release;
+                targetApkAsset = asset;
+                break;
+              }
+            }
           }
+          if (targetRelease != null) break;
         }
       }
 
-      if (apkAsset == null) {
-        AppLogger.info(
-          'Latest GitHub release ($tagName) found, but no app-release.apk asset attached.',
-        );
+      if (targetRelease == null || targetApkAsset == null) {
+        AppLogger.info('No GitHub release found with an app-release.apk asset.');
         return null;
       }
 
-      final downloadUrl = apkAsset['browser_download_url'] as String? ?? '';
-      final sizeBytes = apkAsset['size'] as int?;
+      final tagName = targetRelease['tag_name'] as String? ?? '';
+      final body = targetRelease['body'] as String? ?? '';
+      final downloadUrl = targetApkAsset['browser_download_url'] as String? ?? '';
+      final sizeBytes = targetApkAsset['size'] as int?;
 
       if (downloadUrl.isEmpty) {
         AppLogger.warning('Asset app-release.apk lacks browser_download_url');

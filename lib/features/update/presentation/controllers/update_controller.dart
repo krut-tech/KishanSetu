@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:http/http.dart' as http;
 import 'package:equatable/equatable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
@@ -121,7 +122,10 @@ class UpdateNotifier extends StateNotifier<UpdateState> {
     );
 
     try {
-      final tempDir = await getTemporaryDirectory();
+      final extCacheDirs = await getExternalCacheDirectories();
+      final tempDir = (extCacheDirs != null && extCacheDirs.isNotEmpty)
+          ? extCacheDirs.first
+          : await getTemporaryDirectory();
       final apkFile = File('${tempDir.path}/${info.apkFileName}');
 
       if (await apkFile.exists()) {
@@ -132,33 +136,45 @@ class UpdateNotifier extends StateNotifier<UpdateState> {
 
       AppLogger.info('Starting APK download from: ${info.downloadUrl}');
 
-      final client = HttpClient();
-      final request = await client.getUrl(Uri.parse(info.downloadUrl));
-      final response = await request.close();
+      final client = http.Client();
+      try {
+        final request = http.Request('GET', Uri.parse(info.downloadUrl));
+        final response = await client.send(request).timeout(const Duration(seconds: 30));
 
-      if (response.statusCode != 200) {
-        state = state.copyWith(
-          status: UpdateStatus.error,
-          errorMessage: 'Download failed with HTTP ${response.statusCode}',
-        );
-        return;
-      }
-
-      final contentLength = response.contentLength;
-      final sink = apkFile.openWrite();
-      int downloaded = 0;
-
-      await for (final chunk in response) {
-        downloaded += chunk.length;
-        sink.add(chunk);
-        if (contentLength > 0) {
-          final progress = (downloaded / contentLength).clamp(0.0, 1.0);
-          state = state.copyWith(downloadProgress: progress);
+        if (response.statusCode != 200) {
+          state = state.copyWith(
+            status: UpdateStatus.error,
+            errorMessage: 'Download failed with HTTP ${response.statusCode}',
+          );
+          return;
         }
-      }
 
-      await sink.flush();
-      await sink.close();
+        final contentLength = response.contentLength ?? 0;
+        final sink = apkFile.openWrite();
+        int downloaded = 0;
+
+        await for (final chunk in response.stream.timeout(const Duration(seconds: 15))) {
+          downloaded += chunk.length;
+          sink.add(chunk);
+          if (contentLength > 0) {
+            final progress = (downloaded / contentLength).clamp(0.0, 1.0);
+            state = state.copyWith(downloadProgress: progress);
+          }
+        }
+
+        await sink.flush();
+        await sink.close();
+
+        // Validate the downloaded file size
+        final actualSize = await apkFile.length();
+        if (contentLength > 0 && actualSize != contentLength) {
+          throw Exception('Download incomplete. Expected $contentLength bytes but got $actualSize.');
+        } else if (actualSize < 1000000) { // APK should reasonably be > 1MB
+          throw Exception('Downloaded file is too small to be a valid APK.');
+        }
+      } finally {
+        client.close();
+      }
 
       AppLogger.info('APK downloaded successfully to: ${apkFile.path}');
 
@@ -171,6 +187,17 @@ class UpdateNotifier extends StateNotifier<UpdateState> {
       await triggerInstall();
     } catch (e, stackTrace) {
       AppLogger.error('APK download error: $e', e, stackTrace);
+      try {
+        final extCacheDirs = await getExternalCacheDirectories();
+        final tempDir = (extCacheDirs != null && extCacheDirs.isNotEmpty)
+            ? extCacheDirs.first
+            : await getTemporaryDirectory();
+        final apkFile = File('${tempDir.path}/${info.apkFileName}');
+        if (await apkFile.exists()) {
+          await apkFile.delete();
+        }
+      } catch (_) {}
+      
       state = state.copyWith(
         status: UpdateStatus.error,
         errorMessage: 'Failed to download update: ${e.toString()}',
@@ -204,6 +231,14 @@ class UpdateNotifier extends StateNotifier<UpdateState> {
         status: UpdateStatus.error,
         errorMessage: 'Failed to open package installer',
       );
+    } else {
+      // Revert to downloaded state after launching the installer so the user
+      // can retry if they cancelled the installation.
+      Future.delayed(const Duration(seconds: 2), () {
+        if (mounted && state.status == UpdateStatus.installing) {
+          state = state.copyWith(status: UpdateStatus.downloaded);
+        }
+      });
     }
   }
 

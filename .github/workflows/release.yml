@@ -44,6 +44,10 @@ jobs:
 
       - name: Decode Keystore
         run: |
+          if [ -z "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" ]; then
+            echo "Error: ANDROID_KEYSTORE_BASE64 secret is missing. Refusing to build a debug-signed release APK."
+            exit 1
+          fi
           echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > ${{ runner.temp }}/keystore.jks
 
       - name: Build release APK
