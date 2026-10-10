@@ -81,3 +81,42 @@ begin
   end if;
 exception when undefined_object then null;
 end $$;
+
+-- Atomic conversation creation. The RPC verifies both roles and that the caller
+-- is one of the participants; security-definer access is narrowly scoped.
+create or replace function public.get_or_create_chat_conversation(
+  p_farmer_id uuid,
+  p_buyer_id uuid,
+  p_produce_id uuid default null
+)
+returns public.chat_conversations
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_uid uuid := auth.uid();
+  v_conversation public.chat_conversations;
+begin
+  if v_uid is null or v_uid not in (p_farmer_id, p_buyer_id) then
+    raise exception 'Not authorized to open this conversation' using errcode = '42501';
+  end if;
+
+  if p_farmer_id = p_buyer_id
+     or not exists (select 1 from public.profiles where id = p_farmer_id and role = 'farmer')
+     or not exists (select 1 from public.profiles where id = p_buyer_id and role = 'buyer') then
+    raise exception 'Invalid farmer/buyer pair' using errcode = '22023';
+  end if;
+
+  insert into public.chat_conversations(farmer_id, buyer_id, produce_id)
+  values (p_farmer_id, p_buyer_id, p_produce_id)
+  on conflict (farmer_id, buyer_id, (coalesce(produce_id, '00000000-0000-0000-0000-000000000000'::uuid)))
+  do update set updated_at = public.chat_conversations.updated_at
+  returning * into v_conversation;
+
+  return v_conversation;
+end;
+$$;
+
+revoke all on function public.get_or_create_chat_conversation(uuid, uuid, uuid) from public, anon;
+grant execute on function public.get_or_create_chat_conversation(uuid, uuid, uuid) to authenticated;
