@@ -98,7 +98,8 @@ class _ChatScreenState extends State<ChatScreen> {
             : _messages.isEmpty
               ? const Center(child: Text('Say hello to start the conversation.'))
               : ListView.builder(controller: _scrollController, padding: const EdgeInsets.all(16), itemCount: _messages.length, itemBuilder: (context, index) {
-                  final m = _messages[index], mine = m.senderId == _userId;
+                  final m = _messages[index];
+                  final mine = m.senderId == _userId;
                   return Align(alignment: mine ? Alignment.centerRight : Alignment.centerLeft, child: Container(
                     constraints: BoxConstraints(maxWidth: MediaQuery.sizeOf(context).width * .78),
                     margin: const EdgeInsets.only(bottom: 10), padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
