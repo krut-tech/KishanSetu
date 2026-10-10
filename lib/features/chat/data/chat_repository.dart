@@ -1,5 +1,9 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+extension _FirstOrNull<T> on Iterable<T> {
+  T? get firstOrNull => isEmpty ? null : first;
+}
+
 class ChatConversation {
   final String id;
   final String farmerId;
@@ -68,10 +72,9 @@ class ChatRepository {
       throw const AuthException('You are not a participant in this conversation.');
     }
 
-    var query = _client.from('chat_conversations').select()
+    final existingRows = await _client.from('chat_conversations').select()
         .eq('farmer_id', farmerId).eq('buyer_id', buyerId);
-    query = produceId == null ? query.isFilter('produce_id', null) : query.eq('produce_id', produceId);
-    final existing = await query.maybeSingle();
+    final existing = (existingRows as List).cast<Map<String, dynamic>>().where((row) => row['produce_id'] == produceId).firstOrNull;
     if (existing != null) return ChatConversation.fromMap(existing);
 
     final row = await _client.from('chat_conversations').insert({
