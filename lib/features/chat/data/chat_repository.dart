@@ -115,9 +115,6 @@ class ChatRepository {
     await _client.from('chat_messages').insert({
       'conversation_id': conversationId, 'sender_id': uid, 'body': message,
     });
-    await _client.from('chat_conversations')
-        .update({'updated_at': DateTime.now().toUtc().toIso8601String()})
-        .eq('id', conversationId);
   }
 
   Future<void> markIncomingRead(String conversationId) async {
@@ -130,7 +127,7 @@ class ChatRepository {
   RealtimeChannel subscribeToMessages(String conversationId, void Function(ChatMessage) onMessage) {
     return _client.channel('chat-messages-$conversationId')
         .onPostgresChanges(
-          event: PostgresChangeEvent.insert,
+          event: PostgresChangeEvent.all,
           schema: 'public',
           table: 'chat_messages',
           filter: PostgresChangeFilter(type: PostgresChangeFilterType.eq, column: 'conversation_id', value: conversationId),
