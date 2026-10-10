@@ -72,17 +72,13 @@ class ChatRepository {
       throw const AuthException('You are not a participant in this conversation.');
     }
 
-    final existingRows = await _client.from('chat_conversations').select()
-        .eq('farmer_id', farmerId).eq('buyer_id', buyerId);
-    final existing = (existingRows as List).cast<Map<String, dynamic>>().where((row) => row['produce_id'] == produceId).firstOrNull;
-    if (existing != null) return ChatConversation.fromMap(existing);
-
-    final row = await _client.from('chat_conversations').insert({
-      'farmer_id': farmerId,
-      'buyer_id': buyerId,
-      'produce_id': produceId,
-    }).select().single();
-    return ChatConversation.fromMap(row);
+    // Create-or-reuse is atomic and safe against two participants tapping at once.
+    final row = await _client.rpc('get_or_create_chat_conversation', params: {
+      'p_farmer_id': farmerId,
+      'p_buyer_id': buyerId,
+      'p_produce_id': produceId,
+    });
+    return ChatConversation.fromMap(Map<String, dynamic>.from(row as Map));
   }
 
   Future<List<ChatConversation>> listConversations() async {
