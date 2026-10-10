@@ -152,17 +152,21 @@ class SupabaseFarmerRepository implements FarmerRepository {
       }
 
       if (category != null && category.trim().isNotEmpty && category.toLowerCase() != 'all') {
-        query = query.ilike('category', '%${category.trim()}%');
+        query = query.eq('category', category.trim());
       }
 
       if (marketName != null && marketName.trim().isNotEmpty) {
         query = query.ilike('market_name', '%${marketName.trim()}%');
       }
 
+      // Cap the result size: market_prices grows daily via the sync cron job,
+      // so an unbounded select returned the whole table and only got slower.
+      final limitedQuery = query.limit(100);
+
       final response = switch (sortBy) {
-        'price_asc' => await query.order('price', ascending: true),
-        'price_desc' => await query.order('price', ascending: false),
-        _ => await query.order('price_date', ascending: false),
+        'price_asc' => await limitedQuery.order('price', ascending: true),
+        'price_desc' => await limitedQuery.order('price', ascending: false),
+        _ => await limitedQuery.order('price_date', ascending: false),
       };
 
       final list = (response as List)
@@ -191,7 +195,7 @@ class SupabaseFarmerRepository implements FarmerRepository {
       AppLogger.info('Fetching offers for farmer: $farmerId, status: $status');
       var query = _client
           .from('offers')
-          .select('*, offer_history(*), produce:produce_id(name, unit), buyer_profile:buyer_id(full_name, company_name)')
+          .select('*, offer_history(*), produce:produce_id(name, unit), buyer_profile:buyer_id(full_name, company_name, district, state)')
           .eq('farmer_id', farmerId);
 
       if (status != null && status.isNotEmpty && status.toLowerCase() != 'all') {
@@ -251,7 +255,7 @@ class SupabaseFarmerRepository implements FarmerRepository {
       if (currentUser == null) {
         return left(const AuthFailure('Your session has expired. Please sign in again.'));
       }
-      const allowedStatuses = {'accepted', 'rejected', 'countered', 'cancelled'};
+      const allowedStatuses = {'accepted', 'rejected', 'countered'};
       final normalizedStatus = status.toLowerCase();
       if (!allowedStatuses.contains(normalizedStatus)) {
         return left(const DatabaseFailure('Invalid offer status transition.'));
@@ -283,7 +287,7 @@ class SupabaseFarmerRepository implements FarmerRepository {
 
       final response = await _client
           .from('offers')
-          .select('*, produce:produce_id(name, unit), buyer_profile:buyer_id(full_name, company_name)')
+          .select('*, produce:produce_id(name, unit), buyer_profile:buyer_id(full_name, company_name, district, state)')
           .eq('id', created['id'] as String)
           .single();
 
