@@ -1,4 +1,4 @@
-import 'package:supabase_flutter/supabase_flutter.dart';undefined
+import 'package:supabase_flutter/supabase_flutter.dart';
 class ChatConversation {
   final String id;
   final String farmerId;
