@@ -73,12 +73,28 @@ class ChatRepository {
     }
 
     // Create-or-reuse is atomic and safe against two participants tapping at once.
-    final row = await _client.rpc('get_or_create_chat_conversation', params: {
-      'p_farmer_id': farmerId,
-      'p_buyer_id': buyerId,
-      'p_produce_id': produceId,
-    });
-    return ChatConversation.fromMap(Map<String, dynamic>.from(row as Map));
+    try {
+      final row = await _client.rpc('get_or_create_chat_conversation', params: {
+        'p_farmer_id': farmerId,
+        'p_buyer_id': buyerId,
+        'p_produce_id': produceId,
+      });
+      return ChatConversation.fromMap(Map<String, dynamic>.from(row as Map));
+    } on PostgrestException catch (error) {
+      if (error.code != 'PGRST202' && error.code != '42883') rethrow;
+      // Compatible fallback while the new migration/RPC has not been applied.
+      final existingRows = await _client.from('chat_conversations').select()
+          .eq('farmer_id', farmerId).eq('buyer_id', buyerId);
+      final matches = (existingRows as List).cast<Map<String, dynamic>>()
+          .where((item) => item['produce_id'] == produceId);
+      if (matches.isNotEmpty) return ChatConversation.fromMap(matches.first);
+      final created = await _client.from('chat_conversations').insert({
+        'farmer_id': farmerId,
+        'buyer_id': buyerId,
+        'produce_id': produceId,
+      }).select().single();
+      return ChatConversation.fromMap(created);
+    }
   }
 
   Future<List<ChatConversation>> listConversations() async {
