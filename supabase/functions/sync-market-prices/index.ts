@@ -3,7 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-sync-token",
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
 };
 
@@ -300,6 +300,22 @@ serve(async (req) => {
       return jsonResponse({ success: false, error: "Missing Supabase server environment." }, 500);
     }
 
+    // pg_cron uses a private token so the public endpoint cannot be used to trigger expensive syncs.
+    const supabase = createClient(supabaseUrl, serviceRoleKey);
+    const suppliedToken = req.headers.get("x-sync-token") ?? "";
+    const { data: syncControl, error: syncControlError } = await supabase
+      .from("market_sync_control")
+      .select("sync_token")
+      .eq("id", true)
+      .maybeSingle();
+    if (syncControlError || !syncControl?.sync_token) {
+      console.error("Market sync token is not configured:", syncControlError?.message ?? "missing token");
+      return jsonResponse({ success: false, error: "Market sync trigger is not configured." }, 503);
+    }
+    if (suppliedToken.length === 0 || suppliedToken !== syncControl.sync_token) {
+      return jsonResponse({ success: false, error: "Unauthorized sync trigger." }, 401);
+    }
+
     let filterPayload: unknown;
     try {
       filterPayload = await fetchJson(FILTERS_URL);
@@ -454,7 +470,6 @@ serve(async (req) => {
       }, failedRequests === work.length ? 502 : 200);
     }
 
-    const supabase = createClient(supabaseUrl, serviceRoleKey);
     let upserted = 0;
     const chunkSize = 100;
     for (let index = 0; index < priceRows.length; index += chunkSize) {
