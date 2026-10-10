@@ -77,6 +77,13 @@ interface DataGovRecord {
   modal_price?: string | number;
 }
 
+// Never leak the data.gov.in API key: fetch() errors embed the full request
+// URL (including ?api-key=...), and this function's error text is returned to
+// any caller, so strip the key from every message.
+function redactKey(text: string): string {
+  return text.replace(/api-key=[^&\s)"']+/gi, "api-key=REDACTED");
+}
+
 async function fetchDataGovPage(apiKey: string, limit: number, offset: number, state?: string, commodity?: string) {
   const params = new URLSearchParams({
     "api-key": apiKey,
@@ -96,11 +103,11 @@ async function fetchDataGovPage(apiKey: string, limit: number, offset: number, s
     if (err instanceof Error && err.name === "TimeoutError") {
       throw new Error(`data.gov.in request timed out after ${PER_PAGE_TIMEOUT_MS}ms (offset ${offset})`);
     }
-    throw new Error(`data.gov.in request errored (offset ${offset}): ${err instanceof Error ? err.message : String(err)}`);
+    throw new Error(`data.gov.in request errored (offset ${offset}): ${redactKey(err instanceof Error ? err.message : String(err))}`);
   }
   if (!res.ok) {
     const text = await res.text();
-    throw new Error(`data.gov.in request failed (${res.status}): ${text}`);
+    throw new Error(`data.gov.in request failed (${res.status}): ${redactKey(text)}`);
   }
   return await res.json();
 }
