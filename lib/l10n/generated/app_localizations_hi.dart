@@ -1042,4 +1042,16 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get openingInstaller => 'सिस्टम पैकेज इंस्टॉलर खोला जा रहा है...';
+
+  @override
+  String get viewOnMap => 'नक्शे पर देखें';
+
+  @override
+  String get openChat => 'किसान से चैट करें';
+
+  @override
+  String get mapLatitudeOptional => 'मैप अक्षांश (वैकल्पिक)';
+
+  @override
+  String get mapLongitudeOptional => 'मैप देशांतर (वैकल्पिक)';
 }

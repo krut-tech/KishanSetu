@@ -1042,4 +1042,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get openingInstaller => 'Opening system package installer...';
+
+  @override
+  String get viewOnMap => 'View on Map';
+
+  @override
+  String get openChat => 'Chat with farmer';
+
+  @override
+  String get mapLatitudeOptional => 'Map Latitude (optional)';
+
+  @override
+  String get mapLongitudeOptional => 'Map Longitude (optional)';
 }

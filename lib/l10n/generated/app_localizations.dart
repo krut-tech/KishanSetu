@@ -2097,6 +2097,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Opening system package installer...'**
   String get openingInstaller;
+
+  /// No description provided for @viewOnMap.
+  ///
+  /// In en, this message translates to:
+  /// **'View on Map'**
+  String get viewOnMap;
+
+  /// No description provided for @openChat.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat with farmer'**
+  String get openChat;
+
+  /// No description provided for @mapLatitudeOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Map Latitude (optional)'**
+  String get mapLatitudeOptional;
+
+  /// No description provided for @mapLongitudeOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Map Longitude (optional)'**
+  String get mapLongitudeOptional;
 }
 
 class _AppLocalizationsDelegate

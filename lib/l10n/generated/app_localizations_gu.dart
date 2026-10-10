@@ -1040,4 +1040,16 @@ class AppLocalizationsGu extends AppLocalizations {
 
   @override
   String get openingInstaller => 'સિસ્ટમ પેકેજ ઇન્સ્ટોલર ખોલી રહ્યું છે...';
+
+  @override
+  String get viewOnMap => 'નકશા પર જુઓ';
+
+  @override
+  String get openChat => 'ખેડૂત સાથે ચેટ કરો';
+
+  @override
+  String get mapLatitudeOptional => 'નકશા અક્ષાંશ (વૈકલ્પિક)';
+
+  @override
+  String get mapLongitudeOptional => 'નકશા રેખાંશ (વૈકલ્પિક)';
 }
