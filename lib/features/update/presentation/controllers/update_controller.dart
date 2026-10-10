@@ -92,6 +92,7 @@ class UpdateNotifier extends StateNotifier<UpdateState> {
       state = state.copyWith(
         status: UpdateStatus.available,
         updateInfo: updateInfo,
+        hasShownPopup: isManual ? true : state.hasShownPopup,
       );
       return updateInfo;
     } else {
