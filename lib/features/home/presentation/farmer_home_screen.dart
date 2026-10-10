@@ -4,6 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:farmer_market_app/core/animations/staggered_reveal.dart';
 import 'package:farmer_market_app/core/logging/app_logger.dart';
 import 'package:farmer_market_app/features/notifications/presentation/widgets/notification_badge_icon.dart';
+import 'package:farmer_market_app/features/chat/data/chat_repository.dart';
+import 'package:farmer_market_app/features/chat/presentation/chat_list_screen.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:farmer_market_app/core/constants/app_constants.dart';
 import 'package:farmer_market_app/core/constants/app_spacing.dart';
@@ -96,6 +99,17 @@ class _FarmerHomeScreenState extends ConsumerState<FarmerHomeScreen> {
               icon: const Icon(Icons.admin_panel_settings_outlined),
               onPressed: () => context.push(RouteNames.adminPanel),
             ),
+          IconButton(
+            tooltip: 'Messages',
+            icon: const Icon(Icons.forum_outlined),
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => ChatListScreen(
+                  repository: ChatRepository(Supabase.instance.client),
+                ),
+              ),
+            ),
+          ),
           const NotificationBadgeIcon(),
           PopupMenuButton<String>(
             icon: const Icon(Icons.language),
