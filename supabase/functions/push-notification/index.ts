@@ -111,6 +111,8 @@ function resolveRoute(type: string, relatedType?: string): string {
     case "market_price":
     case "market_price_update":
       return "/market-prices";
+    case "chat_message":
+      return "/messages";
     default:
       return "/notifications";
   }
