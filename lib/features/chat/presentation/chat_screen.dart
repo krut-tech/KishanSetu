@@ -199,6 +199,7 @@ class _ChatScreenState extends State<ChatScreen> {
         ]),
         actions: [
           PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert),
             tooltip: 'Chat options',
             onSelected: _handleChatMenu,
             itemBuilder: (context) => const [
