@@ -164,9 +164,17 @@ class ChatRepository {
     if (uid == null) throw const AuthException('Please sign in to view chats.');
     try {
       final rows = await _client.rpc('list_my_chat_conversations');
-      return (rows as List)
+      final summaries = (rows as List)
           .map((row) => ChatConversationSummary.fromMap(Map<String, dynamic>.from(row as Map)))
           .toList();
+      // Most recently active conversations appear first in the chat list.
+      summaries.sort((a, b) {
+        final aTime = a.lastMessageAt ?? DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
+        final bTime = b.lastMessageAt ?? DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
+        final byTime = bTime.compareTo(aTime);
+        return byTime != 0 ? byTime : a.conversationId.compareTo(b.conversationId);
+      });
+      return summaries;
     } on PostgrestException catch (error) {
       if (error.code != 'PGRST202' && error.code != '42883') rethrow;
       // Compatible fallback while the new migration/RPC has not been applied.
@@ -193,16 +201,22 @@ class ChatRepository {
           unreadCount: 0,
         ));
       }
+      summaries.sort((a, b) {
+        final aTime = a.lastMessageAt ?? DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
+        final bTime = b.lastMessageAt ?? DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
+        final byTime = bTime.compareTo(aTime);
+        return byTime != 0 ? byTime : a.conversationId.compareTo(b.conversationId);
+      });
       return summaries;
     }
   }
 
-  /// Oldest-conversation-first, per the in-app ordering preference.
+  /// Conversations with the latest activity appear first.
   Future<List<ChatConversation>> listConversations() async {
     final uid = currentUserId;
     if (uid == null) throw const AuthException('Please sign in to view chats.');
     final rows = await _client.from('chat_conversations').select()
-        .or('farmer_id.eq.$uid,buyer_id.eq.$uid').order('updated_at', ascending: true);
+        .or('farmer_id.eq.$uid,buyer_id.eq.$uid').order('updated_at', ascending: false);
     return (rows as List).map((row) => ChatConversation.fromMap(row as Map<String, dynamic>)).toList();
   }
 
