@@ -14,6 +14,7 @@ class RouteNames {
   static const String buyerHome = '/buyer-home';
   static const String addProduce = '/add-produce';
   static const String notifications = '/notifications';
+  static const String messages = '/messages';
   static const String designSystem = '/design-system';
 
   // Trust & Safety: available to any authenticated user.
