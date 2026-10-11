@@ -44,8 +44,9 @@ class AppDialogs {
               Expanded(
                 child: AppButton(
                   label: confirmLabel,
+                  // Destructive actions (delete / cancel offer) are now red
                   style: isDestructive
-                      ? AppButtonStyle.secondary
+                      ? AppButtonStyle.destructive
                       : AppButtonStyle.primary,
                   onPressed: () => Navigator.of(context).pop(true),
                 ),
@@ -67,6 +68,7 @@ class AppDialogs {
     return showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.lg)),
       ),
@@ -82,14 +84,17 @@ class AppDialogs {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  title,
-                  style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: colorScheme.onSurface),
+                Expanded(
+                  child: Text(
+                    title,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: colorScheme.onSurface),
+                  ),
                 ),
                 IconButton(
                   icon: const Icon(Icons.close_rounded),
@@ -99,7 +104,8 @@ class AppDialogs {
             ),
             const Divider(),
             const SizedBox(height: AppSpacing.sm),
-            child,
+            // Scrollable so tall content + keyboard never overflows
+            Flexible(child: SingleChildScrollView(child: child)),
           ],
         ),
       ),

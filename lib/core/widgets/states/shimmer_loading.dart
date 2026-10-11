@@ -4,6 +4,8 @@ import 'package:farmer_market_app/core/constants/app_colors.dart';
 import 'package:farmer_market_app/core/constants/app_constants.dart';
 
 /// Reusable shimmer loader for asynchronous card and list skeletons.
+/// Theme-aware: dark skeletons on the dark theme (the old light-only colours
+/// flashed bright white blocks while loading).
 class ShimmerLoading extends StatelessWidget {
   final double width;
   final double height;
@@ -26,15 +28,19 @@ class ShimmerLoading extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final base = isDark ? const Color(0xFF1B3324) : AppColors.borderLight;
+    final highlight = isDark ? const Color(0xFF2A4A35) : AppColors.surfaceLight;
+
     return Shimmer.fromColors(
-      baseColor: AppColors.borderLight,
-      highlightColor: AppColors.surfaceLight,
+      baseColor: base,
+      highlightColor: highlight,
       period: AppConstants.shimmerDuration,
       child: Container(
         width: width,
         height: height,
         decoration: BoxDecoration(
-          color: AppColors.borderLight,
+          color: base,
           borderRadius: BorderRadius.circular(borderRadius),
         ),
       ),

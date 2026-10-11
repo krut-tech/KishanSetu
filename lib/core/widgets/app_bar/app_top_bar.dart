@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 /// Reusable Top App Bar widget for consistent headers.
+/// The title style comes from the theme (Fraunces) so every screen matches.
 class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
   final bool showBackButton;
@@ -20,11 +21,8 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
     return AppBar(
       title: Text(
         title,
-        style: TextStyle(
-          fontSize: 18,
-          fontWeight: FontWeight.bold,
-          color: Theme.of(context).colorScheme.onSurface,
-        ),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
       ),
       automaticallyImplyLeading: showBackButton,
       actions: actions,

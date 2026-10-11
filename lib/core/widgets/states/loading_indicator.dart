@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:farmer_market_app/core/constants/app_colors.dart';
 import 'package:farmer_market_app/core/constants/app_constants.dart';
 
 /// Reusable centered loading indicator with optional message.
@@ -10,23 +9,25 @@ class LoadingIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(AppConstants.paddingLarge),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+            CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(cs.primary),
             ),
             if (message != null) ...[
               const SizedBox(height: AppConstants.paddingMedium),
               Text(
                 message!,
                 textAlign: TextAlign.center,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 14,
-                  color: AppColors.textSecondaryLight,
+                  color: cs.onSurfaceVariant,
                 ),
               ),
             ],
