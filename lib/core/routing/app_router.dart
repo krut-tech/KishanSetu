@@ -25,6 +25,9 @@ import 'package:farmer_market_app/features/farmer/presentation/screens/my_produc
 import 'package:farmer_market_app/features/farmer/presentation/screens/offers_screen.dart';
 import 'package:farmer_market_app/features/home/presentation/buyer_home_screen.dart';
 import 'package:farmer_market_app/features/home/presentation/farmer_home_screen.dart';
+import 'package:farmer_market_app/features/chat/data/chat_repository.dart';
+import 'package:farmer_market_app/features/chat/presentation/chat_list_screen.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:farmer_market_app/features/notifications/presentation/screens/notification_screen.dart';
 import 'package:farmer_market_app/features/splash/presentation/splash_screen.dart';
 import 'package:farmer_market_app/features/trust_safety/presentation/screens/admin_dashboard_screen.dart';
@@ -236,6 +239,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: RouteNames.notifications,
         name: 'notifications',
         builder: (context, state) => const NotificationScreen(),
+      ),
+      GoRoute(
+        path: RouteNames.messages,
+        name: 'messages',
+        builder: (context, state) => ChatListScreen(
+          repository: ChatRepository(Supabase.instance.client),
+        ),
       ),
       // Deep-link targets for push notifications. These previously all
       // pointed at NotificationScreen by mistake; they now open the actual
