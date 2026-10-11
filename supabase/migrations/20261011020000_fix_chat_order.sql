@@ -1,4 +1,4 @@
--- Update list_my_chat_conversations to sort conversations by latest activity DESC (WhatsApp style).
+-- Update list_my_chat_conversations to sort chronologically: older chats first, newer chats last.
 create or replace function public.list_my_chat_conversations()
 returns table (
   conversation_id uuid, farmer_id uuid, buyer_id uuid, produce_id uuid,
@@ -28,7 +28,7 @@ as $$
   ) uc on true
   where auth.uid() in (c.farmer_id, c.buyer_id)
     and (s.deleted_at is null or coalesce(lm.created_at, c.updated_at) > s.deleted_at)
-  order by coalesce(lm.created_at, c.updated_at) desc, c.id desc;
+  order by coalesce(lm.created_at, c.updated_at) asc, c.id asc;
 $$;
 revoke all on function public.list_my_chat_conversations() from public, anon;
 grant execute on function public.list_my_chat_conversations() to authenticated;
