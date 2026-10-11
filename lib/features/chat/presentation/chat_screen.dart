@@ -32,13 +32,13 @@ class _ChatScreenState extends State<ChatScreen> {
       if (existingIndex >= 0) {
         setState(() {
           _messages[existingIndex] = message;
-          _messages.sort((a, b) => a.createdAt.compareTo(b.createdAt));
+          _sortMessages();
         });
         return;
       }
       setState(() {
         _messages.add(message);
-        _messages.sort((a, b) => a.createdAt.compareTo(b.createdAt));
+        _sortMessages();
       });
       _scrollToBottom();
       if (message.senderId != _userId) {
@@ -52,10 +52,16 @@ class _ChatScreenState extends State<ChatScreen> {
       final messages = await widget.repository.loadMessages(widget.conversation.id);
       if (!mounted) return;
       setState(() {
+        // Merge the initial query with realtime events received while it was
+        // in flight. Clearing and replacing the list here could drop messages.
+        final byId = <String, ChatMessage>{
+          for (final message in _messages) message.id: message,
+          for (final message in messages) message.id: message,
+        };
         _messages
           ..clear()
-          ..addAll(messages)
-          ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
+          ..addAll(byId.values);
+        _sortMessages();
         _loading = false;
         _error = null;
       });
@@ -63,6 +69,71 @@ class _ChatScreenState extends State<ChatScreen> {
       _scrollToBottom();
     } catch (error) {
       if (mounted) setState(() { _loading = false; _error = error.toString(); });
+    }
+  }
+
+  void _sortMessages() {
+    _messages.sort((a, b) {
+      final byTime = a.createdAt.toUtc().compareTo(b.createdAt.toUtc());
+      return byTime != 0 ? byTime : a.id.compareTo(b.id);
+    });
+  }
+
+  Future<void> _handleChatMenu(String action) async {
+    if (action == 'clear') {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: const Text('Clear this chat?'),
+          content: const Text('Messages will be cleared only for you. The other person will still have their chat history.'),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('Cancel')),
+            FilledButton(onPressed: () => Navigator.pop(dialogContext, true), child: const Text('Clear chat')),
+          ],
+        ),
+      );
+      if (confirmed != true || !mounted) return;
+      try {
+        await widget.repository.clearChatForMe(widget.conversation.id);
+        if (!mounted) return;
+        setState(_messages.clear);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Chat cleared for you')),
+        );
+      } catch (error) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Could not clear chat: $error')),
+          );
+        }
+      }
+    } else if (action == 'delete') {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: const Text('Delete this chat?'),
+          content: const Text('This removes the conversation from your chat list only. The other person keeps their messages.'),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('Cancel')),
+            FilledButton(
+              style: FilledButton.styleFrom(backgroundColor: Theme.of(dialogContext).colorScheme.error),
+              onPressed: () => Navigator.pop(dialogContext, true),
+              child: const Text('Delete chat'),
+            ),
+          ],
+        ),
+      );
+      if (confirmed != true || !mounted) return;
+      try {
+        await widget.repository.deleteChatForMe(widget.conversation.id);
+        if (mounted) Navigator.of(context).pop();
+      } catch (error) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Could not delete chat: $error')),
+          );
+        }
+      }
     }
   }
 
@@ -121,10 +192,30 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     return Scaffold(
-      appBar: AppBar(title: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(widget.otherUserName),
-        Text('KisanSetu chat', style: Theme.of(context).textTheme.labelSmall),
-      ])),
+      appBar: AppBar(
+        title: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(widget.otherUserName),
+          Text('KisanSetu chat', style: Theme.of(context).textTheme.labelSmall),
+        ]),
+        actions: [
+          PopupMenuButton<String>(
+            tooltip: 'Chat options',
+            onSelected: _handleChatMenu,
+            itemBuilder: (context) => const [
+              PopupMenuItem(value: 'clear', child: ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: Icon(Icons.cleaning_services_outlined),
+                title: Text('Clear chat'),
+              )),
+              PopupMenuItem(value: 'delete', child: ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: Icon(Icons.delete_outline_rounded),
+                title: Text('Delete chat'),
+              )),
+            ],
+          ),
+        ],
+      ),
       body: Column(children: [
         Expanded(child: _loading
           ? const Center(child: CircularProgressIndicator())
