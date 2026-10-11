@@ -207,9 +207,44 @@ class ChatRepository {
   }
 
   Future<List<ChatMessage>> loadMessages(String conversationId) async {
+    // Query in deterministic chronological order. id is a stable tie-breaker
+    // for messages that share the same server timestamp.
     final rows = await _client.from('chat_messages').select()
-        .eq('conversation_id', conversationId).order('created_at');
-    return (rows as List).map((row) => ChatMessage.fromMap(row as Map<String, dynamic>)).toList();
+        .eq('conversation_id', conversationId)
+        .order('created_at', ascending: true)
+        .order('id', ascending: true);
+    final messages = (rows as List)
+        .map((row) => ChatMessage.fromMap(row as Map<String, dynamic>))
+        .toList()
+      ..sort((a, b) {
+        final byTime = a.createdAt.toUtc().compareTo(b.createdAt.toUtc());
+        return byTime != 0 ? byTime : a.id.compareTo(b.id);
+      });
+
+    // Clearing a chat is per-user; it must not erase the other participant's
+    // copy of the conversation.
+    final state = await _client.from('chat_conversation_user_state')
+        .select('cleared_at')
+        .eq('conversation_id', conversationId)
+        .eq('user_id', currentUserId!)
+        .maybeSingle();
+    final clearedAt = state?['cleared_at'] == null
+        ? null
+        : DateTime.parse(state!['cleared_at'] as String).toUtc();
+    if (clearedAt == null) return messages;
+    return messages.where((m) => m.createdAt.toUtc().isAfter(clearedAt)).toList();
+  }
+
+  Future<void> clearChatForMe(String conversationId) async {
+    await _client.rpc('clear_chat_for_me', params: {
+      'p_conversation_id': conversationId,
+    });
+  }
+
+  Future<void> deleteChatForMe(String conversationId) async {
+    await _client.rpc('delete_chat_for_me', params: {
+      'p_conversation_id': conversationId,
+    });
   }
 
   Future<void> sendMessage(String conversationId, String body) async {
