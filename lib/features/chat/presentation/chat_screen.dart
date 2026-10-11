@@ -138,7 +138,15 @@ class _ChatScreenState extends State<ChatScreen> {
               ])))
             : _messages.isEmpty
               ? const Center(child: Text('Say hello to start the conversation.'))
-              : ListView.builder(controller: _scrollController, padding: const EdgeInsets.all(16), itemCount: _messages.length, itemBuilder: (context, index) {
+              : ListView.builder(
+                  // Keep chronological chat layout explicit: oldest at top,
+                  // newest at bottom. This avoids a reversed list rendering
+                  // the newest messages above older history.
+                  reverse: false,
+                  controller: _scrollController,
+                  padding: const EdgeInsets.all(16),
+                  itemCount: _messages.length,
+                  itemBuilder: (context, index) {
                   final m = _messages[index];
                   final mine = m.senderId == _userId;
                   final bubble = Align(alignment: mine ? Alignment.centerRight : Alignment.centerLeft, child: Container(
