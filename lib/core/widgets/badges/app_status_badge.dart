@@ -8,6 +8,7 @@ enum AppStatusType {
   accepted,
   rejected,
   expired,
+  cancelled,
   inTransit,
   completed,
   active,
@@ -58,6 +59,14 @@ class AppStatusBadge extends StatelessWidget {
         fg = isDark ? AppColors.textSecondaryDark : AppColors.expiredFg;
         label = customLabel ?? 'Expired';
         icon = Icons.timer_off_outlined;
+        break;
+      case AppStatusType.cancelled:
+        // Distinct from "expired": this offer was actively withdrawn by the
+        // buyer, not left to time out, so it gets its own clear label.
+        bg = isDark ? AppColors.borderDark : AppColors.expiredBg;
+        fg = isDark ? AppColors.textSecondaryDark : AppColors.expiredFg;
+        label = customLabel ?? 'Cancelled';
+        icon = Icons.block_rounded;
         break;
       case AppStatusType.inTransit:
         bg = isDark ? const Color(0xFF0C4A6E) : AppColors.inTransitBg;

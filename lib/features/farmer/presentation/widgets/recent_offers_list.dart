@@ -87,14 +87,19 @@ class RecentOffersList extends StatelessWidget {
         else
           Column(
             children: offers.take(3).map((offer) {
-              final statusBadgeType = switch (offer.status.toLowerCase()) {
+              final normalizedStatus = offer.status.toLowerCase();
+              final statusBadgeType = switch (normalizedStatus) {
                 'pending' => AppStatusType.pending,
                 'accepted' => AppStatusType.accepted,
                 'rejected' => AppStatusType.rejected,
+                'cancelled' || 'canceled' => AppStatusType.cancelled,
                 'in_transit' => AppStatusType.inTransit,
                 'completed' => AppStatusType.completed,
                 _ => AppStatusType.pending,
               };
+              // Only a genuinely pending offer gets action buttons - a
+              // cancelled/withdrawn offer must never show Accept/Reject again.
+              final isPending = normalizedStatus == 'pending';
 
               final formattedTime = offer.createdAt != null
                   ? DateFormat('dd MMM, hh:mm a').format(offer.createdAt!)
@@ -109,9 +114,9 @@ class RecentOffersList extends StatelessWidget {
                   quantity: '${offer.quantity} ${offer.produceUnit ?? "units"}',
                   status: statusBadgeType,
                   expiresText: formattedTime,
-                  onAccept: () => onRespond?.call(offer, 'accepted'),
-                  onReject: () => onRespond?.call(offer, 'rejected'),
-                  onCounter: () => onRespond?.call(offer, 'countered'),
+                  onAccept: isPending ? () => onRespond?.call(offer, 'accepted') : null,
+                  onReject: isPending ? () => onRespond?.call(offer, 'rejected') : null,
+                  onCounter: isPending ? () => onRespond?.call(offer, 'countered') : null,
                 ),
               );
             }).toList(),

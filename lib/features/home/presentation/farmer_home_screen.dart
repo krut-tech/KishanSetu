@@ -153,16 +153,6 @@ class _FarmerHomeScreenState extends ConsumerState<FarmerHomeScreen> {
               ),
             ],
           ),
-          IconButton(
-            icon: const Icon(Icons.brightness_6),
-            onPressed: () {
-              ref.read(themeControllerProvider.notifier).toggleTheme();
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.logout_rounded),
-            onPressed: () => ref.read(authNotifierProvider.notifier).signOut(),
-          ),
         ],
       ),
       body: SafeArea(
@@ -324,13 +314,16 @@ class _FarmerHomeScreenState extends ConsumerState<FarmerHomeScreen> {
                   if (ok) {
                     ref.read(farmerDashboardNotifierProvider.notifier).refreshDashboard();
                     if (context.mounted) {
+                      final normalized = status.toLowerCase();
                       AppSnackBar.show(
                         context,
-                        message: status.toLowerCase() == 'accepted'
+                        message: normalized == 'accepted'
                             ? context.l10n.offerAcceptedStatus
-                            : status.toLowerCase() == 'rejected'
+                            : normalized == 'rejected'
                                 ? context.l10n.offerRejectedStatus
-                                : 'Offer marked as ${status.toUpperCase()}',
+                                : normalized == 'cancelled'
+                                    ? context.l10n.cancelledStatus
+                                    : '${context.l10n.statusLabel}: ${status[0].toUpperCase()}${status.substring(1).toLowerCase()}',
                         type: SnackBarType.success,
                       );
                     }
@@ -357,6 +350,7 @@ class _FarmerHomeScreenState extends ConsumerState<FarmerHomeScreen> {
   Widget _buildProfileTab(BuildContext context, UserProfile? profile) {
     final colorScheme = Theme.of(context).colorScheme;
     final kycStatus = profile?.kycStatus ?? 'unverified';
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.xxxl + 24),
@@ -417,6 +411,13 @@ class _FarmerHomeScreenState extends ConsumerState<FarmerHomeScreen> {
                   }
                 }
               },
+            ),
+            SwitchListTile(
+              secondary: Icon(isDarkMode ? Icons.dark_mode_rounded : Icons.light_mode_rounded),
+              title: const Text('Dark Theme'),
+              subtitle: Text(isDarkMode ? 'On' : 'Off'),
+              value: isDarkMode,
+              onChanged: (_) => ref.read(themeControllerProvider.notifier).toggleTheme(),
             ),
             const SizedBox(height: AppSpacing.md),
             AppButton(

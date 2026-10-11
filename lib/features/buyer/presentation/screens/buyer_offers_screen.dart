@@ -71,7 +71,10 @@ class _BuyerOffersScreenState extends ConsumerState<BuyerOffersScreen> {
       case 'countered':
         return AppStatusType.pending;
       case 'cancelled':
-        return AppStatusType.expired;
+      case 'canceled':
+        // Distinct badge from a naturally-expired offer: this was actively
+        // withdrawn by the buyer themselves.
+        return AppStatusType.cancelled;
       case 'pending':
       default:
         return AppStatusType.pending;

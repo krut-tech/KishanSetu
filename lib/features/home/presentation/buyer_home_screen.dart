@@ -154,16 +154,6 @@ class _BuyerHomeScreenState extends ConsumerState<BuyerHomeScreen> {
               ),
             ],
           ),
-          IconButton(
-            icon: const Icon(Icons.brightness_6),
-            onPressed: () {
-              ref.read(themeControllerProvider.notifier).toggleTheme();
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.logout_rounded),
-            onPressed: () => ref.read(authNotifierProvider.notifier).signOut(),
-          ),
         ],
       ),
       body: SafeArea(
@@ -348,6 +338,7 @@ class _BuyerHomeScreenState extends ConsumerState<BuyerHomeScreen> {
   Widget _buildProfileTab(BuildContext context, UserProfile? profile) {
     final colorScheme = Theme.of(context).colorScheme;
     final kycStatus = profile?.kycStatus ?? 'unverified';
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.xxxl + 24),
@@ -409,6 +400,13 @@ class _BuyerHomeScreenState extends ConsumerState<BuyerHomeScreen> {
                   }
                 }
               },
+            ),
+            SwitchListTile(
+              secondary: Icon(isDarkMode ? Icons.dark_mode_rounded : Icons.light_mode_rounded),
+              title: const Text('Dark Theme'),
+              subtitle: Text(isDarkMode ? 'On' : 'Off'),
+              value: isDarkMode,
+              onChanged: (_) => ref.read(themeControllerProvider.notifier).toggleTheme(),
             ),
             const SizedBox(height: AppSpacing.md),
             AppButton(
