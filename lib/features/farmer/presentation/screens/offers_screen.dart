@@ -159,20 +159,16 @@ class _OffersScreenState extends ConsumerState<OffersScreen> {
       itemCount: state.offers.length,
       itemBuilder: (context, index) {
         final offer = state.offers[index];
-        final normalizedStatus = offer.status.toLowerCase();
 
-        final statusBadgeType = switch (normalizedStatus) {
+        final statusBadgeType = switch (offer.status.toLowerCase()) {
           'pending' => AppStatusType.pending,
           'accepted' => AppStatusType.accepted,
           'rejected' => AppStatusType.rejected,
-          'cancelled' || 'canceled' => AppStatusType.cancelled,
+          'cancelled' => AppStatusType.expired,
           'in_transit' => AppStatusType.inTransit,
           'completed' => AppStatusType.completed,
           _ => AppStatusType.pending,
         };
-        // A cancelled/withdrawn offer must never offer Accept/Reject/Cancel
-        // actions again - only a still-pending offer can be acted on.
-        final isPending = normalizedStatus == 'pending';
 
         final formattedTime = offer.createdAt != null
             ? DateFormat('dd MMM yyyy, hh:mm a').format(offer.createdAt!)
@@ -182,73 +178,50 @@ class _OffersScreenState extends ConsumerState<OffersScreen> {
           padding: const EdgeInsets.only(bottom: AppSpacing.md),
           child: OfferCard(
             cropName: offer.produceName ?? context.l10n.cropProduceListing,
-            buyerName: offer.buyerName ??
-                offer.buyerCompany ??
-                context.l10n.interestedBuyer,
+            buyerName: offer.buyerName ?? offer.buyerCompany ?? context.l10n.interestedBuyer,
             offerPrice: offer.offeredPrice,
             quantity: '${offer.quantity} ${offer.produceUnit ?? "units"}',
             status: statusBadgeType,
             expiresText: formattedTime,
+            location: offer.buyerLocation,
             message: offer.message,
             history: offer.history,
-            onAccept: isPending
-                ? () async {
-                    final ok = await ref
-                        .read(offerControllerProvider.notifier)
-                        .respondToOffer(offer.id, 'accepted');
-                    if (ok) {
-                      ref
-                          .read(farmerDashboardNotifierProvider.notifier)
-                          .refreshDashboard();
-                      if (context.mounted) {
-                        AppSnackBar.show(context,
-                            message: context.l10n.offerAcceptedStatus,
-                            type: SnackBarType.success);
-                      }
-                    }
-                  }
-                : null,
-            onReject: isPending
-                ? () async {
-                    final ok = await ref
-                        .read(offerControllerProvider.notifier)
-                        .respondToOffer(offer.id, 'rejected');
-                    if (ok) {
-                      ref
-                          .read(farmerDashboardNotifierProvider.notifier)
-                          .refreshDashboard();
-                      if (context.mounted) {
-                        AppSnackBar.show(context,
-                            message: context.l10n.offerRejectedStatus,
-                            type: SnackBarType.info);
-                      }
-                    }
-                  }
-                : null,
-            onCancel: isPending
-                ? () async {
-                    final ok = await ref
-                        .read(offerControllerProvider.notifier)
-                        .respondToOffer(offer.id, 'cancelled');
-                    if (ok) {
-                      ref
-                          .read(farmerDashboardNotifierProvider.notifier)
-                          .refreshDashboard();
-                      if (context.mounted) {
-                        AppSnackBar.show(context,
-                            message: context.l10n.cancelledStatus,
-                            type: SnackBarType.info);
-                      }
-                    }
-                  }
-                : null,
-            onCounter: isPending
-                ? () async {
-                    AppSnackBar.show(context,
-                        message: context.l10n.counterOfferComingSoon,
-                        type: SnackBarType.info);
-                  }
-                : null,
+            onAccept: () async {
+              final ok = await ref
+                  .read(offerControllerProvider.notifier)
+                  .respondToOffer(offer.id, 'accepted');
+              if (ok) {
+                ref.read(farmerDashboardNotifierProvider.notifier).refreshDashboard();
+                if (context.mounted) {
+                  AppSnackBar.show(context, message: context.l10n.offerAcceptedStatus, type: SnackBarType.success);
+                }
+              }
+            },
+            onReject: () async {
+              final ok = await ref
+                  .read(offerControllerProvider.notifier)
+                  .respondToOffer(offer.id, 'rejected');
+              if (ok) {
+                ref.read(farmerDashboardNotifierProvider.notifier).refreshDashboard();
+                if (context.mounted) {
+                  AppSnackBar.show(context, message: context.l10n.offerRejectedStatus, type: SnackBarType.info);
+                }
+              }
+            },
+            onCancel: () async {
+              final ok = await ref
+                  .read(offerControllerProvider.notifier)
+                  .respondToOffer(offer.id, 'cancelled');
+              if (ok) {
+                ref.read(farmerDashboardNotifierProvider.notifier).refreshDashboard();
+                if (context.mounted) {
+                  AppSnackBar.show(context, message: 'Offer Cancelled', type: SnackBarType.info);
+                }
+              }
+            },
+            onCounter: () async {
+              AppSnackBar.show(context, message: context.l10n.counterOfferComingSoon, type: SnackBarType.info);
+            },
           ),
         );
       },

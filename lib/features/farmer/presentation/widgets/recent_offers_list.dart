@@ -23,10 +23,8 @@ class RecentOffersList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final primaryText =
-        isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight;
-    final secondaryText =
-        isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight;
+    final primaryText = isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight;
+    final secondaryText = isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -89,19 +87,14 @@ class RecentOffersList extends StatelessWidget {
         else
           Column(
             children: offers.take(3).map((offer) {
-              final normalizedStatus = offer.status.toLowerCase();
-              final statusBadgeType = switch (normalizedStatus) {
+              final statusBadgeType = switch (offer.status.toLowerCase()) {
                 'pending' => AppStatusType.pending,
                 'accepted' => AppStatusType.accepted,
                 'rejected' => AppStatusType.rejected,
-                'cancelled' || 'canceled' => AppStatusType.cancelled,
                 'in_transit' => AppStatusType.inTransit,
                 'completed' => AppStatusType.completed,
                 _ => AppStatusType.pending,
               };
-              // Only a genuinely pending offer gets action buttons - a
-              // cancelled/withdrawn offer must never show Accept/Reject again.
-              final isPending = normalizedStatus == 'pending';
 
               final formattedTime = offer.createdAt != null
                   ? DateFormat('dd MMM, hh:mm a').format(offer.createdAt!)
@@ -110,24 +103,16 @@ class RecentOffersList extends StatelessWidget {
               return Padding(
                 padding: const EdgeInsets.only(bottom: AppSpacing.sm),
                 child: OfferCard(
-                  cropName:
-                      offer.produceName ?? context.l10n.produceListingLabel,
-                  buyerName: offer.buyerName ??
-                      offer.buyerCompany ??
-                      context.l10n.buyerLabel,
+                  cropName: offer.produceName ?? context.l10n.produceListingLabel,
+                  buyerName: offer.buyerName ?? offer.buyerCompany ?? context.l10n.buyerLabel,
                   offerPrice: offer.offeredPrice,
                   quantity: '${offer.quantity} ${offer.produceUnit ?? "units"}',
                   status: statusBadgeType,
                   expiresText: formattedTime,
-                  onAccept: isPending
-                      ? () => onRespond?.call(offer, 'accepted')
-                      : null,
-                  onReject: isPending
-                      ? () => onRespond?.call(offer, 'rejected')
-                      : null,
-                  onCounter: isPending
-                      ? () => onRespond?.call(offer, 'countered')
-                      : null,
+                  location: offer.buyerLocation,
+                  onAccept: () => onRespond?.call(offer, 'accepted'),
+                  onReject: () => onRespond?.call(offer, 'rejected'),
+                  onCounter: () => onRespond?.call(offer, 'countered'),
                 ),
               );
             }).toList(),

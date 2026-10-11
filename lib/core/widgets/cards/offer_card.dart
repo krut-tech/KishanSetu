@@ -5,6 +5,7 @@ import 'package:farmer_market_app/core/constants/app_spacing.dart';
 import 'package:farmer_market_app/core/widgets/app_card.dart';
 import 'package:farmer_market_app/core/widgets/badges/app_status_badge.dart';
 import 'package:farmer_market_app/core/widgets/buttons/app_button.dart';
+import 'package:farmer_market_app/core/widgets/buttons/map_link_button.dart';
 import 'package:farmer_market_app/core/widgets/price/app_price_text.dart';
 import 'package:farmer_market_app/features/farmer/domain/models/offer_model.dart';
 
@@ -24,6 +25,9 @@ class OfferCard extends StatefulWidget {
   final VoidCallback? onCancel;
   final VoidCallback? onEdit;
   final String? cancelLabel;
+  /// Free-text location of the other party; when set, a tappable
+  /// "View on Map" row is shown under the title.
+  final String? location;
 
   const OfferCard({
     super.key,
@@ -41,6 +45,7 @@ class OfferCard extends StatefulWidget {
     this.onCancel,
     this.onEdit,
     this.cancelLabel,
+    this.location,
   });
 
   @override
@@ -54,10 +59,8 @@ class _OfferCardState extends State<OfferCard> {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final primaryText =
-        isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight;
-    final secondaryText =
-        isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight;
+    final primaryText = isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight;
+    final secondaryText = isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight;
     final warningColor = isDark ? const Color(0xFFFBBF24) : AppColors.warning;
 
     final hasHistory = widget.history != null && widget.history!.length > 1;
@@ -87,8 +90,7 @@ class _OfferCardState extends State<OfferCard> {
                     if (hasHistory) ...[
                       const SizedBox(width: 6),
                       Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 6, vertical: 2),
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
                           color: colorScheme.secondaryContainer,
                           borderRadius: BorderRadius.circular(4),
@@ -117,14 +119,15 @@ class _OfferCardState extends State<OfferCard> {
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
+          if (widget.location != null && widget.location!.trim().isNotEmpty) ...[
+            const SizedBox(height: 2),
+            MapLinkButton(location: widget.location!.trim()),
+          ],
           if (widget.message != null && widget.message!.trim().isNotEmpty) ...[
             const SizedBox(height: 4),
             Text(
               'Message: "${widget.message}"',
-              style: TextStyle(
-                  fontSize: 12,
-                  fontStyle: FontStyle.italic,
-                  color: secondaryText),
+              style: TextStyle(fontSize: 12, fontStyle: FontStyle.italic, color: secondaryText),
             ),
           ],
           const SizedBox(height: AppSpacing.md),
@@ -156,10 +159,7 @@ class _OfferCardState extends State<OfferCard> {
                     Flexible(
                       child: Text(
                         widget.expiresText,
-                        style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: warningColor),
+                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: warningColor),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -184,17 +184,13 @@ class _OfferCardState extends State<OfferCard> {
                 child: Row(
                   children: [
                     Icon(
-                      _isHistoryExpanded
-                          ? Icons.history_toggle_off
-                          : Icons.history,
+                      _isHistoryExpanded ? Icons.history_toggle_off : Icons.history,
                       size: 16,
                       color: colorScheme.primary,
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      _isHistoryExpanded
-                          ? 'Hide Offer History'
-                          : 'View Offer History (${widget.history!.length} versions)',
+                      _isHistoryExpanded ? 'Hide Offer History' : 'View Offer History (${widget.history!.length} versions)',
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
@@ -202,9 +198,7 @@ class _OfferCardState extends State<OfferCard> {
                       ),
                     ),
                     Icon(
-                      _isHistoryExpanded
-                          ? Icons.keyboard_arrow_up
-                          : Icons.keyboard_arrow_down,
+                      _isHistoryExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
                       size: 16,
                       color: colorScheme.primary,
                     ),
@@ -215,38 +209,31 @@ class _OfferCardState extends State<OfferCard> {
             if (_isHistoryExpanded) ...[
               Builder(
                 builder: (context) {
-                  final sortedHistory =
-                      List<OfferHistoryModel>.from(widget.history!)
-                        ..sort((a, b) => a.version.compareTo(b.version));
-                  final maxVersion =
-                      sortedHistory.isNotEmpty ? sortedHistory.last.version : 1;
+                  final sortedHistory = List<OfferHistoryModel>.from(widget.history!)
+                    ..sort((a, b) => a.version.compareTo(b.version));
+                  final maxVersion = sortedHistory.isNotEmpty ? sortedHistory.last.version : 1;
 
                   return Container(
                     margin: const EdgeInsets.only(top: AppSpacing.xs),
                     padding: const EdgeInsets.all(AppSpacing.sm),
                     decoration: BoxDecoration(
-                      color: colorScheme.surfaceContainerHighest
-                          .withValues(alpha: 0.4),
+                      color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: sortedHistory.map((ver) {
                         final isLatest = ver.version == maxVersion;
-                        final formattedDate = DateFormat('dd MMM yyyy, hh:mm a')
-                            .format(ver.createdAt);
+                        final formattedDate = DateFormat('dd MMM yyyy, hh:mm a').format(ver.createdAt);
                         return Padding(
                           padding: const EdgeInsets.symmetric(vertical: 4.0),
                           child: Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 6, vertical: 2),
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                 decoration: BoxDecoration(
-                                  color: isLatest
-                                      ? colorScheme.primary
-                                      : colorScheme.outlineVariant,
+                                  color: isLatest ? colorScheme.primary : colorScheme.outlineVariant,
                                   borderRadius: BorderRadius.circular(4),
                                 ),
                                 child: Text(
@@ -254,9 +241,7 @@ class _OfferCardState extends State<OfferCard> {
                                   style: TextStyle(
                                     fontSize: 10,
                                     fontWeight: FontWeight.bold,
-                                    color: isLatest
-                                        ? colorScheme.onPrimary
-                                        : colorScheme.onSurfaceVariant,
+                                    color: isLatest ? colorScheme.onPrimary : colorScheme.onSurfaceVariant,
                                   ),
                                 ),
                               ),
@@ -269,25 +254,18 @@ class _OfferCardState extends State<OfferCard> {
                                       '₹${ver.offeredPrice.toStringAsFixed(2)} / ${ver.quantity} units ${isLatest ? "(Current)" : ""}',
                                       style: TextStyle(
                                         fontSize: 12,
-                                        fontWeight: isLatest
-                                            ? FontWeight.bold
-                                            : FontWeight.normal,
+                                        fontWeight: isLatest ? FontWeight.bold : FontWeight.normal,
                                         color: colorScheme.onSurface,
                                       ),
                                     ),
-                                    if (ver.message != null &&
-                                        ver.message!.isNotEmpty)
+                                    if (ver.message != null && ver.message!.isNotEmpty)
                                       Text(
                                         '"${ver.message}"',
-                                        style: TextStyle(
-                                            fontSize: 11,
-                                            fontStyle: FontStyle.italic,
-                                            color: secondaryText),
+                                        style: TextStyle(fontSize: 11, fontStyle: FontStyle.italic, color: secondaryText),
                                       ),
                                     Text(
                                       formattedDate,
-                                      style: TextStyle(
-                                          fontSize: 10, color: secondaryText),
+                                      style: TextStyle(fontSize: 10, color: secondaryText),
                                     ),
                                   ],
                                 ),
@@ -316,8 +294,7 @@ class _OfferCardState extends State<OfferCard> {
                         onPressed: widget.onCancel,
                       ),
                     ),
-                  if (widget.onCancel != null)
-                    const SizedBox(width: AppSpacing.sm),
+                  if (widget.onCancel != null) const SizedBox(width: AppSpacing.sm),
                   Expanded(
                     child: AppButton(
                       label: 'Edit Offer',
@@ -327,9 +304,7 @@ class _OfferCardState extends State<OfferCard> {
                   ),
                 ],
               ),
-            ] else if (widget.onAccept != null ||
-                widget.onReject != null ||
-                widget.onCounter != null) ...[
+            ] else if (widget.onAccept != null || widget.onReject != null || widget.onCounter != null) ...[
               if (widget.onCancel != null) ...[
                 Row(
                   children: [
