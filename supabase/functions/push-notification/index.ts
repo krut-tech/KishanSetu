@@ -240,7 +240,7 @@ serve(async (req) => {
           android: {
             priority: "HIGH",
             notification: {
-              channel_id: "kisansetu_notifications",
+              channel_id: "kisansetu_notifications_v2",
               sound: "default",
               click_action: "FLUTTER_NOTIFICATION_CLICK",
             },
