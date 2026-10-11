@@ -155,7 +155,7 @@ class UpdateDialog extends ConsumerWidget {
                                   ),
                                   const SizedBox(height: 2),
                                   Text(
-                                    info.installedVersion,
+                                    info.installedVersion.split('+')[0],
                                     style: textTheme.titleMedium?.copyWith(
                                       fontWeight: FontWeight.bold,
                                       color: colorScheme.onSurface,
@@ -179,7 +179,7 @@ class UpdateDialog extends ConsumerWidget {
                                   ),
                                   const SizedBox(height: 2),
                                   Text(
-                                    info.latestVersion,
+                                    info.latestVersion.split('+')[0],
                                     style: textTheme.titleMedium?.copyWith(
                                       fontWeight: FontWeight.bold,
                                       color: AppColors.primary,

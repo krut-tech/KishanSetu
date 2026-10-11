@@ -410,7 +410,7 @@ class _BuyerHomeScreenState extends ConsumerState<BuyerHomeScreen> {
                 future: PackageInfo.fromPlatform(),
                 builder: (context, snap) => Text(
                   snap.hasData
-                      ? 'KisanSetu v${snap.data!.version}+${snap.data!.buildNumber}'
+                      ? 'KisanSetu v${snap.data!.version}'
                       : 'KisanSetu',
                 ),
               ),
