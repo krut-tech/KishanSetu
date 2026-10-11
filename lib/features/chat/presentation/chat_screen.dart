@@ -30,10 +30,16 @@ class _ChatScreenState extends State<ChatScreen> {
       if (!mounted) return;
       final existingIndex = _messages.indexWhere((m) => m.id == message.id);
       if (existingIndex >= 0) {
-        setState(() => _messages[existingIndex] = message);
+        setState(() {
+          _messages[existingIndex] = message;
+          _messages.sort((a, b) => a.createdAt.compareTo(b.createdAt));
+        });
         return;
       }
-      setState(() => _messages.add(message));
+      setState(() {
+        _messages.add(message);
+        _messages.sort((a, b) => a.createdAt.compareTo(b.createdAt));
+      });
       _scrollToBottom();
       if (message.senderId != _userId) {
         unawaited(widget.repository.markIncomingRead(widget.conversation.id));
@@ -45,7 +51,14 @@ class _ChatScreenState extends State<ChatScreen> {
     try {
       final messages = await widget.repository.loadMessages(widget.conversation.id);
       if (!mounted) return;
-      setState(() { _messages..clear()..addAll(messages); _loading = false; _error = null; });
+      setState(() {
+        _messages
+          ..clear()
+          ..addAll(messages)
+          ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
+        _loading = false;
+        _error = null;
+      });
       await widget.repository.markIncomingRead(widget.conversation.id);
       _scrollToBottom();
     } catch (error) {
