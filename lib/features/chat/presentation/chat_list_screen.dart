@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../data/chat_repository.dart';
 import 'chat_screen.dart';
@@ -73,6 +74,11 @@ class _ChatListScreenState extends State<ChatListScreen> {
                 )
               : const Text('Messages'),
           actions: [
+            IconButton(
+              tooltip: 'Notifications',
+              icon: const Icon(Icons.notifications_outlined),
+              onPressed: () => context.push('/notifications'),
+            ),
             IconButton(
               icon: Icon(_searching ? Icons.close : Icons.search),
               tooltip: _searching ? 'Close search' : 'Search chats',
