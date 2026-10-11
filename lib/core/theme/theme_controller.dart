@@ -3,9 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Riverpod StateNotifier for managing app theme mode persistence.
-/// Harvest Glass defaults to the dark (forest + gold) look.
+/// Theme changes are applied immediately; preference writes are serialized so
+/// rapid taps cannot make an older write win over the latest selection.
 class ThemeController extends StateNotifier<ThemeMode> {
   static const _themePrefKey = 'user_theme_mode';
+
+  bool _userChangedTheme = false;
+  Future<void> _persistQueue = Future<void>.value();
 
   ThemeController() : super(ThemeMode.dark) {
     _loadThemeMode();
@@ -15,23 +19,37 @@ class ThemeController extends StateNotifier<ThemeMode> {
     try {
       final prefs = await SharedPreferences.getInstance();
       final savedThemeIndex = prefs.getInt(_themePrefKey);
-      if (savedThemeIndex != null && savedThemeIndex < ThemeMode.values.length) {
+      // Do not let a slow preference read overwrite a choice made meanwhile.
+      if (!_userChangedTheme &&
+          savedThemeIndex != null &&
+          savedThemeIndex >= 0 &&
+          savedThemeIndex < ThemeMode.values.length) {
         state = ThemeMode.values[savedThemeIndex];
       }
-    } catch (_) {}
+    } catch (_) {
+      // Theme persistence is best-effort; the app remains usable.
+    }
   }
 
-  Future<void> setThemeMode(ThemeMode mode) async {
-    state = mode;
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setInt(_themePrefKey, mode.index);
-    } catch (_) {}
+  Future<void> setThemeMode(ThemeMode mode) {
+    if (state == mode) return Future<void>.value();
+
+    _userChangedTheme = true;
+    state = mode; // Apply instantly; never wait for disk I/O to repaint.
+    _persistQueue = _persistQueue.then((_) async {
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setInt(_themePrefKey, mode.index);
+      } catch (_) {
+        // A failed preference write must not freeze or revert the UI.
+      }
+    });
+    return _persistQueue;
   }
 
-  Future<void> toggleTheme() async {
+  Future<void> toggleTheme() {
     final nextMode = state == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark;
-    await setThemeMode(nextMode);
+    return setThemeMode(nextMode);
   }
 }
 
