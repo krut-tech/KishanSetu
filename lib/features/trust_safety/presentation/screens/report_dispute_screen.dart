@@ -28,7 +28,8 @@ class ReportDisputeScreen extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<ReportDisputeScreen> createState() => _ReportDisputeScreenState();
+  ConsumerState<ReportDisputeScreen> createState() =>
+      _ReportDisputeScreenState();
 }
 
 class _ReportDisputeScreenState extends ConsumerState<ReportDisputeScreen> {
@@ -80,10 +81,13 @@ class _ReportDisputeScreenState extends ConsumerState<ReportDisputeScreen> {
     if (!mounted) return;
     if (ok) {
       _descriptionController.clear();
-      AppSnackBar.show(context, message: 'Report submitted.', type: SnackBarType.success);
+      AppSnackBar.show(context,
+          message: 'Report submitted.', type: SnackBarType.success);
     } else {
       final err = ref.read(disputeControllerProvider).errorMessage;
-      if (err != null) AppSnackBar.show(context, message: err, type: SnackBarType.error);
+      if (err != null) {
+        AppSnackBar.show(context, message: err, type: SnackBarType.error);
+      }
     }
   }
 
@@ -121,7 +125,8 @@ class _ReportDisputeScreenState extends ConsumerState<ReportDisputeScreen> {
                     label: 'Issue Type',
                     value: _type,
                     items: _types.entries
-                        .map((e) => DropdownMenuItem(value: e.key, child: Text(e.value)))
+                        .map((e) => DropdownMenuItem(
+                            value: e.key, child: Text(e.value)))
                         .toList(),
                     onChanged: (v) => setState(() => _type = v ?? _type),
                   ),
@@ -147,16 +152,23 @@ class _ReportDisputeScreenState extends ConsumerState<ReportDisputeScreen> {
             const SizedBox(height: AppSpacing.xl),
             Text(
               'Your Reports',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: colorScheme.onSurface),
+              style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: colorScheme.onSurface),
             ),
             const SizedBox(height: AppSpacing.sm),
             if (state.isLoading)
-              const Center(child: Padding(padding: EdgeInsets.all(24), child: CircularProgressIndicator()))
+              const Center(
+                  child: Padding(
+                      padding: EdgeInsets.all(24),
+                      child: CircularProgressIndicator()))
             else if (state.myDisputes.isEmpty)
               const EmptyStateWidget(
                 icon: Icons.shield_outlined,
                 title: 'No reports filed',
-                message: 'Reports you file will show up here with their status.',
+                message:
+                    'Reports you file will show up here with their status.',
               )
             else
               ...state.myDisputes.map((d) => Padding(
@@ -168,7 +180,10 @@ class _ReportDisputeScreenState extends ConsumerState<ReportDisputeScreen> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Expanded(child: Text(_types[d.type] ?? d.type, style: const TextStyle(fontWeight: FontWeight.bold))),
+                              Expanded(
+                                  child: Text(_types[d.type] ?? d.type,
+                                      style: const TextStyle(
+                                          fontWeight: FontWeight.bold))),
                               Text(
                                 d.status.toUpperCase(),
                                 style: TextStyle(
@@ -180,13 +195,17 @@ class _ReportDisputeScreenState extends ConsumerState<ReportDisputeScreen> {
                             ],
                           ),
                           const SizedBox(height: 4),
-                          Text(d.description, style: TextStyle(color: colorScheme.onSurfaceVariant)),
+                          Text(d.description,
+                              style: TextStyle(
+                                  color: colorScheme.onSurfaceVariant)),
                           if (d.resolutionNote != null)
                             Padding(
                               padding: const EdgeInsets.only(top: 4),
                               child: Text(
                                 'Resolution: ${d.resolutionNote}',
-                                style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant),
+                                style: TextStyle(
+                                    fontSize: 12,
+                                    color: colorScheme.onSurfaceVariant),
                               ),
                             ),
                         ],

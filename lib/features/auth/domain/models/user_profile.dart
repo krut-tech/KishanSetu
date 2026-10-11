@@ -68,16 +68,26 @@ class UserProfile extends Equatable {
         state: map['state'] as String?,
         district: map['district'] as String?,
         village: map['village'] as String?,
-        landSizeAcres: map['land_size_acres'] != null ? (map['land_size_acres'] as num).toDouble() : null,
+        landSizeAcres: map['land_size_acres'] != null
+            ? (map['land_size_acres'] as num).toDouble()
+            : null,
         primaryCrop: map['primary_crop'] as String?,
         companyName: map['company_name'] as String?,
         gstNumber: map['gst_number'] as String?,
         businessType: map['business_type'] as String?,
-        buyingCapacityQuintals: map['buying_capacity_quintals'] != null ? (map['buying_capacity_quintals'] as num).toDouble() : null,
+        buyingCapacityQuintals: map['buying_capacity_quintals'] != null
+            ? (map['buying_capacity_quintals'] as num).toDouble()
+            : null,
         isProfileComplete: (map['is_profile_complete'] as bool?) ?? false,
-        createdAt: map['created_at'] != null ? DateTime.tryParse(map['created_at'] as String) : null,
-        latitude: map['latitude'] == null ? null : (map['latitude'] as num).toDouble(),
-        longitude: map['longitude'] == null ? null : (map['longitude'] as num).toDouble(),
+        createdAt: map['created_at'] != null
+            ? DateTime.tryParse(map['created_at'] as String)
+            : null,
+        latitude: map['latitude'] == null
+            ? null
+            : (map['latitude'] as num).toDouble(),
+        longitude: map['longitude'] == null
+            ? null
+            : (map['longitude'] as num).toDouble(),
         isAdmin: (map['is_admin'] as bool?) ?? false,
         accountStatus: (map['account_status'] as String?) ?? 'active',
         kycStatus: (map['kyc_status'] as String?) ?? 'unverified',
@@ -106,12 +116,30 @@ class UserProfile extends Equatable {
       };
 
   UserProfile copyWith({
-    String? id, UserRole? role, String? fullName, String? phone, String? avatarUrl,
-    String? language, String? state, String? district, String? village,
-    double? landSizeAcres, String? primaryCrop, String? companyName, String? gstNumber,
-    String? businessType, double? buyingCapacityQuintals, bool? isProfileComplete,
-    double? latitude, double? longitude, bool clearCoordinates = false, bool? isAdmin, String? accountStatus, String? kycStatus,
-  }) => UserProfile(
+    String? id,
+    UserRole? role,
+    String? fullName,
+    String? phone,
+    String? avatarUrl,
+    String? language,
+    String? state,
+    String? district,
+    String? village,
+    double? landSizeAcres,
+    String? primaryCrop,
+    String? companyName,
+    String? gstNumber,
+    String? businessType,
+    double? buyingCapacityQuintals,
+    bool? isProfileComplete,
+    double? latitude,
+    double? longitude,
+    bool clearCoordinates = false,
+    bool? isAdmin,
+    String? accountStatus,
+    String? kycStatus,
+  }) =>
+      UserProfile(
         id: id ?? this.id,
         role: role ?? this.role,
         fullName: fullName ?? this.fullName,
@@ -126,7 +154,8 @@ class UserProfile extends Equatable {
         companyName: companyName ?? this.companyName,
         gstNumber: gstNumber ?? this.gstNumber,
         businessType: businessType ?? this.businessType,
-        buyingCapacityQuintals: buyingCapacityQuintals ?? this.buyingCapacityQuintals,
+        buyingCapacityQuintals:
+            buyingCapacityQuintals ?? this.buyingCapacityQuintals,
         isProfileComplete: isProfileComplete ?? this.isProfileComplete,
         createdAt: createdAt,
         latitude: clearCoordinates ? null : (latitude ?? this.latitude),
@@ -138,8 +167,26 @@ class UserProfile extends Equatable {
 
   @override
   List<Object?> get props => [
-        id, role, fullName, phone, avatarUrl, language, state, district, village, landSizeAcres,
-        primaryCrop, companyName, gstNumber, businessType, buyingCapacityQuintals, isProfileComplete,
-        latitude, longitude, isAdmin, accountStatus, kycStatus,
+        id,
+        role,
+        fullName,
+        phone,
+        avatarUrl,
+        language,
+        state,
+        district,
+        village,
+        landSizeAcres,
+        primaryCrop,
+        companyName,
+        gstNumber,
+        businessType,
+        buyingCapacityQuintals,
+        isProfileComplete,
+        latitude,
+        longitude,
+        isAdmin,
+        accountStatus,
+        kycStatus,
       ];
 }

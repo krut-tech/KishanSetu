@@ -20,17 +20,22 @@ class FarmerHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final primaryText = isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight;
-    final secondaryText = isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight;
+    final primaryText =
+        isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight;
+    final secondaryText =
+        isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight;
 
-    final name = profile?.fullName.isNotEmpty == true ? profile!.fullName : context.l10n.farmerLabel;
+    final name = profile?.fullName.isNotEmpty == true
+        ? profile!.fullName
+        : context.l10n.farmerLabel;
     final locationParts = [
       profile?.village,
       profile?.district,
       profile?.state,
     ].where((s) => s != null && s.trim().isNotEmpty).join(', ');
 
-    final locationText = locationParts.isNotEmpty ? locationParts : context.l10n.locationNotSet;
+    final locationText =
+        locationParts.isNotEmpty ? locationParts : context.l10n.locationNotSet;
 
     return Row(
       children: [
@@ -38,17 +43,21 @@ class FarmerHeader extends StatelessWidget {
           onTap: onProfilePressed,
           child: CircleAvatar(
             radius: 24,
-            backgroundColor: isDark ? AppColors.primaryDark : AppColors.primaryLight,
-            backgroundImage: profile?.avatarUrl != null && profile!.avatarUrl!.isNotEmpty
-                ? NetworkImage(profile!.avatarUrl!)
-                : null,
+            backgroundColor:
+                isDark ? AppColors.primaryDark : AppColors.primaryLight,
+            backgroundImage:
+                profile?.avatarUrl != null && profile!.avatarUrl!.isNotEmpty
+                    ? NetworkImage(profile!.avatarUrl!)
+                    : null,
             child: profile?.avatarUrl == null || profile!.avatarUrl!.isEmpty
                 ? Text(
                     name.characters.first.toUpperCase(),
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
-                      color: isDark ? const Color(0xFFDCFCE7) : AppColors.primaryDark,
+                      color: isDark
+                          ? const Color(0xFFDCFCE7)
+                          : AppColors.primaryDark,
                     ),
                   )
                 : null,

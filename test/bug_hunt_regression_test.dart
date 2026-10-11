@@ -16,7 +16,8 @@ import 'package:farmer_market_app/features/notifications/presentation/controller
 
 void main() {
   group('Bug Hunt Regression Tests - Domain & Model Null Safety', () {
-    test('NotificationModel.fromJson handles missing or null fields gracefully', () {
+    test('NotificationModel.fromJson handles missing or null fields gracefully',
+        () {
       final jsonWithNulls = <String, dynamic>{
         'id': 'notif-123',
         'user_id': 'user-123',
@@ -40,7 +41,8 @@ void main() {
       expect(model.createdAt, isNotNull);
     });
 
-    test('OfferHistoryModel and OfferModel handle null joined fields cleanly', () {
+    test('OfferHistoryModel and OfferModel handle null joined fields cleanly',
+        () {
       final mapWithNullJoins = <String, dynamic>{
         'id': 'offer-999',
         'produce_id': 'prod-1',
@@ -63,7 +65,8 @@ void main() {
   });
 
   group('Bug Hunt Regression Tests - Widget Rendering & Layout', () {
-    testWidgets('ProduceCard renders onDelete action button when provided', (tester) async {
+    testWidgets('ProduceCard renders onDelete action button when provided',
+        (tester) async {
       bool deletePressed = false;
 
       await tester.pumpWidget(
@@ -97,7 +100,9 @@ void main() {
       expect(deletePressed, isTrue);
     });
 
-    testWidgets('OfferCard correctly expands and sorts out-of-order history versions', (tester) async {
+    testWidgets(
+        'OfferCard correctly expands and sorts out-of-order history versions',
+        (tester) async {
       final historyList = [
         OfferHistoryModel(
           id: 'h-2',
@@ -161,7 +166,8 @@ void main() {
   });
 
   group('Bug Hunt Regression Tests - Realtime Controller Reset Methods', () {
-    test('FarmerDashboardNotifier.reset resets state and cleans up channels', () {
+    test('FarmerDashboardNotifier.reset resets state and cleans up channels',
+        () {
       final notifier = FarmerDashboardNotifier(DummyFarmerRepository());
       notifier.reset();
       expect(notifier.state, equals(const FarmerDashboardState()));
@@ -186,7 +192,8 @@ void main() {
     });
 
     test('NotificationNotifier.reset resets state and cleans up channels', () {
-      final notifier = NotificationNotifier(const UninitializedNotificationRepository(), null);
+      final notifier = NotificationNotifier(
+          const UninitializedNotificationRepository(), null);
       notifier.reset();
       expect(notifier.state, equals(const NotificationState()));
     });

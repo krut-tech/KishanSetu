@@ -10,7 +10,8 @@ import 'package:farmer_market_app/core/logging/app_logger.dart';
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   try {
     await Firebase.initializeApp();
-    AppLogger.info('Handling FCM background message: ${message.messageId}, data: ${message.data}');
+    AppLogger.info(
+        'Handling FCM background message: ${message.messageId}, data: ${message.data}');
   } catch (e, stack) {
     AppLogger.error('Error in FCM background handler', e, stack);
   }
@@ -19,7 +20,8 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 /// Core service managing Android Push Notifications, FCM token lifecycle,
 /// local foreground notifications, and tap-to-navigate routing.
 class PushNotificationService {
-  static final PushNotificationService _instance = PushNotificationService._internal();
+  static final PushNotificationService _instance =
+      PushNotificationService._internal();
   factory PushNotificationService() => _instance;
   PushNotificationService._internal();
 
@@ -47,7 +49,8 @@ class PushNotificationService {
   bool get isInitialized => _isInitialized;
 
   /// Initializes FCM, Flutter Local Notifications, and foreground/background listeners.
-  Future<void> initialize({void Function(String route)? navigateCallback}) async {
+  Future<void> initialize(
+      {void Function(String route)? navigateCallback}) async {
     if (navigateCallback != null) {
       onNavigate = navigateCallback;
     }
@@ -73,7 +76,8 @@ class PushNotificationService {
       FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
       // Initialize Local Notifications for foreground heads-up display
-      const androidInitSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
+      const androidInitSettings =
+          AndroidInitializationSettings('@mipmap/ic_launcher');
       const initSettings = InitializationSettings(android: androidInitSettings);
 
       await _localNotificationsPlugin.initialize(
@@ -81,7 +85,8 @@ class PushNotificationService {
         onDidReceiveNotificationResponse: (response) {
           final payload = response.payload;
           if (payload != null && payload.isNotEmpty) {
-            AppLogger.info('Foreground local notification tapped with payload: $payload');
+            AppLogger.info(
+                'Foreground local notification tapped with payload: $payload');
             _handleRouteNavigation(payload);
           }
         },
@@ -96,14 +101,16 @@ class PushNotificationService {
         playSound: true,
       );
 
-      final androidPlugin = _localNotificationsPlugin
-          .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+      final androidPlugin =
+          _localNotificationsPlugin.resolvePlatformSpecificImplementation<
+              AndroidFlutterLocalNotificationsPlugin>();
       if (androidPlugin != null) {
         await androidPlugin.createNotificationChannel(androidChannel);
       }
 
       // Configure foreground presentation options
-      await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
+      await FirebaseMessaging.instance
+          .setForegroundNotificationPresentationOptions(
         alert: true,
         badge: true,
         sound: true,
@@ -117,15 +124,18 @@ class PushNotificationService {
 
       // Listen for notification taps when app was in background
       FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-        AppLogger.info('App opened from background via FCM notification tap: ${message.data}');
+        AppLogger.info(
+            'App opened from background via FCM notification tap: ${message.data}');
         final route = resolveRouteFromData(message.data);
         _handleRouteNavigation(route);
       });
 
       // Check if app was opened from terminated state via notification tap
-      final initialMessage = await FirebaseMessaging.instance.getInitialMessage();
+      final initialMessage =
+          await FirebaseMessaging.instance.getInitialMessage();
       if (initialMessage != null) {
-        AppLogger.info('App launched from terminated state via FCM notification tap: ${initialMessage.data}');
+        AppLogger.info(
+            'App launched from terminated state via FCM notification tap: ${initialMessage.data}');
         final route = resolveRouteFromData(initialMessage.data);
         pendingInitialRoute = route;
       }
@@ -134,7 +144,8 @@ class PushNotificationService {
       _initCompleter?.complete();
       AppLogger.info('PushNotificationService initialized successfully.');
     } catch (e, stack) {
-      AppLogger.error('Failed to initialize PushNotificationService: $e', e, stack);
+      AppLogger.error(
+          'Failed to initialize PushNotificationService: $e', e, stack);
       _initCompleter?.completeError(e, stack);
       _initCompleter = null;
       // Safe fallback: App will continue working with in-app notifications
@@ -146,7 +157,8 @@ class PushNotificationService {
     final notification = message.notification;
     final data = message.data;
 
-    final title = notification?.title ?? data['title'] ?? 'KisanSetu Notification';
+    final title =
+        notification?.title ?? data['title'] ?? 'KisanSetu Notification';
     final body = notification?.body ?? data['body'] ?? '';
     final route = resolveRouteFromData(data);
 
@@ -160,7 +172,10 @@ class PushNotificationService {
     );
     const notificationDetails = NotificationDetails(android: androidDetails);
 
-    final notificationId = (data['notification_id'] ?? data['id'] ?? DateTime.now().millisecondsSinceEpoch.toString()).hashCode;
+    final notificationId = (data['notification_id'] ??
+            data['id'] ??
+            DateTime.now().millisecondsSinceEpoch.toString())
+        .hashCode;
 
     _localNotificationsPlugin.show(
       notificationId,
@@ -173,7 +188,8 @@ class PushNotificationService {
 
   /// Resolves target route from FCM payload data.
   static String resolveRouteFromData(Map<String, dynamic> data) {
-    if (data.containsKey('route') && (data['route'] as String).trim().isNotEmpty) {
+    if (data.containsKey('route') &&
+        (data['route'] as String).trim().isNotEmpty) {
       return (data['route'] as String).trim();
     }
 
@@ -217,9 +233,11 @@ class PushNotificationService {
         sound: true,
         provisional: false,
       );
-      final granted = settings.authorizationStatus == AuthorizationStatus.authorized ||
-          settings.authorizationStatus == AuthorizationStatus.provisional;
-      AppLogger.info('Notification permission status: ${settings.authorizationStatus}');
+      final granted =
+          settings.authorizationStatus == AuthorizationStatus.authorized ||
+              settings.authorizationStatus == AuthorizationStatus.provisional;
+      AppLogger.info(
+          'Notification permission status: ${settings.authorizationStatus}');
       return granted;
     } catch (e, stack) {
       AppLogger.error('Error requesting notification permission: $e', e, stack);
@@ -252,7 +270,8 @@ class PushNotificationService {
         return;
       }
 
-      AppLogger.info('Syncing FCM device token to Supabase user_devices for user: $userId');
+      AppLogger.info(
+          'Syncing FCM device token to Supabase user_devices for user: $userId');
 
       await supabaseClient.rpc('register_device_token', params: {
         'p_push_token': token,
@@ -266,8 +285,10 @@ class PushNotificationService {
 
       // Subscribe to token refresh
       _tokenRefreshSubscription?.cancel();
-      _tokenRefreshSubscription = FirebaseMessaging.instance.onTokenRefresh.listen((newToken) async {
-        AppLogger.info('FCM token refreshed. Updating Supabase user_devices...');
+      _tokenRefreshSubscription =
+          FirebaseMessaging.instance.onTokenRefresh.listen((newToken) async {
+        AppLogger.info(
+            'FCM token refreshed. Updating Supabase user_devices...');
         try {
           await supabaseClient.rpc('register_device_token', params: {
             'p_push_token': newToken,
@@ -277,23 +298,28 @@ class PushNotificationService {
           });
           _lastSyncedToken = newToken;
         } catch (e) {
-          AppLogger.error('Failed to update refreshed FCM token in Supabase: $e');
+          AppLogger.error(
+              'Failed to update refreshed FCM token in Supabase: $e');
         }
       });
     } catch (e, stack) {
-      AppLogger.error('Failed to sync device push token to Supabase: $e', e, stack);
+      AppLogger.error(
+          'Failed to sync device push token to Supabase: $e', e, stack);
     }
   }
 
   /// Deactivates FCM device push token in Supabase on logout via secure RPC.
-  Future<void> deactivateDeviceToken(String userId, SupabaseClient supabaseClient) async {
+  Future<void> deactivateDeviceToken(
+      String userId, SupabaseClient supabaseClient) async {
     try {
       _tokenRefreshSubscription?.cancel();
       _tokenRefreshSubscription = null;
 
-      final token = _lastSyncedToken ?? await FirebaseMessaging.instance.getToken();
+      final token =
+          _lastSyncedToken ?? await FirebaseMessaging.instance.getToken();
       if (token != null && token.isNotEmpty) {
-        AppLogger.info('Deactivating FCM push token in Supabase for user: $userId');
+        AppLogger.info(
+            'Deactivating FCM push token in Supabase for user: $userId');
         await supabaseClient.rpc('deactivate_device_token', params: {
           'p_push_token': token,
         });
@@ -301,7 +327,8 @@ class PushNotificationService {
         await supabaseClient.rpc('deactivate_device_token');
       }
     } catch (e, stack) {
-      AppLogger.error('Error deactivating device token on logout: $e', e, stack);
+      AppLogger.error(
+          'Error deactivating device token on logout: $e', e, stack);
     } finally {
       _lastSyncedToken = null;
       _lastSyncedUserId = null;

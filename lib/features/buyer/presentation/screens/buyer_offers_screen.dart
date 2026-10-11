@@ -85,7 +85,8 @@ class _BuyerOffersScreenState extends ConsumerState<BuyerOffersScreen> {
     final confirmed = await AppDialogs.showConfirmDialog(
       context: context,
       title: context.l10n.cancelOfferTitle,
-      message: '${context.l10n.cancelOfferConfirmMessage} ₹${offer.offeredPrice.toStringAsFixed(0)}?',
+      message:
+          '${context.l10n.cancelOfferConfirmMessage} ₹${offer.offeredPrice.toStringAsFixed(0)}?',
       confirmLabel: context.l10n.yesCancel,
       cancelLabel: context.l10n.keepOffer,
       isDestructive: true,
@@ -102,9 +103,12 @@ class _BuyerOffersScreenState extends ConsumerState<BuyerOffersScreen> {
       if (mounted) {
         if (success) {
           ref.read(buyerDashboardNotifierProvider.notifier).refreshDashboard();
-          AppSnackBar.show(context, message: context.l10n.offerCancelledSuccessfully, type: SnackBarType.success);
+          AppSnackBar.show(context,
+              message: context.l10n.offerCancelledSuccessfully,
+              type: SnackBarType.success);
         } else {
-          final error = ref.read(buyerOfferControllerProvider).errorMessage ?? context.l10n.failedToCancelOffer;
+          final error = ref.read(buyerOfferControllerProvider).errorMessage ??
+              context.l10n.failedToCancelOffer;
           AppSnackBar.show(context, message: error, type: SnackBarType.error);
         }
       }
@@ -129,7 +133,8 @@ class _BuyerOffersScreenState extends ConsumerState<BuyerOffersScreen> {
               scrollDirection: Axis.horizontal,
               child: Row(
                 children: _statuses.map((status) {
-                  final isSelected = state.selectedStatus.toLowerCase() == status.toLowerCase();
+                  final isSelected = state.selectedStatus.toLowerCase() ==
+                      status.toLowerCase();
                   return Padding(
                     padding: const EdgeInsets.only(right: AppSpacing.xs),
                     child: FilterChip(
@@ -137,8 +142,11 @@ class _BuyerOffersScreenState extends ConsumerState<BuyerOffersScreen> {
                         _statusLabel(status),
                         style: TextStyle(
                           fontSize: 12,
-                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                          color: isSelected ? colorScheme.onPrimary : colorScheme.onSurface,
+                          fontWeight:
+                              isSelected ? FontWeight.bold : FontWeight.normal,
+                          color: isSelected
+                              ? colorScheme.onPrimary
+                              : colorScheme.onSurface,
                         ),
                       ),
                       selected: isSelected,
@@ -179,8 +187,10 @@ class _BuyerOffersScreenState extends ConsumerState<BuyerOffersScreen> {
           AppSpacing.xxxl + 24,
         ),
         itemCount: 4,
-        separatorBuilder: (context, index) => const SizedBox(height: AppSpacing.md),
-        itemBuilder: (context, index) => const ShimmerLoading(width: double.infinity, height: 140),
+        separatorBuilder: (context, index) =>
+            const SizedBox(height: AppSpacing.md),
+        itemBuilder: (context, index) =>
+            const ShimmerLoading(width: double.infinity, height: 140),
       );
     }
 
@@ -226,21 +236,28 @@ class _BuyerOffersScreenState extends ConsumerState<BuyerOffersScreen> {
         AppSpacing.xxxl + 24,
       ),
       itemCount: state.offers.length,
-      separatorBuilder: (context, index) => const SizedBox(height: AppSpacing.md),
+      separatorBuilder: (context, index) =>
+          const SizedBox(height: AppSpacing.md),
       itemBuilder: (context, index) {
         final offer = state.offers[index];
         final isPending = offer.status.toLowerCase() == 'pending';
-        final farmerIdDisplay = offer.farmerId.length > 6 ? offer.farmerId.substring(0, 6) : offer.farmerId;
+        final farmerIdDisplay = offer.farmerId.length > 6
+            ? offer.farmerId.substring(0, 6)
+            : offer.farmerId;
 
         final statusType = _mapStatus(offer.status);
 
         return OfferCard(
           cropName: offer.produceName ?? context.l10n.produceListingLabel,
-          buyerName: offer.farmerName != null ? '${context.l10n.farmerLabel}: ${offer.farmerName}' : '${context.l10n.farmerLabel} ID: $farmerIdDisplay',
+          buyerName: offer.farmerName != null
+              ? '${context.l10n.farmerLabel}: ${offer.farmerName}'
+              : '${context.l10n.farmerLabel} ID: $farmerIdDisplay',
           offerPrice: offer.offeredPrice,
-          quantity: '${offer.quantity} ${offer.produceUnit ?? context.l10n.unitsLabel}',
+          quantity:
+              '${offer.quantity} ${offer.produceUnit ?? context.l10n.unitsLabel}',
           status: statusType,
-          expiresText: '${context.l10n.statusLabel}: ${localizedOfferStatus(context, offer.status)}',
+          expiresText:
+              '${context.l10n.statusLabel}: ${localizedOfferStatus(context, offer.status)}',
           message: offer.message,
           history: offer.history,
           onCancel: isPending ? () => _handleCancelOffer(offer) : null,
@@ -250,10 +267,12 @@ class _BuyerOffersScreenState extends ConsumerState<BuyerOffersScreen> {
                     id: offer.produceId,
                     farmerId: offer.farmerId,
                     name: offer.produceName ?? context.l10n.produceListingLabel,
-                    category: offer.produceCategory ?? context.l10n.generalLabel,
+                    category:
+                        offer.produceCategory ?? context.l10n.generalLabel,
                     quantity: offer.quantity,
                     unit: offer.produceUnit ?? 'units',
-                    expectedPrice: offer.produceExpectedPrice ?? offer.offeredPrice,
+                    expectedPrice:
+                        offer.produceExpectedPrice ?? offer.offeredPrice,
                   );
                   final updated = await MakeOfferDialog.show(
                     context,

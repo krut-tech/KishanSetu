@@ -28,7 +28,8 @@ class NotificationRepositoryImpl implements NotificationRepository {
 
       final List<dynamic> data = response;
       final notifications = data
-          .map((json) => NotificationModel.fromJson(json as Map<String, dynamic>))
+          .map((json) =>
+              NotificationModel.fromJson(json as Map<String, dynamic>))
           .toList();
 
       return Right(notifications);
@@ -75,8 +76,10 @@ class NotificationRepositoryImpl implements NotificationRepository {
 
       return const Right(null);
     } catch (e, stackTrace) {
-      AppLogger.error('Failed to mark all notifications as read', e, stackTrace);
-      return Left(DatabaseFailure('Failed to mark all notifications as read: $e'));
+      AppLogger.error(
+          'Failed to mark all notifications as read', e, stackTrace);
+      return Left(
+          DatabaseFailure('Failed to mark all notifications as read: $e'));
     }
   }
 

@@ -38,7 +38,8 @@ class OfferState extends Equatable {
       isSubmitting: isSubmitting ?? this.isSubmitting,
       selectedStatus: selectedStatus ?? this.selectedStatus,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
-      successMessage: clearSuccess ? null : (successMessage ?? this.successMessage),
+      successMessage:
+          clearSuccess ? null : (successMessage ?? this.successMessage),
     );
   }
 
@@ -116,8 +117,10 @@ class OfferController extends StateNotifier<OfferState> {
   }
 
   Future<bool> respondToOffer(String offerId, String newStatus) async {
-    state = state.copyWith(isSubmitting: true, clearError: true, clearSuccess: true);
-    AppLogger.info('OfferController responding to offer $offerId with status: $newStatus');
+    state = state.copyWith(
+        isSubmitting: true, clearError: true, clearSuccess: true);
+    AppLogger.info(
+        'OfferController responding to offer $offerId with status: $newStatus');
 
     final result = await _repository.updateOfferStatus(offerId, newStatus);
 

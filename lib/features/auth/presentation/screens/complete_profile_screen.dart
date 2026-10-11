@@ -20,7 +20,8 @@ class CompleteProfileScreen extends ConsumerStatefulWidget {
   const CompleteProfileScreen({super.key});
 
   @override
-  ConsumerState<CompleteProfileScreen> createState() => _CompleteProfileScreenState();
+  ConsumerState<CompleteProfileScreen> createState() =>
+      _CompleteProfileScreenState();
 }
 
 class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
@@ -80,7 +81,9 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
       _nameController.text = googleName;
 
       if (profile != null) {
-        if (profile.fullName.isNotEmpty) _nameController.text = profile.fullName;
+        if (profile.fullName.isNotEmpty) {
+          _nameController.text = profile.fullName;
+        }
         _phoneController.text = profile.phone ?? '';
         if (profile.state != null && profile.state!.isNotEmpty) {
           _stateController.text = profile.state!;
@@ -94,11 +97,13 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
 
         _companyNameController.text = profile.companyName ?? '';
         _gstController.text = profile.gstNumber ?? '';
-        _capacityController.text = profile.buyingCapacityQuintals?.toString() ?? '';
+        _capacityController.text =
+            profile.buyingCapacityQuintals?.toString() ?? '';
         if (profile.businessType != null && profile.businessType!.isNotEmpty) {
           _businessType = profile.businessType!;
         }
-        _selectedLanguage = profile.language.isNotEmpty ? profile.language : 'en';
+        _selectedLanguage =
+            profile.language.isNotEmpty ? profile.language : 'en';
 
         if (profile.role != null) {
           _selectedRole = profile.role;
@@ -152,13 +157,19 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
       district: _selectedRole == UserRole.farmer
           ? _districtController.text.trim()
           : _buyerDistrictController.text.trim(),
-      village: _selectedRole == UserRole.farmer ? _villageController.text.trim() : null,
+      village: _selectedRole == UserRole.farmer
+          ? _villageController.text.trim()
+          : null,
       landSizeAcres: _selectedRole == UserRole.farmer
           ? double.tryParse(_landSizeController.text.trim())
           : null,
-      primaryCrop: _selectedRole == UserRole.farmer ? _cropController.text.trim() : null,
-      companyName: _selectedRole == UserRole.buyer ? _companyNameController.text.trim() : null,
-      gstNumber: _selectedRole == UserRole.buyer ? _gstController.text.trim() : null,
+      primaryCrop:
+          _selectedRole == UserRole.farmer ? _cropController.text.trim() : null,
+      companyName: _selectedRole == UserRole.buyer
+          ? _companyNameController.text.trim()
+          : null,
+      gstNumber:
+          _selectedRole == UserRole.buyer ? _gstController.text.trim() : null,
       businessType: _selectedRole == UserRole.buyer ? _businessType : null,
       buyingCapacityQuintals: _selectedRole == UserRole.buyer
           ? double.tryParse(_capacityController.text.trim())
@@ -171,7 +182,8 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
         .updateProfile(updatedProfile);
 
     if (!success && mounted) {
-      final error = ref.read(authNotifierProvider).errorMessage ?? context.l10n.failedToSaveProfile;
+      final error = ref.read(authNotifierProvider).errorMessage ??
+          context.l10n.failedToSaveProfile;
       AppSnackBar.show(context, message: error, type: SnackBarType.error);
     }
   }
@@ -211,9 +223,17 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
                   // Step Indicator Header
                   Row(
                     children: [
-                      _StepBadge(stepNumber: 1, label: context.l10n.accountType, isActive: _currentStep == 0, isDone: _currentStep > 0),
+                      _StepBadge(
+                          stepNumber: 1,
+                          label: context.l10n.accountType,
+                          isActive: _currentStep == 0,
+                          isDone: _currentStep > 0),
                       const Expanded(child: Divider(indent: 8, endIndent: 8)),
-                      _StepBadge(stepNumber: 2, label: context.l10n.profileDetailsTitle, isActive: _currentStep == 1, isDone: false),
+                      _StepBadge(
+                          stepNumber: 2,
+                          label: context.l10n.profileDetailsTitle,
+                          isActive: _currentStep == 1,
+                          isDone: false),
                     ],
                   ),
                   const SizedBox(height: AppSpacing.lg),
@@ -240,13 +260,15 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
 
                     // Farmer Role Card
                     AnimatedPressable(
-                      onTap: () => setState(() => _selectedRole = UserRole.farmer),
+                      onTap: () =>
+                          setState(() => _selectedRole = UserRole.farmer),
                       child: AppCard(
                         borderColor: _selectedRole == UserRole.farmer
                             ? colorScheme.primary
                             : colorScheme.outline,
                         backgroundColor: _selectedRole == UserRole.farmer
-                            ? colorScheme.primaryContainer.withValues(alpha: 0.5)
+                            ? colorScheme.primaryContainer
+                                .withValues(alpha: 0.5)
                             : colorScheme.surface,
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -257,7 +279,8 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
                                 color: colorScheme.primaryContainer,
                                 borderRadius: AppRadius.borderMd,
                               ),
-                              child: Icon(Icons.agriculture_rounded, color: colorScheme.primary, size: 36),
+                              child: Icon(Icons.agriculture_rounded,
+                                  color: colorScheme.primary, size: 36),
                             ),
                             const SizedBox(width: AppSpacing.md),
                             Expanded(
@@ -304,13 +327,15 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
 
                     // Buyer Role Card
                     AnimatedPressable(
-                      onTap: () => setState(() => _selectedRole = UserRole.buyer),
+                      onTap: () =>
+                          setState(() => _selectedRole = UserRole.buyer),
                       child: AppCard(
                         borderColor: _selectedRole == UserRole.buyer
                             ? colorScheme.secondary
                             : colorScheme.outline,
                         backgroundColor: _selectedRole == UserRole.buyer
-                            ? colorScheme.secondaryContainer.withValues(alpha: 0.5)
+                            ? colorScheme.secondaryContainer
+                                .withValues(alpha: 0.5)
                             : colorScheme.surface,
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -321,7 +346,8 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
                                 color: colorScheme.secondaryContainer,
                                 borderRadius: AppRadius.borderMd,
                               ),
-                              child: Icon(Icons.storefront_rounded, color: colorScheme.secondary, size: 36),
+                              child: Icon(Icons.storefront_rounded,
+                                  color: colorScheme.secondary, size: 36),
                             ),
                             const SizedBox(width: AppSpacing.md),
                             Expanded(
@@ -398,11 +424,13 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
                           CircleAvatar(
                             radius: 26,
                             backgroundColor: colorScheme.primaryContainer,
-                            backgroundImage: avatarUrl != null && avatarUrl.isNotEmpty
-                                ? NetworkImage(avatarUrl)
-                                : null,
+                            backgroundImage:
+                                avatarUrl != null && avatarUrl.isNotEmpty
+                                    ? NetworkImage(avatarUrl)
+                                    : null,
                             child: avatarUrl == null || avatarUrl.isEmpty
-                                ? Icon(Icons.person_rounded, color: colorScheme.primary, size: 28)
+                                ? Icon(Icons.person_rounded,
+                                    color: colorScheme.primary, size: 28)
                                 : null,
                           ),
                           const SizedBox(width: AppSpacing.md),
@@ -413,9 +441,11 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
                                 Row(
                                   children: [
                                     Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 6, vertical: 2),
                                       decoration: BoxDecoration(
-                                        color: colorScheme.surfaceContainerHighest,
+                                        color:
+                                            colorScheme.surfaceContainerHighest,
                                         borderRadius: BorderRadius.circular(4),
                                       ),
                                       child: Text(
@@ -473,7 +503,9 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
                       keyboardType: TextInputType.phone,
                       prefixIcon: const Icon(Icons.phone_outlined),
                       validator: (v) {
-                        if (v == null || v.trim().isEmpty) return context.l10n.phoneNumberRequired;
+                        if (v == null || v.trim().isEmpty) {
+                          return context.l10n.phoneNumberRequired;
+                        }
                         if (!RegExp(r'^[6-9]\d{9}$').hasMatch(v.trim())) {
                           return context.l10n.enterValid10DigitMobile;
                         }
@@ -486,12 +518,17 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
                       label: context.l10n.preferredLanguage,
                       value: _selectedLanguage,
                       items: [
-                        DropdownMenuItem(value: 'en', child: Text(context.l10n.english)),
-                        DropdownMenuItem(value: 'hi', child: Text(context.l10n.hindi)),
-                        DropdownMenuItem(value: 'gu', child: Text(context.l10n.gujarati)),
+                        DropdownMenuItem(
+                            value: 'en', child: Text(context.l10n.english)),
+                        DropdownMenuItem(
+                            value: 'hi', child: Text(context.l10n.hindi)),
+                        DropdownMenuItem(
+                            value: 'gu', child: Text(context.l10n.gujarati)),
                       ],
                       onChanged: (val) {
-                        if (val != null) setState(() => _selectedLanguage = val);
+                        if (val != null) {
+                          setState(() => _selectedLanguage = val);
+                        }
                       },
                     ),
                     const SizedBox(height: AppSpacing.md),
@@ -501,21 +538,27 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
                       AppTextField(
                         label: context.l10n.state,
                         controller: _stateController,
-                        validator: (v) => v == null || v.trim().isEmpty ? context.l10n.stateRequired : null,
+                        validator: (v) => v == null || v.trim().isEmpty
+                            ? context.l10n.stateRequired
+                            : null,
                       ),
                       const SizedBox(height: AppSpacing.md),
                       AppTextField(
                         label: context.l10n.district,
                         controller: _districtController,
                         hint: 'e.g. Anand, Rajkot, Junagadh',
-                        validator: (v) => v == null || v.trim().isEmpty ? context.l10n.districtRequired : null,
+                        validator: (v) => v == null || v.trim().isEmpty
+                            ? context.l10n.districtRequired
+                            : null,
                       ),
                       const SizedBox(height: AppSpacing.md),
                       AppTextField(
                         label: context.l10n.village,
                         controller: _villageController,
                         hint: context.l10n.enterYourVillageName,
-                        validator: (v) => v == null || v.trim().isEmpty ? context.l10n.villageRequired : null,
+                        validator: (v) => v == null || v.trim().isEmpty
+                            ? context.l10n.villageRequired
+                            : null,
                       ),
                       const SizedBox(height: AppSpacing.md),
                       AppTextField(
@@ -529,7 +572,9 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
                         label: context.l10n.primaryCrop,
                         controller: _cropController,
                         hint: 'e.g. Wheat, Cotton, Mustard, Groundnut',
-                        validator: (v) => v == null || v.trim().isEmpty ? context.l10n.primaryCropRequired : null,
+                        validator: (v) => v == null || v.trim().isEmpty
+                            ? context.l10n.primaryCropRequired
+                            : null,
                       ),
                     ] else ...[
                       // Buyer Profile Fields
@@ -537,17 +582,27 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
                         label: context.l10n.companyName,
                         controller: _companyNameController,
                         hint: 'e.g. Patel Agro Traders',
-                        validator: (v) => v == null || v.trim().isEmpty ? context.l10n.companyNameRequired : null,
+                        validator: (v) => v == null || v.trim().isEmpty
+                            ? context.l10n.companyNameRequired
+                            : null,
                       ),
                       const SizedBox(height: AppSpacing.md),
                       AppDropdownFormField<String>(
                         label: context.l10n.businessType,
                         value: _businessType,
                         items: [
-                          DropdownMenuItem(value: 'Wholesaler / Trader', child: Text(context.l10n.wholesalerTrader)),
-                          DropdownMenuItem(value: 'Processor / Mill Owner', child: Text(context.l10n.processorMillOwner)),
-                          DropdownMenuItem(value: 'Exporter', child: Text(context.l10n.exporter)),
-                          DropdownMenuItem(value: 'Retailer', child: Text(context.l10n.retailer)),
+                          DropdownMenuItem(
+                              value: 'Wholesaler / Trader',
+                              child: Text(context.l10n.wholesalerTrader)),
+                          DropdownMenuItem(
+                              value: 'Processor / Mill Owner',
+                              child: Text(context.l10n.processorMillOwner)),
+                          DropdownMenuItem(
+                              value: 'Exporter',
+                              child: Text(context.l10n.exporter)),
+                          DropdownMenuItem(
+                              value: 'Retailer',
+                              child: Text(context.l10n.retailer)),
                         ],
                         onChanged: (val) {
                           if (val != null) setState(() => _businessType = val);
@@ -557,14 +612,18 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
                       AppTextField(
                         label: context.l10n.state,
                         controller: _buyerStateController,
-                        validator: (v) => v == null || v.trim().isEmpty ? context.l10n.stateRequired : null,
+                        validator: (v) => v == null || v.trim().isEmpty
+                            ? context.l10n.stateRequired
+                            : null,
                       ),
                       const SizedBox(height: AppSpacing.md),
                       AppTextField(
                         label: context.l10n.district,
                         controller: _buyerDistrictController,
                         hint: context.l10n.primaryMandiDistrictCity,
-                        validator: (v) => v == null || v.trim().isEmpty ? context.l10n.districtCityRequired : null,
+                        validator: (v) => v == null || v.trim().isEmpty
+                            ? context.l10n.districtCityRequired
+                            : null,
                       ),
                       const SizedBox(height: AppSpacing.md),
                       AppTextField(
@@ -621,7 +680,9 @@ class _StepBadge extends StatelessWidget {
 
     final bg = isDone
         ? colorScheme.primary
-        : (isActive ? colorScheme.primaryContainer : colorScheme.surfaceContainerHighest);
+        : (isActive
+            ? colorScheme.primaryContainer
+            : colorScheme.surfaceContainerHighest);
     final fg = isDone
         ? colorScheme.onPrimary
         : (isActive ? colorScheme.primary : colorScheme.onSurfaceVariant);
@@ -647,8 +708,11 @@ class _StepBadge extends StatelessWidget {
           label,
           style: TextStyle(
             fontSize: 12,
-            fontWeight: isActive || isDone ? FontWeight.bold : FontWeight.normal,
-            color: isActive || isDone ? colorScheme.onSurface : colorScheme.onSurfaceVariant,
+            fontWeight:
+                isActive || isDone ? FontWeight.bold : FontWeight.normal,
+            color: isActive || isDone
+                ? colorScheme.onSurface
+                : colorScheme.onSurfaceVariant,
           ),
         ),
       ],

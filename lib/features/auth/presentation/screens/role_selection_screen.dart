@@ -16,7 +16,8 @@ class RoleSelectionScreen extends ConsumerStatefulWidget {
   const RoleSelectionScreen({super.key});
 
   @override
-  ConsumerState<RoleSelectionScreen> createState() => _RoleSelectionScreenState();
+  ConsumerState<RoleSelectionScreen> createState() =>
+      _RoleSelectionScreenState();
 }
 
 class _RoleSelectionScreenState extends ConsumerState<RoleSelectionScreen> {
@@ -30,7 +31,8 @@ class _RoleSelectionScreenState extends ConsumerState<RoleSelectionScreen> {
         .selectRole(_selectedRole!);
 
     if (!success && mounted) {
-      final error = ref.read(authNotifierProvider).errorMessage ?? context.l10n.failedToUpdateRole;
+      final error = ref.read(authNotifierProvider).errorMessage ??
+          context.l10n.failedToUpdateRole;
       AppSnackBar.show(context, message: error, type: SnackBarType.error);
     }
   }
@@ -94,7 +96,8 @@ class _RoleSelectionScreenState extends ConsumerState<RoleSelectionScreen> {
                             color: colorScheme.primaryContainer,
                             borderRadius: AppRadius.borderMd,
                           ),
-                          child: Icon(Icons.agriculture_rounded, color: colorScheme.primary, size: 36),
+                          child: Icon(Icons.agriculture_rounded,
+                              color: colorScheme.primary, size: 36),
                         ),
                         const SizedBox(width: AppSpacing.md),
                         Expanded(
@@ -154,7 +157,8 @@ class _RoleSelectionScreenState extends ConsumerState<RoleSelectionScreen> {
                             color: colorScheme.secondaryContainer,
                             borderRadius: AppRadius.borderMd,
                           ),
-                          child: Icon(Icons.storefront_rounded, color: colorScheme.secondary, size: 36),
+                          child: Icon(Icons.storefront_rounded,
+                              color: colorScheme.secondary, size: 36),
                         ),
                         const SizedBox(width: AppSpacing.md),
                         Expanded(

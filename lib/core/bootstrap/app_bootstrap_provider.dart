@@ -25,7 +25,8 @@ class AppBootstrapState extends Equatable {
   bool get hasError => errorMessage != null;
 
   @override
-  List<Object?> get props => [isLoading, isInitialized, errorMessage, technicalError];
+  List<Object?> get props =>
+      [isLoading, isInitialized, errorMessage, technicalError];
 }
 
 class AppBootstrapListenable extends ChangeNotifier {
@@ -64,7 +65,10 @@ class AppBootstrapNotifier extends StateNotifier<AppBootstrapState> {
       try {
         await PushNotificationService().initialize();
       } catch (pushErr, stackTrace) {
-        AppLogger.error('Failed to initialize PushNotificationService during bootstrap: $pushErr', pushErr, stackTrace);
+        AppLogger.error(
+            'Failed to initialize PushNotificationService during bootstrap: $pushErr',
+            pushErr,
+            stackTrace);
       }
 
       AppLogger.info('App bootstrap: Initializing AuthNotifier session...');
@@ -83,7 +87,8 @@ class AppBootstrapNotifier extends StateNotifier<AppBootstrapState> {
       state = AppBootstrapState(
         isLoading: false,
         isInitialized: false,
-        errorMessage: 'Failed to initialize backend services. Please check connection and try again.',
+        errorMessage:
+            'Failed to initialize backend services. Please check connection and try again.',
         technicalError: e.toString(),
       );
     }

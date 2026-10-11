@@ -48,7 +48,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
     if (!(_formKey.currentState?.validate() ?? false)) return;
     if (_selectedRole == null) {
-      AppSnackBar.show(context, message: context.l10n.pleaseSelectAccountType, type: SnackBarType.error);
+      AppSnackBar.show(context,
+          message: context.l10n.pleaseSelectAccountType,
+          type: SnackBarType.error);
       return;
     }
 
@@ -61,7 +63,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         );
 
     if (!success && mounted) {
-      final error = ref.read(authNotifierProvider).errorMessage ?? context.l10n.registrationFailed;
+      final error = ref.read(authNotifierProvider).errorMessage ??
+          context.l10n.registrationFailed;
       AppSnackBar.show(context, message: error, type: SnackBarType.error);
     }
   }
@@ -70,9 +73,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     final authState = ref.read(authNotifierProvider);
     if (authState.isLoading) return;
 
-    final success = await ref.read(authNotifierProvider.notifier).signInWithGoogle();
+    final success =
+        await ref.read(authNotifierProvider.notifier).signInWithGoogle();
     if (!success && mounted) {
-      final error = ref.read(authNotifierProvider).errorMessage ?? context.l10n.googleAuthFailed;
+      final error = ref.read(authNotifierProvider).errorMessage ??
+          context.l10n.googleAuthFailed;
       AppSnackBar.show(context, message: error, type: SnackBarType.error);
     }
   }
@@ -120,17 +125,20 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         ),
                       ),
                       const SizedBox(height: AppSpacing.xl),
-                      if (authState.errorMessage != null && authState.errorMessage!.isNotEmpty) ...[
+                      if (authState.errorMessage != null &&
+                          authState.errorMessage!.isNotEmpty) ...[
                         Container(
                           padding: const EdgeInsets.all(AppSpacing.md),
                           decoration: BoxDecoration(
                             color: AppColors.rejectedBg,
                             borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: AppColors.error.withValues(alpha: 0.3)),
+                            border: Border.all(
+                                color: AppColors.error.withValues(alpha: 0.3)),
                           ),
                           child: Row(
                             children: [
-                              const Icon(Icons.error_outline_rounded, color: AppColors.error, size: 20),
+                              const Icon(Icons.error_outline_rounded,
+                                  color: AppColors.error, size: 20),
                               const SizedBox(width: AppSpacing.sm),
                               Expanded(
                                 child: Text(
@@ -171,7 +179,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                           if (v == null || v.trim().isEmpty) {
                             return context.l10n.pleaseEnterYourEmail;
                           }
-                          final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+                          final emailRegex =
+                              RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
                           if (!emailRegex.hasMatch(v.trim())) {
                             return context.l10n.pleaseEnterValidEmail;
                           }
@@ -205,7 +214,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                             value: UserRole.farmer,
                             child: Row(
                               children: [
-                                Icon(Icons.agriculture_rounded, size: 20, color: colorScheme.primary),
+                                Icon(Icons.agriculture_rounded,
+                                    size: 20, color: colorScheme.primary),
                                 const SizedBox(width: AppSpacing.xs),
                                 Text(context.l10n.farmerRole),
                               ],
@@ -215,7 +225,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                             value: UserRole.buyer,
                             child: Row(
                               children: [
-                                Icon(Icons.storefront_rounded, size: 20, color: colorScheme.secondary),
+                                Icon(Icons.storefront_rounded,
+                                    size: 20, color: colorScheme.secondary),
                                 const SizedBox(width: AppSpacing.xs),
                                 Text(context.l10n.buyerRole),
                               ],
@@ -275,9 +286,13 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       const SizedBox(height: AppSpacing.lg),
                       Row(
                         children: [
-                          Expanded(child: Divider(color: colorScheme.outline.withValues(alpha: 0.3))),
+                          Expanded(
+                              child: Divider(
+                                  color: colorScheme.outline
+                                      .withValues(alpha: 0.3))),
                           Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: AppSpacing.sm),
                             child: Text(
                               'OR',
                               style: TextStyle(
@@ -287,7 +302,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                               ),
                             ),
                           ),
-                          Expanded(child: Divider(color: colorScheme.outline.withValues(alpha: 0.3))),
+                          Expanded(
+                              child: Divider(
+                                  color: colorScheme.outline
+                                      .withValues(alpha: 0.3))),
                         ],
                       ),
                       const SizedBox(height: AppSpacing.lg),

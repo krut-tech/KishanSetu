@@ -15,7 +15,8 @@ class ChatConversation {
     required this.createdAt,
   });
 
-  factory ChatConversation.fromMap(Map<String, dynamic> map) => ChatConversation(
+  factory ChatConversation.fromMap(Map<String, dynamic> map) =>
+      ChatConversation(
         id: map['id'] as String,
         farmerId: map['farmer_id'] as String,
         buyerId: map['buyer_id'] as String,
@@ -67,20 +68,24 @@ class ChatConversationSummary {
         createdAt: lastMessageAt ?? DateTime.now(),
       );
 
-  factory ChatConversationSummary.fromMap(Map<String, dynamic> map) => ChatConversationSummary(
+  factory ChatConversationSummary.fromMap(Map<String, dynamic> map) =>
+      ChatConversationSummary(
         conversationId: map['conversation_id'] as String,
         farmerId: map['farmer_id'] as String,
         buyerId: map['buyer_id'] as String,
         produceId: map['produce_id'] as String?,
         otherUserId: map['other_user_id'] as String,
-        otherUserName: (map['other_user_name'] as String?)?.trim().isNotEmpty == true
-            ? (map['other_user_name'] as String).trim()
-            : 'KisanSetu user',
+        otherUserName:
+            (map['other_user_name'] as String?)?.trim().isNotEmpty == true
+                ? (map['other_user_name'] as String).trim()
+                : 'KisanSetu user',
         otherUserRole: map['other_user_role'] as String?,
         otherUserAvatar: map['other_user_avatar'] as String?,
         otherUserDistrict: map['other_user_district'] as String?,
         lastMessage: map['last_message'] as String?,
-        lastMessageAt: map['last_message_at'] == null ? null : DateTime.parse(map['last_message_at'] as String),
+        lastMessageAt: map['last_message_at'] == null
+            ? null
+            : DateTime.parse(map['last_message_at'] as String),
         lastMessageSenderId: map['last_message_sender_id'] as String?,
         unreadCount: (map['unread_count'] as num?)?.toInt() ?? 0,
       );
@@ -109,7 +114,9 @@ class ChatMessage {
         senderId: map['sender_id'] as String,
         body: map['body'] as String,
         createdAt: DateTime.parse(map['created_at'] as String),
-        readAt: map['read_at'] == null ? null : DateTime.parse(map['read_at'] as String),
+        readAt: map['read_at'] == null
+            ? null
+            : DateTime.parse(map['read_at'] as String),
       );
 }
 
@@ -125,9 +132,12 @@ class ChatRepository {
     String? produceId,
   }) async {
     final uid = currentUserId;
-    if (uid == null) throw const AuthException('Please sign in to start a chat.');
+    if (uid == null) {
+      throw const AuthException('Please sign in to start a chat.');
+    }
     if (uid != buyerId && uid != farmerId) {
-      throw const AuthException('You are not a participant in this conversation.');
+      throw const AuthException(
+          'You are not a participant in this conversation.');
     }
 
     // Create-or-reuse is atomic and safe against two participants tapping at
@@ -144,15 +154,22 @@ class ChatRepository {
     } on PostgrestException catch (error) {
       if (error.code != 'PGRST202' && error.code != '42883') rethrow;
       // Compatible fallback while the new migration/RPC has not been applied.
-      final existingRows = await _client.from('chat_conversations').select()
-          .eq('farmer_id', farmerId).eq('buyer_id', buyerId);
+      final existingRows = await _client
+          .from('chat_conversations')
+          .select()
+          .eq('farmer_id', farmerId)
+          .eq('buyer_id', buyerId);
       final matches = (existingRows as List).cast<Map<String, dynamic>>();
       if (matches.isNotEmpty) return ChatConversation.fromMap(matches.first);
-      final created = await _client.from('chat_conversations').insert({
-        'farmer_id': farmerId,
-        'buyer_id': buyerId,
-        'produce_id': produceId,
-      }).select().single();
+      final created = await _client
+          .from('chat_conversations')
+          .insert({
+            'farmer_id': farmerId,
+            'buyer_id': buyerId,
+            'produce_id': produceId,
+          })
+          .select()
+          .single();
       return ChatConversation.fromMap(created);
     }
   }
@@ -165,14 +182,19 @@ class ChatRepository {
     try {
       final rows = await _client.rpc('list_my_chat_conversations');
       final summaries = (rows as List)
-          .map((row) => ChatConversationSummary.fromMap(Map<String, dynamic>.from(row as Map)))
+          .map((row) => ChatConversationSummary.fromMap(
+              Map<String, dynamic>.from(row as Map)))
           .toList();
       // Most recently active conversations appear first in the chat list.
       summaries.sort((a, b) {
-        final aTime = a.lastMessageAt ?? DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
-        final bTime = b.lastMessageAt ?? DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
+        final aTime = a.lastMessageAt ??
+            DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
+        final bTime = b.lastMessageAt ??
+            DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
         final byTime = bTime.compareTo(aTime);
-        return byTime != 0 ? byTime : a.conversationId.compareTo(b.conversationId);
+        return byTime != 0
+            ? byTime
+            : a.conversationId.compareTo(b.conversationId);
       });
       return summaries;
     } on PostgrestException catch (error) {
@@ -181,7 +203,9 @@ class ChatRepository {
       final conversations = await listConversations();
       final summaries = <ChatConversationSummary>[];
       for (final conversation in conversations) {
-        final otherId = uid == conversation.farmerId ? conversation.buyerId : conversation.farmerId;
+        final otherId = uid == conversation.farmerId
+            ? conversation.buyerId
+            : conversation.farmerId;
         final other = await getOtherParticipant(otherId);
         summaries.add(ChatConversationSummary(
           conversationId: conversation.id,
@@ -189,9 +213,10 @@ class ChatRepository {
           buyerId: conversation.buyerId,
           produceId: conversation.produceId,
           otherUserId: otherId,
-          otherUserName: (other?['full_name'] as String?)?.trim().isNotEmpty == true
-              ? (other!['full_name'] as String).trim()
-              : 'KisanSetu user',
+          otherUserName:
+              (other?['full_name'] as String?)?.trim().isNotEmpty == true
+                  ? (other!['full_name'] as String).trim()
+                  : 'KisanSetu user',
           otherUserRole: other?['role'] as String?,
           otherUserAvatar: other?['avatar_url'] as String?,
           otherUserDistrict: other?['district'] as String?,
@@ -202,10 +227,14 @@ class ChatRepository {
         ));
       }
       summaries.sort((a, b) {
-        final aTime = a.lastMessageAt ?? DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
-        final bTime = b.lastMessageAt ?? DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
+        final aTime = a.lastMessageAt ??
+            DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
+        final bTime = b.lastMessageAt ??
+            DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
         final byTime = bTime.compareTo(aTime);
-        return byTime != 0 ? byTime : a.conversationId.compareTo(b.conversationId);
+        return byTime != 0
+            ? byTime
+            : a.conversationId.compareTo(b.conversationId);
       });
       return summaries;
     }
@@ -215,15 +244,22 @@ class ChatRepository {
   Future<List<ChatConversation>> listConversations() async {
     final uid = currentUserId;
     if (uid == null) throw const AuthException('Please sign in to view chats.');
-    final rows = await _client.from('chat_conversations').select()
-        .or('farmer_id.eq.$uid,buyer_id.eq.$uid').order('updated_at', ascending: false);
-    return (rows as List).map((row) => ChatConversation.fromMap(row as Map<String, dynamic>)).toList();
+    final rows = await _client
+        .from('chat_conversations')
+        .select()
+        .or('farmer_id.eq.$uid,buyer_id.eq.$uid')
+        .order('updated_at', ascending: false);
+    return (rows as List)
+        .map((row) => ChatConversation.fromMap(row as Map<String, dynamic>))
+        .toList();
   }
 
   Future<List<ChatMessage>> loadMessages(String conversationId) async {
     // Query in deterministic chronological order. id is a stable tie-breaker
     // for messages that share the same server timestamp.
-    final rows = await _client.from('chat_messages').select()
+    final rows = await _client
+        .from('chat_messages')
+        .select()
         .eq('conversation_id', conversationId)
         .order('created_at', ascending: true)
         .order('id', ascending: true);
@@ -237,7 +273,8 @@ class ChatRepository {
 
     // Clearing a chat is per-user; it must not erase the other participant's
     // copy of the conversation.
-    final state = await _client.from('chat_conversation_user_state')
+    final state = await _client
+        .from('chat_conversation_user_state')
         .select('cleared_at')
         .eq('conversation_id', conversationId)
         .eq('user_id', currentUserId!)
@@ -246,13 +283,16 @@ class ChatRepository {
         ? null
         : DateTime.parse(state!['cleared_at'] as String).toUtc();
     if (clearedAt == null) return messages;
-    return messages.where((m) => m.createdAt.toUtc().isAfter(clearedAt)).toList();
+    return messages
+        .where((m) => m.createdAt.toUtc().isAfter(clearedAt))
+        .toList();
   }
 
-  Future<void> clearChatForMe(String conversationId) async {
-    await _client.rpc('clear_chat_for_me', params: {
+  Future<DateTime> clearChatForMe(String conversationId) async {
+    final res = await _client.rpc('clear_chat_for_me', params: {
       'p_conversation_id': conversationId,
     });
+    return DateTime.parse(res as String).toUtc();
   }
 
   Future<void> deleteChatForMe(String conversationId) async {
@@ -264,33 +304,49 @@ class ChatRepository {
   Future<void> sendMessage(String conversationId, String body) async {
     final uid = currentUserId;
     final message = body.trim();
-    if (uid == null) throw const AuthException('Please sign in to send messages.');
+    if (uid == null) {
+      throw const AuthException('Please sign in to send messages.');
+    }
     if (message.isEmpty) return;
-    if (message.length > 4000) throw const FormatException('Message must be 4000 characters or fewer.');
+    if (message.length > 4000) {
+      throw const FormatException('Message must be 4000 characters or fewer.');
+    }
     await _client.from('chat_messages').insert({
-      'conversation_id': conversationId, 'sender_id': uid, 'body': message,
+      'conversation_id': conversationId,
+      'sender_id': uid,
+      'body': message,
     });
   }
 
   Future<void> markIncomingRead(String conversationId) async {
     final uid = currentUserId;
     if (uid == null) return;
-    await _client.from('chat_messages').update({'read_at': DateTime.now().toUtc().toIso8601String()})
-        .eq('conversation_id', conversationId).neq('sender_id', uid).isFilter('read_at', null);
+    await _client
+        .from('chat_messages')
+        .update({'read_at': DateTime.now().toUtc().toIso8601String()})
+        .eq('conversation_id', conversationId)
+        .neq('sender_id', uid)
+        .isFilter('read_at', null);
   }
 
-  RealtimeChannel subscribeToMessages(String conversationId, void Function(ChatMessage) onMessage) {
-    return _client.channel('chat-messages-$conversationId')
+  RealtimeChannel subscribeToMessages(
+      String conversationId, void Function(ChatMessage) onMessage) {
+    return _client
+        .channel('chat-messages-$conversationId')
         .onPostgresChanges(
           event: PostgresChangeEvent.all,
           schema: 'public',
           table: 'chat_messages',
-          filter: PostgresChangeFilter(type: PostgresChangeFilterType.eq, column: 'conversation_id', value: conversationId),
+          filter: PostgresChangeFilter(
+              type: PostgresChangeFilterType.eq,
+              column: 'conversation_id',
+              value: conversationId),
           callback: (payload) {
             final row = payload.newRecord;
             if (row.isNotEmpty) onMessage(ChatMessage.fromMap(row));
           },
-        ).subscribe();
+        )
+        .subscribe();
   }
 
   /// Live updates for the chat list itself: fires whenever any message in
@@ -298,18 +354,23 @@ class ChatRepository {
   /// message preview, ordering, unread badge) stays in sync immediately.
   RealtimeChannel subscribeToConversationUpdates(void Function() onChanged) {
     final uid = currentUserId ?? 'anon';
-    return _client.channel('chat-list-$uid')
+    return _client
+        .channel('chat-list-$uid')
         .onPostgresChanges(
           event: PostgresChangeEvent.all,
           schema: 'public',
           table: 'chat_messages',
           callback: (_) => onChanged(),
-        ).subscribe();
+        )
+        .subscribe();
   }
 
   Future<Map<String, dynamic>?> getOtherParticipant(String id) async {
-    return await _client.from('profiles')
-        .select('id,full_name,role,avatar_url,phone,district,village,state,latitude,longitude')
-        .eq('id', id).maybeSingle();
+    return await _client
+        .from('profiles')
+        .select(
+            'id,full_name,role,avatar_url,phone,district,village,state,latitude,longitude')
+        .eq('id', id)
+        .maybeSingle();
   }
 }

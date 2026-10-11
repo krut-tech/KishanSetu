@@ -34,11 +34,17 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:farmer_market_app/l10n/generated/app_localizations.dart';
 
 class FakeRealtimeChannel extends supabase.RealtimeChannel {
-  FakeRealtimeChannel() : super('fake_channel', supabase.RealtimeClient('https://fake.supabase.co'));
+  FakeRealtimeChannel()
+      : super('fake_channel',
+            supabase.RealtimeClient('https://fake.supabase.co'));
   @override
-  supabase.RealtimeChannel subscribe([void Function(supabase.RealtimeSubscribeStatus status, Object? error)? callback, Duration? timeout]) {
+  supabase.RealtimeChannel subscribe(
+      [void Function(supabase.RealtimeSubscribeStatus status, Object? error)?
+          callback,
+      Duration? timeout]) {
     return this;
   }
+
   @override
   Future<String> unsubscribe([Duration? timeout]) async => 'ok';
 }
@@ -98,7 +104,9 @@ class FakeAuthRepository implements AuthRepository {
     if (signInResult != null && signInResult!.isRight()) {
       _activeUser = signInResult!.getOrElse((_) => throw Exception()).user;
     }
-    return signInResult ?? left(const AuthFailure('Invalid email or password. Please check your credentials and try again.'));
+    return signInResult ??
+        left(const AuthFailure(
+            'Invalid email or password. Please check your credentials and try again.'));
   }
 
   @override
@@ -109,7 +117,9 @@ class FakeAuthRepository implements AuthRepository {
     if (googleSignInResult != null && googleSignInResult!.isLeft()) {
       return googleSignInResult!;
     }
-    final userId = getProfileResult?.fold((_) => 'google-user-1', (p) => p.id) ?? 'google-user-1';
+    final userId =
+        getProfileResult?.fold((_) => 'google-user-1', (p) => p.id) ??
+            'google-user-1';
     _activeUser = FakeUser(id: userId);
     return right(true);
   }
@@ -117,7 +127,8 @@ class FakeAuthRepository implements AuthRepository {
   @override
   Future<AppResult<UserProfile>> getUserProfile(String userId) async {
     if (savedProfile != null) return right(savedProfile!);
-    return getProfileResult ?? right(UserProfile(id: userId, fullName: 'Test User'));
+    return getProfileResult ??
+        right(UserProfile(id: userId, fullName: 'Test User'));
   }
 
   @override
@@ -174,20 +185,23 @@ class FakeAuthRepository implements AuthRepository {
   }
 
   @override
-  supabase.RealtimeChannel subscribeToProfile(String userId, void Function(UserProfile? profile) onProfileChange) {
+  supabase.RealtimeChannel subscribeToProfile(
+      String userId, void Function(UserProfile? profile) onProfileChange) {
     return FakeRealtimeChannel();
   }
 }
 
 class MockFarmerRepository implements FarmerRepository {
   @override
-  Future<AppResult<ProduceModel>> addProduce(ProduceModel produce) async => right(produce);
+  Future<AppResult<ProduceModel>> addProduce(ProduceModel produce) async =>
+      right(produce);
 
   @override
   Future<AppResult<void>> deleteProduce(String produceId) async => right(null);
 
   @override
-  Future<AppResult<DashboardStats>> getFarmerDashboardStats(String farmerId) async {
+  Future<AppResult<DashboardStats>> getFarmerDashboardStats(
+      String farmerId) async {
     return right(const DashboardStats(
       totalProduce: 1,
       activeListings: 1,
@@ -203,7 +217,8 @@ class MockFarmerRepository implements FarmerRepository {
     String farmerId, {
     String? status,
     String? searchQuery,
-  }) async => right([]);
+  }) async =>
+      right([]);
 
   @override
   Future<AppResult<List<MarketPriceModel>>> getMarketPrices({
@@ -211,36 +226,44 @@ class MockFarmerRepository implements FarmerRepository {
     String? category,
     String? marketName,
     String? sortBy,
-  }) async => right([]);
+  }) async =>
+      right([]);
 
   @override
   Future<AppResult<List<OfferModel>>> getOffersForFarmer(
     String farmerId, {
     String? status,
-  }) async => right([]);
+  }) async =>
+      right([]);
 
   @override
-  Future<AppResult<List<OfferHistoryModel>>> getOfferHistory(String offerId) async => right([]);
+  Future<AppResult<List<OfferHistoryModel>>> getOfferHistory(
+          String offerId) async =>
+      right([]);
 
   @override
   supabase.RealtimeChannel subscribeToFarmerOffers(
     String farmerId,
     void Function(OfferModel offer) onNewOffer,
-  ) => FakeRealtimeChannel();
+  ) =>
+      FakeRealtimeChannel();
 
   @override
   supabase.RealtimeChannel subscribeToProduceChanges(
     String farmerId,
     void Function() onChange,
-  ) => FakeRealtimeChannel();
+  ) =>
+      FakeRealtimeChannel();
 
   @override
   supabase.RealtimeChannel subscribeToMarketPrices(
     void Function() onChange,
-  ) => FakeRealtimeChannel();
+  ) =>
+      FakeRealtimeChannel();
 
   @override
-  Future<AppResult<OfferModel>> updateOfferStatus(String offerId, String status) async {
+  Future<AppResult<OfferModel>> updateOfferStatus(
+      String offerId, String status) async {
     return right(OfferModel(
       id: offerId,
       produceId: 'p1',
@@ -253,17 +276,27 @@ class MockFarmerRepository implements FarmerRepository {
   }
 
   @override
-  Future<AppResult<ProduceModel>> updateProduce(ProduceModel produce) async => right(produce);
+  Future<AppResult<ProduceModel>> updateProduce(ProduceModel produce) async =>
+      right(produce);
 }
 
 class MockBuyerRepository implements BuyerRepository {
   @override
-  Future<AppResult<OfferModel>> cancelOffer(String offerId, String buyerId) async {
-    return right(OfferModel(id: offerId, produceId: 'p1', farmerId: 'f1', buyerId: buyerId, offeredPrice: 100, quantity: 10, status: 'cancelled'));
+  Future<AppResult<OfferModel>> cancelOffer(
+      String offerId, String buyerId) async {
+    return right(OfferModel(
+        id: offerId,
+        produceId: 'p1',
+        farmerId: 'f1',
+        buyerId: buyerId,
+        offeredPrice: 100,
+        quantity: 10,
+        status: 'cancelled'));
   }
 
   @override
-  Future<AppResult<BuyerDashboardStats>> getBuyerDashboardStats(String buyerId) async {
+  Future<AppResult<BuyerDashboardStats>> getBuyerDashboardStats(
+      String buyerId) async {
     return right(const BuyerDashboardStats(
       totalAvailableProduce: 2,
       activeOffers: 1,
@@ -273,7 +306,8 @@ class MockBuyerRepository implements BuyerRepository {
   }
 
   @override
-  Future<AppResult<List<OfferModel>>> getBuyerOffers(String buyerId, {String? status}) async {
+  Future<AppResult<List<OfferModel>>> getBuyerOffers(String buyerId,
+      {String? status}) async {
     return right([
       OfferModel(
         id: 'o1',
@@ -332,27 +366,32 @@ class MockBuyerRepository implements BuyerRepository {
   }
 
   @override
-  Future<AppResult<OfferModel?>> getExistingOfferForProduce(String buyerId, String produceId) async {
+  Future<AppResult<OfferModel?>> getExistingOfferForProduce(
+      String buyerId, String produceId) async {
     return right(null);
   }
 
   @override
-  Future<AppResult<List<OfferHistoryModel>>> getOfferHistory(String offerId) async {
+  Future<AppResult<List<OfferHistoryModel>>> getOfferHistory(
+      String offerId) async {
     return right([]);
   }
 
   @override
-  supabase.RealtimeChannel subscribeToBuyerOffers(String buyerId, void Function(OfferModel offer) onOfferChange) {
+  supabase.RealtimeChannel subscribeToBuyerOffers(
+      String buyerId, void Function(OfferModel offer) onOfferChange) {
     return FakeRealtimeChannel();
   }
 
   @override
-  supabase.RealtimeChannel subscribeToMarketplaceProduce(void Function() onChange) {
+  supabase.RealtimeChannel subscribeToMarketplaceProduce(
+      void Function() onChange) {
     return FakeRealtimeChannel();
   }
 
   @override
-  supabase.RealtimeChannel subscribeToProduceDetails(String produceId, void Function(ProduceModel? produce) onChange) {
+  supabase.RealtimeChannel subscribeToProduceDetails(
+      String produceId, void Function(ProduceModel? produce) onChange) {
     return FakeRealtimeChannel();
   }
 }
@@ -426,7 +465,8 @@ void main() {
         authRepositoryProvider.overrideWithValue(fakeAuthRepository),
         farmerRepositoryProvider.overrideWithValue(mockFarmerRepository),
         buyerRepositoryProvider.overrideWithValue(mockBuyerRepository),
-        appBootstrapProvider.overrideWith((ref) => MockAppBootstrapNotifier(ref)),
+        appBootstrapProvider
+            .overrideWith((ref) => MockAppBootstrapNotifier(ref)),
       ],
       child: Consumer(
         builder: (context, ref, child) {
@@ -447,15 +487,21 @@ void main() {
   }
 
   group('Registration Flow & Role Selection Tests', () {
-    testWidgets('1. Account Type is required on Register screen', (tester) async {
+    testWidgets('1. Account Type is required on Register screen',
+        (tester) async {
       await tester.pumpWidget(createRegisterScreenTest());
       await tester.pumpAndSettle();
 
-      await tester.enterText(find.widgetWithText(AppTextField, 'Full Name'), 'Test Farmer');
-      await tester.enterText(find.widgetWithText(AppTextField, 'Email Address'), 'farmer@example.com');
-      await tester.enterText(find.widgetWithText(AppTextField, 'Phone Number'), '9876543210');
-      await tester.enterText(find.widgetWithText(AppTextField, 'Password'), 'Password123');
-      await tester.enterText(find.widgetWithText(AppTextField, 'Confirm Password'), 'Password123');
+      await tester.enterText(
+          find.widgetWithText(AppTextField, 'Full Name'), 'Test Farmer');
+      await tester.enterText(find.widgetWithText(AppTextField, 'Email Address'),
+          'farmer@example.com');
+      await tester.enterText(
+          find.widgetWithText(AppTextField, 'Phone Number'), '9876543210');
+      await tester.enterText(
+          find.widgetWithText(AppTextField, 'Password'), 'Password123');
+      await tester.enterText(
+          find.widgetWithText(AppTextField, 'Confirm Password'), 'Password123');
 
       final submitBtn = find.widgetWithText(ElevatedButton, 'Create Account');
       await tester.ensureVisible(submitBtn);
@@ -465,7 +511,8 @@ void main() {
       expect(find.text('Please select an account type'), findsOneWidget);
     });
 
-    testWidgets('2. Farmer can be selected in Account Type dropdown', (tester) async {
+    testWidgets('2. Farmer can be selected in Account Type dropdown',
+        (tester) async {
       await tester.pumpWidget(createRegisterScreenTest());
       await tester.pumpAndSettle();
 
@@ -483,7 +530,8 @@ void main() {
       expect(find.text('Farmer'), findsWidgets);
     });
 
-    testWidgets('3. Buyer can be selected in Account Type dropdown', (tester) async {
+    testWidgets('3. Buyer can be selected in Account Type dropdown',
+        (tester) async {
       await tester.pumpWidget(createRegisterScreenTest());
       await tester.pumpAndSettle();
 
@@ -499,13 +547,17 @@ void main() {
       expect(find.text('Buyer'), findsWidgets);
     });
 
-    testWidgets('4. Selected role is passed to registration logic', (tester) async {
+    testWidgets('4. Selected role is passed to registration logic',
+        (tester) async {
       await tester.pumpWidget(createRegisterScreenTest());
       await tester.pumpAndSettle();
 
-      await tester.enterText(find.widgetWithText(AppTextField, 'Full Name'), 'Ramesh Farmer');
-      await tester.enterText(find.widgetWithText(AppTextField, 'Email Address'), 'ramesh@example.com');
-      await tester.enterText(find.widgetWithText(AppTextField, 'Phone Number'), '9876543210');
+      await tester.enterText(
+          find.widgetWithText(AppTextField, 'Full Name'), 'Ramesh Farmer');
+      await tester.enterText(find.widgetWithText(AppTextField, 'Email Address'),
+          'ramesh@example.com');
+      await tester.enterText(
+          find.widgetWithText(AppTextField, 'Phone Number'), '9876543210');
 
       final dropdown = find.byType(DropdownButtonFormField<UserRole>);
       await tester.ensureVisible(dropdown);
@@ -514,8 +566,10 @@ void main() {
       await tester.tap(find.text('Farmer').last);
       await tester.pumpAndSettle();
 
-      await tester.enterText(find.widgetWithText(AppTextField, 'Password'), 'Password123');
-      await tester.enterText(find.widgetWithText(AppTextField, 'Confirm Password'), 'Password123');
+      await tester.enterText(
+          find.widgetWithText(AppTextField, 'Password'), 'Password123');
+      await tester.enterText(
+          find.widgetWithText(AppTextField, 'Confirm Password'), 'Password123');
 
       final submitBtn = find.widgetWithText(ElevatedButton, 'Create Account');
       await tester.ensureVisible(submitBtn);
@@ -531,9 +585,12 @@ void main() {
       await tester.pumpWidget(createRegisterScreenTest());
       await tester.pumpAndSettle();
 
-      await tester.enterText(find.widgetWithText(AppTextField, 'Full Name'), 'Farmer One');
-      await tester.enterText(find.widgetWithText(AppTextField, 'Email Address'), 'farmer1@example.com');
-      await tester.enterText(find.widgetWithText(AppTextField, 'Phone Number'), '9876543210');
+      await tester.enterText(
+          find.widgetWithText(AppTextField, 'Full Name'), 'Farmer One');
+      await tester.enterText(find.widgetWithText(AppTextField, 'Email Address'),
+          'farmer1@example.com');
+      await tester.enterText(
+          find.widgetWithText(AppTextField, 'Phone Number'), '9876543210');
 
       final dropdown = find.byType(DropdownButtonFormField<UserRole>);
       await tester.ensureVisible(dropdown);
@@ -542,8 +599,10 @@ void main() {
       await tester.tap(find.text('Farmer').last);
       await tester.pumpAndSettle();
 
-      await tester.enterText(find.widgetWithText(AppTextField, 'Password'), 'Password123');
-      await tester.enterText(find.widgetWithText(AppTextField, 'Confirm Password'), 'Password123');
+      await tester.enterText(
+          find.widgetWithText(AppTextField, 'Password'), 'Password123');
+      await tester.enterText(
+          find.widgetWithText(AppTextField, 'Confirm Password'), 'Password123');
 
       final submitBtn = find.widgetWithText(ElevatedButton, 'Create Account');
       await tester.ensureVisible(submitBtn);
@@ -558,9 +617,12 @@ void main() {
       await tester.pumpWidget(createRegisterScreenTest());
       await tester.pumpAndSettle();
 
-      await tester.enterText(find.widgetWithText(AppTextField, 'Full Name'), 'Buyer One');
-      await tester.enterText(find.widgetWithText(AppTextField, 'Email Address'), 'buyer1@example.com');
-      await tester.enterText(find.widgetWithText(AppTextField, 'Phone Number'), '9876543210');
+      await tester.enterText(
+          find.widgetWithText(AppTextField, 'Full Name'), 'Buyer One');
+      await tester.enterText(find.widgetWithText(AppTextField, 'Email Address'),
+          'buyer1@example.com');
+      await tester.enterText(
+          find.widgetWithText(AppTextField, 'Phone Number'), '9876543210');
 
       final dropdown = find.byType(DropdownButtonFormField<UserRole>);
       await tester.ensureVisible(dropdown);
@@ -569,8 +631,10 @@ void main() {
       await tester.tap(find.text('Buyer').last);
       await tester.pumpAndSettle();
 
-      await tester.enterText(find.widgetWithText(AppTextField, 'Password'), 'Password123');
-      await tester.enterText(find.widgetWithText(AppTextField, 'Confirm Password'), 'Password123');
+      await tester.enterText(
+          find.widgetWithText(AppTextField, 'Password'), 'Password123');
+      await tester.enterText(
+          find.widgetWithText(AppTextField, 'Confirm Password'), 'Password123');
 
       final submitBtn = find.widgetWithText(ElevatedButton, 'Create Account');
       await tester.ensureVisible(submitBtn);
@@ -581,7 +645,8 @@ void main() {
       expect(fakeAuthRepository.savedProfile!.role, equals(UserRole.buyer));
     });
 
-    testWidgets('7. Farmer registration redirects to Farmer Profile', (tester) async {
+    testWidgets('7. Farmer registration redirects to Farmer Profile',
+        (tester) async {
       await tester.pumpWidget(createFullAppTest());
       await tester.pumpAndSettle();
 
@@ -590,9 +655,12 @@ void main() {
       await tester.tap(registerLink);
       await tester.pumpAndSettle();
 
-      await tester.enterText(find.widgetWithText(AppTextField, 'Full Name'), 'Farmer New');
-      await tester.enterText(find.widgetWithText(AppTextField, 'Email Address'), 'farmernew@example.com');
-      await tester.enterText(find.widgetWithText(AppTextField, 'Phone Number'), '9876543210');
+      await tester.enterText(
+          find.widgetWithText(AppTextField, 'Full Name'), 'Farmer New');
+      await tester.enterText(find.widgetWithText(AppTextField, 'Email Address'),
+          'farmernew@example.com');
+      await tester.enterText(
+          find.widgetWithText(AppTextField, 'Phone Number'), '9876543210');
 
       final dropdown = find.byType(DropdownButtonFormField<UserRole>);
       await tester.ensureVisible(dropdown);
@@ -601,8 +669,10 @@ void main() {
       await tester.tap(find.text('Farmer').last);
       await tester.pumpAndSettle();
 
-      await tester.enterText(find.widgetWithText(AppTextField, 'Password'), 'Password123');
-      await tester.enterText(find.widgetWithText(AppTextField, 'Confirm Password'), 'Password123');
+      await tester.enterText(
+          find.widgetWithText(AppTextField, 'Password'), 'Password123');
+      await tester.enterText(
+          find.widgetWithText(AppTextField, 'Confirm Password'), 'Password123');
 
       final submitBtn = find.widgetWithText(ElevatedButton, 'Create Account');
       await tester.ensureVisible(submitBtn);
@@ -613,7 +683,8 @@ void main() {
       expect(find.text('Farmer Profile Setup'), findsOneWidget);
     });
 
-    testWidgets('8. Buyer registration redirects to Buyer Profile', (tester) async {
+    testWidgets('8. Buyer registration redirects to Buyer Profile',
+        (tester) async {
       await tester.pumpWidget(createFullAppTest());
       await tester.pumpAndSettle();
 
@@ -621,9 +692,12 @@ void main() {
       await tester.tap(registerLink);
       await tester.pumpAndSettle();
 
-      await tester.enterText(find.widgetWithText(AppTextField, 'Full Name'), 'Buyer New');
-      await tester.enterText(find.widgetWithText(AppTextField, 'Email Address'), 'buyernew@example.com');
-      await tester.enterText(find.widgetWithText(AppTextField, 'Phone Number'), '9876543210');
+      await tester.enterText(
+          find.widgetWithText(AppTextField, 'Full Name'), 'Buyer New');
+      await tester.enterText(find.widgetWithText(AppTextField, 'Email Address'),
+          'buyernew@example.com');
+      await tester.enterText(
+          find.widgetWithText(AppTextField, 'Phone Number'), '9876543210');
 
       final dropdown = find.byType(DropdownButtonFormField<UserRole>);
       await tester.ensureVisible(dropdown);
@@ -632,8 +706,10 @@ void main() {
       await tester.tap(find.text('Buyer').last);
       await tester.pumpAndSettle();
 
-      await tester.enterText(find.widgetWithText(AppTextField, 'Password'), 'Password123');
-      await tester.enterText(find.widgetWithText(AppTextField, 'Confirm Password'), 'Password123');
+      await tester.enterText(
+          find.widgetWithText(AppTextField, 'Password'), 'Password123');
+      await tester.enterText(
+          find.widgetWithText(AppTextField, 'Confirm Password'), 'Password123');
 
       final submitBtn = find.widgetWithText(ElevatedButton, 'Create Account');
       await tester.ensureVisible(submitBtn);
@@ -646,11 +722,14 @@ void main() {
   });
 
   group('Login Flow & Error Handling Tests', () {
-    testWidgets('9. Successful Farmer login routes correctly to Farmer Dashboard', (tester) async {
+    testWidgets(
+        '9. Successful Farmer login routes correctly to Farmer Dashboard',
+        (tester) async {
       final fakeUser = FakeUser(id: 'farmer-1');
       fakeAuthRepository.signInResult = right(
         supabase.AuthResponse(
-          session: supabase.Session(accessToken: 'tok', tokenType: 'bearer', user: fakeUser),
+          session: supabase.Session(
+              accessToken: 'tok', tokenType: 'bearer', user: fakeUser),
           user: fakeUser,
         ),
       );
@@ -677,11 +756,14 @@ void main() {
       expect(find.text('Farmer Dashboard'), findsOneWidget);
     });
 
-    testWidgets('10. Successful Buyer login routes correctly to Buyer Dashboard', (tester) async {
+    testWidgets(
+        '10. Successful Buyer login routes correctly to Buyer Dashboard',
+        (tester) async {
       final fakeUser = FakeUser(id: 'buyer-1');
       fakeAuthRepository.signInResult = right(
         supabase.AuthResponse(
-          session: supabase.Session(accessToken: 'tok', tokenType: 'bearer', user: fakeUser),
+          session: supabase.Session(
+              accessToken: 'tok', tokenType: 'bearer', user: fakeUser),
           user: fakeUser,
         ),
       );
@@ -708,9 +790,11 @@ void main() {
       expect(find.text('Buyer Dashboard'), findsOneWidget);
     });
 
-    testWidgets('11. Invalid credentials show an error on Login Screen', (tester) async {
+    testWidgets('11. Invalid credentials show an error on Login Screen',
+        (tester) async {
       fakeAuthRepository.signInResult = left(
-        const AuthFailure('Invalid email or password. Please check your credentials and try again.'),
+        const AuthFailure(
+            'Invalid email or password. Please check your credentials and try again.'),
       );
 
       await tester.pumpWidget(createLoginScreenTest());
@@ -724,12 +808,17 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 500));
 
-      expect(find.text('Invalid email or password. Please check your credentials and try again.'), findsWidgets);
+      expect(
+          find.text(
+              'Invalid email or password. Please check your credentials and try again.'),
+          findsWidgets);
     });
 
-    testWidgets('12. Failed login does not clear the email/password fields', (tester) async {
+    testWidgets('12. Failed login does not clear the email/password fields',
+        (tester) async {
       fakeAuthRepository.signInResult = left(
-        const AuthFailure('Invalid email or password. Please check your credentials and try again.'),
+        const AuthFailure(
+            'Invalid email or password. Please check your credentials and try again.'),
       );
 
       await tester.pumpWidget(createLoginScreenTest());
@@ -747,7 +836,8 @@ void main() {
       expect(find.text('MySecretPassword'), findsOneWidget);
     });
 
-    testWidgets('13. Loading state works correctly during authentication', (tester) async {
+    testWidgets('13. Loading state works correctly during authentication',
+        (tester) async {
       fakeAuthRepository.asyncDelay = const Duration(milliseconds: 500);
 
       await tester.pumpWidget(createLoginScreenTest());
@@ -767,11 +857,14 @@ void main() {
       await tester.pumpAndSettle(); // Finish async call
     });
 
-    testWidgets('14. Authenticated user with incomplete profile goes to profile-completion flow', (tester) async {
+    testWidgets(
+        '14. Authenticated user with incomplete profile goes to profile-completion flow',
+        (tester) async {
       final fakeUser = FakeUser(id: 'farmer-incomplete');
       fakeAuthRepository.signInResult = right(
         supabase.AuthResponse(
-          session: supabase.Session(accessToken: 'tok', tokenType: 'bearer', user: fakeUser),
+          session: supabase.Session(
+              accessToken: 'tok', tokenType: 'bearer', user: fakeUser),
           user: fakeUser,
         ),
       );
@@ -799,14 +892,17 @@ void main() {
   });
 
   group('Google Login Flow Tests', () {
-    testWidgets('15. Google Sign In button is visible on Login Screen', (tester) async {
+    testWidgets('15. Google Sign In button is visible on Login Screen',
+        (tester) async {
       await tester.pumpWidget(createLoginScreenTest());
       await tester.pumpAndSettle();
 
       expect(find.text('Sign in with Google'), findsOneWidget);
     });
 
-    testWidgets('16. Existing Google Farmer with complete profile routes directly to Farmer Dashboard', (tester) async {
+    testWidgets(
+        '16. Existing Google Farmer with complete profile routes directly to Farmer Dashboard',
+        (tester) async {
       fakeAuthRepository.getProfileResult = right(
         const UserProfile(
           id: 'google-farmer-complete',
@@ -830,7 +926,9 @@ void main() {
       expect(find.text('Farmer Dashboard'), findsOneWidget);
     });
 
-    testWidgets('17. Existing Google Buyer with complete profile routes directly to Buyer Dashboard', (tester) async {
+    testWidgets(
+        '17. Existing Google Buyer with complete profile routes directly to Buyer Dashboard',
+        (tester) async {
       fakeAuthRepository.getProfileResult = right(
         const UserProfile(
           id: 'google-buyer-complete',
@@ -853,7 +951,9 @@ void main() {
       expect(find.text('Buyer Dashboard'), findsOneWidget);
     });
 
-    testWidgets('18. New Google user routes to Complete Profile screen and completes Farmer Profile', (tester) async {
+    testWidgets(
+        '18. New Google user routes to Complete Profile screen and completes Farmer Profile',
+        (tester) async {
       fakeAuthRepository.getProfileResult = right(
         const UserProfile(
           id: 'google-new-farmer',
@@ -907,7 +1007,8 @@ void main() {
 
       // Submit
       final saveBtn = find.text('Save & Continue');
-      await tester.drag(find.byType(SingleChildScrollView).last, const Offset(0, -300));
+      await tester.drag(
+          find.byType(SingleChildScrollView).last, const Offset(0, -300));
       await tester.pump();
       await tester.ensureVisible(saveBtn);
       await tester.tap(saveBtn);
@@ -923,7 +1024,9 @@ void main() {
       expect(find.text('Farmer Dashboard'), findsOneWidget);
     });
 
-    testWidgets('19. New Google user routes to Complete Profile screen and completes Buyer Profile', (tester) async {
+    testWidgets(
+        '19. New Google user routes to Complete Profile screen and completes Buyer Profile',
+        (tester) async {
       fakeAuthRepository.getProfileResult = right(
         const UserProfile(
           id: 'google-new-buyer',
@@ -959,7 +1062,8 @@ void main() {
       await tester.ensureVisible(phoneField);
       await tester.enterText(phoneField, '9876543210');
 
-      final companyField = find.widgetWithText(AppTextField, 'Company / Business Name');
+      final companyField =
+          find.widgetWithText(AppTextField, 'Company / Business Name');
       await tester.ensureVisible(companyField);
       await tester.enterText(companyField, 'Patel Agro');
 
@@ -969,7 +1073,8 @@ void main() {
 
       // Submit
       final saveBtnBuyer = find.text('Save & Continue');
-      await tester.drag(find.byType(SingleChildScrollView).last, const Offset(0, -300));
+      await tester.drag(
+          find.byType(SingleChildScrollView).last, const Offset(0, -300));
       await tester.pump();
       await tester.ensureVisible(saveBtnBuyer);
       await tester.tap(saveBtnBuyer);
@@ -985,7 +1090,8 @@ void main() {
       expect(find.text('Buyer Dashboard'), findsOneWidget);
     });
 
-    testWidgets('20. Google login error shows friendly error message', (tester) async {
+    testWidgets('20. Google login error shows friendly error message',
+        (tester) async {
       fakeAuthRepository.googleSignInResult = left(
         const AuthFailure('Google Sign-In failed. Please try again.'),
       );
@@ -998,14 +1104,18 @@ void main() {
       await tester.tap(googleBtn);
       await tester.pumpAndSettle();
 
-      expect(find.text('Google Sign-In failed. Please try again.'), findsWidgets);
+      expect(
+          find.text('Google Sign-In failed. Please try again.'), findsWidgets);
     });
 
-    testWidgets('21. Buyer user attempting to navigate to /add-produce is blocked and redirected to Buyer Dashboard', (tester) async {
+    testWidgets(
+        '21. Buyer user attempting to navigate to /add-produce is blocked and redirected to Buyer Dashboard',
+        (tester) async {
       final fakeUser = FakeUser(id: 'buyer-security-1');
       fakeAuthRepository.signInResult = right(
         supabase.AuthResponse(
-          session: supabase.Session(accessToken: 'tok', tokenType: 'bearer', user: fakeUser),
+          session: supabase.Session(
+              accessToken: 'tok', tokenType: 'bearer', user: fakeUser),
           user: fakeUser,
         ),
       );
@@ -1045,10 +1155,12 @@ void main() {
   });
 
   group('Auth Code Review Bug Fix Regression Tests', () {
-    test('1. AuthNotifier avoids duplicate getUserProfile fetch during startup', () async {
+    test('1. AuthNotifier avoids duplicate getUserProfile fetch during startup',
+        () async {
       final repo = CountingAuthRepository();
       repo.activeUserOverride = FakeUser(id: 'u-dedup-1');
-      repo.getProfileResult = right(const UserProfile(id: 'u-dedup-1', fullName: 'Dedup User'));
+      repo.getProfileResult =
+          right(const UserProfile(id: 'u-dedup-1', fullName: 'Dedup User'));
 
       final notifier = AuthNotifier(repo);
 
@@ -1072,7 +1184,9 @@ void main() {
       await repo.authStateController.close();
     });
 
-    test('2. signInWithGoogle does not trigger premature profile fetch when currentUser is null on mobile OAuth launch', () async {
+    test(
+        '2. signInWithGoogle does not trigger premature profile fetch when currentUser is null on mobile OAuth launch',
+        () async {
       final repo = CountingAuthRepository();
       repo.googleSignInWithoutUserMutation = true;
       final notifier = AuthNotifier(repo);
@@ -1088,13 +1202,16 @@ void main() {
       await repo.authStateController.close();
     });
 
-    test('3. UserRole.fromString returns null for invalid/unknown role string', () {
+    test('3. UserRole.fromString returns null for invalid/unknown role string',
+        () {
       expect(UserRole.fromString('invalid_role'), isNull);
       expect(UserRole.fromString('farmer'), equals(UserRole.farmer));
       expect(UserRole.fromString('buyer'), equals(UserRole.buyer));
     });
 
-    test('4. Profile DELETE event clears profile state and invalidates completed profile status', () async {
+    test(
+        '4. Profile DELETE event clears profile state and invalidates completed profile status',
+        () async {
       final repo = CountingAuthRepository();
       repo.activeUserOverride = FakeUser(id: 'u-delete-1');
       repo.getProfileResult = right(const UserProfile(
@@ -1121,10 +1238,13 @@ void main() {
       await repo.authStateController.close();
     });
 
-    test('5. Profile realtime channel unsubscribes old user channel when user ID changes', () async {
+    test(
+        '5. Profile realtime channel unsubscribes old user channel when user ID changes',
+        () async {
       final repo = CountingAuthRepository();
       repo.activeUserOverride = FakeUser(id: 'user-A');
-      repo.getProfileResult = right(const UserProfile(id: 'user-A', fullName: 'User A'));
+      repo.getProfileResult =
+          right(const UserProfile(id: 'user-A', fullName: 'User A'));
 
       final notifier = AuthNotifier(repo);
       await Future<void>.delayed(Duration.zero);
@@ -1134,12 +1254,16 @@ void main() {
 
       // Simulate switching user session to user-B
       repo.activeUserOverride = FakeUser(id: 'user-B');
-      repo.getProfileResult = right(const UserProfile(id: 'user-B', fullName: 'User B'));
+      repo.getProfileResult =
+          right(const UserProfile(id: 'user-B', fullName: 'User B'));
 
       repo.authStateController.add(
         supabase.AuthState(
           supabase.AuthChangeEvent.signedIn,
-          supabase.Session(accessToken: 'tok', tokenType: 'bearer', user: FakeUser(id: 'user-B')),
+          supabase.Session(
+              accessToken: 'tok',
+              tokenType: 'bearer',
+              user: FakeUser(id: 'user-B')),
         ),
       );
       await Future<void>.delayed(Duration.zero);
@@ -1152,7 +1276,9 @@ void main() {
       await repo.authStateController.close();
     });
 
-    test('6. signUp suppresses auth state change fetch to prevent race and profile overwrite', () async {
+    test(
+        '6. signUp suppresses auth state change fetch to prevent race and profile overwrite',
+        () async {
       final repo = CountingAuthRepository();
       final notifier = AuthNotifier(repo);
       await Future<void>.delayed(Duration.zero);
@@ -1160,7 +1286,10 @@ void main() {
       repo.getUserProfileCallCount = 0;
 
       repo.signUpResult = right(supabase.AuthResponse(
-        session: supabase.Session(accessToken: 'tok', tokenType: 'bearer', user: FakeUser(id: 'new-user-1')),
+        session: supabase.Session(
+            accessToken: 'tok',
+            tokenType: 'bearer',
+            user: FakeUser(id: 'new-user-1')),
         user: FakeUser(id: 'new-user-1'),
       ));
       repo.updateProfileResult = right(const UserProfile(
@@ -1181,7 +1310,10 @@ void main() {
       repo.authStateController.add(
         supabase.AuthState(
           supabase.AuthChangeEvent.signedIn,
-          supabase.Session(accessToken: 'tok', tokenType: 'bearer', user: FakeUser(id: 'new-user-1')),
+          supabase.Session(
+              accessToken: 'tok',
+              tokenType: 'bearer',
+              user: FakeUser(id: 'new-user-1')),
         ),
       );
 
@@ -1195,13 +1327,16 @@ void main() {
       await repo.authStateController.close();
     });
 
-    testWidgets('7. ForgotPasswordScreen navigates to Login on successful reset request', (tester) async {
+    testWidgets(
+        '7. ForgotPasswordScreen navigates to Login on successful reset request',
+        (tester) async {
       final repo = CountingAuthRepository();
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
             authRepositoryProvider.overrideWithValue(repo),
-            appBootstrapProvider.overrideWith((ref) => MockAppBootstrapNotifier(ref)),
+            appBootstrapProvider
+                .overrideWith((ref) => MockAppBootstrapNotifier(ref)),
           ],
           child: Consumer(
             builder: (context, ref, child) {
@@ -1245,7 +1380,8 @@ class CountingAuthRepository extends FakeAuthRepository {
   int getUserProfileCallCount = 0;
   supabase.User? activeUserOverride;
   bool googleSignInWithoutUserMutation = false;
-  final StreamController<supabase.AuthState> authStateController = StreamController<supabase.AuthState>.broadcast();
+  final StreamController<supabase.AuthState> authStateController =
+      StreamController<supabase.AuthState>.broadcast();
 
   int subscribeToProfileCallCount = 0;
   int channelUnsubscribeCount = 0;
@@ -1256,7 +1392,8 @@ class CountingAuthRepository extends FakeAuthRepository {
   supabase.User? get currentUser => activeUserOverride ?? super.currentUser;
 
   @override
-  Stream<supabase.AuthState> get onAuthStateChanges => authStateController.stream;
+  Stream<supabase.AuthState> get onAuthStateChanges =>
+      authStateController.stream;
 
   @override
   Future<AppResult<bool>> signInWithGoogle() async {
@@ -1273,7 +1410,8 @@ class CountingAuthRepository extends FakeAuthRepository {
   }
 
   @override
-  supabase.RealtimeChannel subscribeToProfile(String userId, void Function(UserProfile? profile) onProfileChange) {
+  supabase.RealtimeChannel subscribeToProfile(
+      String userId, void Function(UserProfile? profile) onProfileChange) {
     subscribeToProfileCallCount++;
     lastSubscribedUserId = userId;
     lastProfileChangeCallback = onProfileChange;
@@ -1285,10 +1423,15 @@ class CountingAuthRepository extends FakeAuthRepository {
 
 class TestCountingRealtimeChannel extends supabase.RealtimeChannel {
   final VoidCallback onUnsubscribe;
-  TestCountingRealtimeChannel({required this.onUnsubscribe}) : super('fake_channel', supabase.RealtimeClient('https://fake.supabase.co'));
+  TestCountingRealtimeChannel({required this.onUnsubscribe})
+      : super('fake_channel',
+            supabase.RealtimeClient('https://fake.supabase.co'));
 
   @override
-  supabase.RealtimeChannel subscribe([void Function(supabase.RealtimeSubscribeStatus status, Object? error)? callback, Duration? timeout]) {
+  supabase.RealtimeChannel subscribe(
+      [void Function(supabase.RealtimeSubscribeStatus status, Object? error)?
+          callback,
+      Duration? timeout]) {
     return this;
   }
 

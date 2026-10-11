@@ -42,10 +42,16 @@ class BuyerRequirementCard extends StatelessWidget {
                 width: 44,
                 height: 44,
                 decoration: BoxDecoration(
-                  color: isDark ? AppColors.secondaryDark : AppColors.secondaryLight,
+                  color: isDark
+                      ? AppColors.secondaryDark
+                      : AppColors.secondaryLight,
                   borderRadius: AppRadius.borderMd,
                 ),
-                child: Icon(Icons.store_rounded, color: isDark ? const Color(0xFF34D399) : AppColors.secondaryDark, size: 24),
+                child: Icon(Icons.store_rounded,
+                    color: isDark
+                        ? const Color(0xFF34D399)
+                        : AppColors.secondaryDark,
+                    size: 24),
               ),
               const SizedBox(width: AppSpacing.md),
               Expanded(
@@ -68,18 +74,22 @@ class BuyerRequirementCard extends StatelessWidget {
                         ),
                         if (isVerified) ...[
                           const SizedBox(width: 4),
-                          const Icon(Icons.verified, size: 16, color: AppColors.info),
+                          const Icon(Icons.verified,
+                              size: 16, color: AppColors.info),
                         ],
                       ],
                     ),
                     Row(
                       children: [
-                        Icon(Icons.location_on_outlined, size: 14, color: colorScheme.onSurfaceVariant),
+                        Icon(Icons.location_on_outlined,
+                            size: 14, color: colorScheme.onSurfaceVariant),
                         const SizedBox(width: 2),
                         Expanded(
                           child: Text(
                             location,
-                            style: TextStyle(fontSize: 13, color: colorScheme.onSurfaceVariant),
+                            style: TextStyle(
+                                fontSize: 13,
+                                color: colorScheme.onSurfaceVariant),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -108,13 +118,17 @@ class BuyerRequirementCard extends StatelessWidget {
                     children: [
                       Text(
                         'Buying $cropNeeded',
-                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: colorScheme.primary),
+                        style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: colorScheme.primary),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
                       Text(
                         'Quantity: $targetQuantity',
-                        style: TextStyle(fontSize: 13, color: colorScheme.onSurfaceVariant),
+                        style: TextStyle(
+                            fontSize: 13, color: colorScheme.onSurfaceVariant),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -128,7 +142,8 @@ class BuyerRequirementCard extends StatelessWidget {
                     children: [
                       Text(
                         'Target Price',
-                        style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant),
+                        style: TextStyle(
+                            fontSize: 12, color: colorScheme.onSurfaceVariant),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),

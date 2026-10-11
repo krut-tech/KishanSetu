@@ -41,7 +41,8 @@ abstract class FarmerRepository {
   Future<AppResult<List<OfferHistoryModel>>> getOfferHistory(String offerId);
 
   /// Accept, reject, or counter an offer.
-  Future<AppResult<OfferModel>> updateOfferStatus(String offerId, String status);
+  Future<AppResult<OfferModel>> updateOfferStatus(
+      String offerId, String status);
 
   /// Calculate real dashboard statistics for a farmer.
   Future<AppResult<DashboardStats>> getFarmerDashboardStats(String farmerId);

@@ -60,7 +60,9 @@ class _BuyerHomeScreenState extends ConsumerState<BuyerHomeScreen> {
   void _loadDashboard() {
     final profile = ref.read(authNotifierProvider).profile;
     if (profile != null) {
-      ref.read(buyerDashboardNotifierProvider.notifier).loadDashboardData(profile.id);
+      ref
+          .read(buyerDashboardNotifierProvider.notifier)
+          .loadDashboardData(profile.id);
     }
   }
 
@@ -123,7 +125,8 @@ class _BuyerHomeScreenState extends ConsumerState<BuyerHomeScreen> {
                 value: AppConstants.localeEnglish,
                 child: Row(
                   children: [
-                    if (currentLocale.languageCode == AppConstants.localeEnglish)
+                    if (currentLocale.languageCode ==
+                        AppConstants.localeEnglish)
                       Icon(Icons.check, size: 18, color: colorScheme.primary),
                     const SizedBox(width: 8),
                     Text(context.l10n.english),
@@ -145,7 +148,8 @@ class _BuyerHomeScreenState extends ConsumerState<BuyerHomeScreen> {
                 value: AppConstants.localeGujarati,
                 child: Row(
                   children: [
-                    if (currentLocale.languageCode == AppConstants.localeGujarati)
+                    if (currentLocale.languageCode ==
+                        AppConstants.localeGujarati)
                       Icon(Icons.check, size: 18, color: colorScheme.primary),
                     const SizedBox(width: 8),
                     Text(context.l10n.gujarati),
@@ -218,7 +222,8 @@ class _BuyerHomeScreenState extends ConsumerState<BuyerHomeScreen> {
       );
     }
 
-    if (dashboardState.errorMessage != null && dashboardState.featuredProduce.isEmpty) {
+    if (dashboardState.errorMessage != null &&
+        dashboardState.featuredProduce.isEmpty) {
       return ErrorStateWidget(
         title: context.l10n.unableToLoadDashboard,
         message: dashboardState.errorMessage!,
@@ -226,16 +231,20 @@ class _BuyerHomeScreenState extends ConsumerState<BuyerHomeScreen> {
       );
     }
 
-    final buyerName = profile?.companyName ?? profile?.fullName ?? context.l10n.buyerLabel;
+    final buyerName =
+        profile?.companyName ?? profile?.fullName ?? context.l10n.buyerLabel;
     final greetingText = '${_getGreeting()}, $buyerName!';
 
     return RefreshIndicator(
       onRefresh: () async {
-        await ref.read(buyerDashboardNotifierProvider.notifier).refreshDashboard();
+        await ref
+            .read(buyerDashboardNotifierProvider.notifier)
+            .refreshDashboard();
       },
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.md, AppSpacing.md, AppSpacing.xxxl + 24),
+        padding: const EdgeInsets.fromLTRB(
+            AppSpacing.md, AppSpacing.md, AppSpacing.md, AppSpacing.xxxl + 24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -250,7 +259,8 @@ class _BuyerHomeScreenState extends ConsumerState<BuyerHomeScreen> {
                   try {
                     context.pushNamed('notifications');
                   } catch (e, stackTrace) {
-                    AppLogger.error('Failed to navigate to Notification Center', e, stackTrace);
+                    AppLogger.error('Failed to navigate to Notification Center',
+                        e, stackTrace);
                   }
                 },
                 onProfilePressed: () {
@@ -302,7 +312,8 @@ class _BuyerHomeScreenState extends ConsumerState<BuyerHomeScreen> {
                 onProduceTap: (produce) {
                   Navigator.of(context).push(
                     MaterialPageRoute(
-                      builder: (context) => ProduceDetailsScreen(produce: produce),
+                      builder: (context) =>
+                          ProduceDetailsScreen(produce: produce),
                     ),
                   );
                 },
@@ -341,35 +352,54 @@ class _BuyerHomeScreenState extends ConsumerState<BuyerHomeScreen> {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.xxxl + 24),
+      padding: const EdgeInsets.fromLTRB(
+          AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.xxxl + 24),
       child: AppCard(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               context.l10n.buyerBusinessDetailsTitle,
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: colorScheme.onSurface),
+              style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: colorScheme.onSurface),
             ),
             const Divider(),
-            ListTile(title: Text(context.l10n.contactNameLabel), subtitle: Text(profile?.fullName ?? '-')),
-            ListTile(title: Text(context.l10n.companyBusinessLabel), subtitle: Text(profile?.companyName ?? '-')),
-            ListTile(title: Text(context.l10n.businessTypeLabel), subtitle: Text(profile?.businessType ?? '-')),
+            ListTile(
+                title: Text(context.l10n.contactNameLabel),
+                subtitle: Text(profile?.fullName ?? '-')),
+            ListTile(
+                title: Text(context.l10n.companyBusinessLabel),
+                subtitle: Text(profile?.companyName ?? '-')),
+            ListTile(
+                title: Text(context.l10n.businessTypeLabel),
+                subtitle: Text(profile?.businessType ?? '-')),
             ListTile(
               title: Text(context.l10n.locationLabel),
-              subtitle: Text('${profile?.district ?? ''}, ${profile?.state ?? ''}'),
+              subtitle:
+                  Text('${profile?.district ?? ''}, ${profile?.state ?? ''}'),
             ),
-            ListTile(title: Text(context.l10n.gstNumberLabel), subtitle: Text(profile?.gstNumber ?? context.l10n.notProvided)),
+            ListTile(
+                title: Text(context.l10n.gstNumberLabel),
+                subtitle: Text(profile?.gstNumber ?? context.l10n.notProvided)),
             ListTile(
               title: Text(context.l10n.buyingCapacityLabel),
-              subtitle: Text('${profile?.buyingCapacityQuintals ?? 0} ${context.l10n.quintalsLabel}'),
+              subtitle: Text(
+                  '${profile?.buyingCapacityQuintals ?? 0} ${context.l10n.quintalsLabel}'),
             ),
             ListTile(
               leading: Icon(
-                kycStatus == 'verified' ? Icons.verified_rounded : Icons.verified_user_outlined,
-                color: kycStatus == 'verified' ? Colors.green : colorScheme.onSurfaceVariant,
+                kycStatus == 'verified'
+                    ? Icons.verified_rounded
+                    : Icons.verified_user_outlined,
+                color: kycStatus == 'verified'
+                    ? Colors.green
+                    : colorScheme.onSurfaceVariant,
               ),
               title: const Text('Identity Verification'),
-              subtitle: Text(kycStatus[0].toUpperCase() + kycStatus.substring(1)),
+              subtitle:
+                  Text(kycStatus[0].toUpperCase() + kycStatus.substring(1)),
               trailing: const Icon(Icons.chevron_right_rounded),
               onTap: () => context.push(RouteNames.kycVerification),
             ),
@@ -386,8 +416,10 @@ class _BuyerHomeScreenState extends ConsumerState<BuyerHomeScreen> {
               ),
               trailing: const Icon(Icons.chevron_right_rounded),
               onTap: () async {
-                final updateNotifier = ref.read(updateNotifierProvider.notifier);
-                final info = await updateNotifier.checkForUpdate(isManual: true);
+                final updateNotifier =
+                    ref.read(updateNotifierProvider.notifier);
+                final info =
+                    await updateNotifier.checkForUpdate(isManual: true);
                 if (context.mounted) {
                   if (info != null) {
                     UpdateDialog.show(context);
@@ -402,18 +434,22 @@ class _BuyerHomeScreenState extends ConsumerState<BuyerHomeScreen> {
               },
             ),
             SwitchListTile(
-              secondary: Icon(isDarkMode ? Icons.dark_mode_rounded : Icons.light_mode_rounded),
+              secondary: Icon(isDarkMode
+                  ? Icons.dark_mode_rounded
+                  : Icons.light_mode_rounded),
               title: const Text('Dark Theme'),
               subtitle: Text(isDarkMode ? 'On' : 'Off'),
               value: isDarkMode,
-              onChanged: (_) => ref.read(themeControllerProvider.notifier).toggleTheme(),
+              onChanged: (_) =>
+                  ref.read(themeControllerProvider.notifier).toggleTheme(),
             ),
             const SizedBox(height: AppSpacing.md),
             AppButton(
               label: context.l10n.logout,
               style: AppButtonStyle.outlined,
               icon: Icons.logout,
-              onPressed: () => ref.read(authNotifierProvider.notifier).signOut(),
+              onPressed: () =>
+                  ref.read(authNotifierProvider.notifier).signOut(),
             ),
           ],
         ),

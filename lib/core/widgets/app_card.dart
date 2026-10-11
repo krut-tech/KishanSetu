@@ -36,7 +36,8 @@ class _AppCardState extends State<AppCard> {
     final radius = BorderRadius.circular(AppConstants.borderRadiusLarge);
 
     final padded = Padding(
-      padding: widget.padding ?? const EdgeInsets.all(AppConstants.paddingMedium),
+      padding:
+          widget.padding ?? const EdgeInsets.all(AppConstants.paddingMedium),
       child: widget.child,
     );
 

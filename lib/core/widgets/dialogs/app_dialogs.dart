@@ -21,8 +21,14 @@ class AppDialogs {
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: AppRadius.borderLg),
-        title: Text(title, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: colorScheme.onSurface)),
-        content: Text(message, style: TextStyle(fontSize: 14, color: colorScheme.onSurfaceVariant)),
+        title: Text(title,
+            style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 18,
+                color: colorScheme.onSurface)),
+        content: Text(message,
+            style:
+                TextStyle(fontSize: 14, color: colorScheme.onSurfaceVariant)),
         actionsPadding: const EdgeInsets.all(AppSpacing.lg),
         actions: [
           Row(
@@ -38,7 +44,9 @@ class AppDialogs {
               Expanded(
                 child: AppButton(
                   label: confirmLabel,
-                  style: isDestructive ? AppButtonStyle.secondary : AppButtonStyle.primary,
+                  style: isDestructive
+                      ? AppButtonStyle.secondary
+                      : AppButtonStyle.primary,
                   onPressed: () => Navigator.of(context).pop(true),
                 ),
               ),
@@ -78,7 +86,10 @@ class AppDialogs {
               children: [
                 Text(
                   title,
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: colorScheme.onSurface),
+                  style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: colorScheme.onSurface),
                 ),
                 IconButton(
                   icon: const Icon(Icons.close_rounded),

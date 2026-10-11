@@ -21,8 +21,10 @@ class MarketPriceHighlights extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final primaryText = isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight;
-    final secondaryText = isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight;
+    final primaryText =
+        isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight;
+    final secondaryText =
+        isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -103,7 +105,8 @@ class MarketPriceHighlights extends StatelessWidget {
                   onTap: () {
                     Navigator.of(context).push(
                       MaterialPageRoute(
-                        builder: (context) => MarketPriceDetailsScreen(price: item),
+                        builder: (context) =>
+                            MarketPriceDetailsScreen(price: item),
                       ),
                     );
                   },

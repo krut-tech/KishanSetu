@@ -17,8 +17,10 @@ class MarketInsightsCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final primaryText = isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight;
-    final secondaryText = isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight;
+    final primaryText =
+        isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight;
+    final secondaryText =
+        isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight;
     final dividerColor = isDark ? AppColors.borderDark : AppColors.borderLight;
 
     if (marketPrices.isEmpty) {

@@ -100,9 +100,11 @@ class AppTheme {
     final r18 = BorderRadius.circular(18);
     final r28 = BorderRadius.circular(28);
     final buttonShape = RoundedRectangleBorder(borderRadius: r18);
-    final buttonText = GoogleFonts.manrope(fontSize: 16, fontWeight: FontWeight.w800);
+    final buttonText =
+        GoogleFonts.manrope(fontSize: 16, fontWeight: FontWeight.w800);
 
-    OutlineInputBorder inputBorder(Color c, [double w = 1.0]) => OutlineInputBorder(
+    OutlineInputBorder inputBorder(Color c, [double w = 1.0]) =>
+        OutlineInputBorder(
           borderRadius: r16,
           borderSide: BorderSide(color: c, width: w),
         );
@@ -173,7 +175,8 @@ class AppTheme {
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: cs.primary,
-          textStyle: GoogleFonts.manrope(fontSize: 14, fontWeight: FontWeight.w800),
+          textStyle:
+              GoogleFonts.manrope(fontSize: 14, fontWeight: FontWeight.w800),
         ),
       ),
       floatingActionButtonTheme: FloatingActionButtonThemeData(
@@ -185,10 +188,12 @@ class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: fill,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
         hintStyle: TextStyle(color: cs.onSurfaceVariant),
         labelStyle: TextStyle(color: cs.onSurfaceVariant),
-        floatingLabelStyle: TextStyle(color: cs.primary, fontWeight: FontWeight.w700),
+        floatingLabelStyle:
+            TextStyle(color: cs.primary, fontWeight: FontWeight.w700),
         prefixIconColor: cs.onSurfaceVariant,
         suffixIconColor: cs.onSurfaceVariant,
         border: inputBorder(cs.outline),
@@ -235,7 +240,8 @@ class AppTheme {
         unselectedLabelColor: cs.onSurfaceVariant,
         indicatorColor: cs.primary,
         dividerColor: Colors.transparent,
-        labelStyle: GoogleFonts.manrope(fontSize: 14, fontWeight: FontWeight.w800),
+        labelStyle:
+            GoogleFonts.manrope(fontSize: 14, fontWeight: FontWeight.w800),
         unselectedLabelStyle:
             GoogleFonts.manrope(fontSize: 14, fontWeight: FontWeight.w500),
       ),

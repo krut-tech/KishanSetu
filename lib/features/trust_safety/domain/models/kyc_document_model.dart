@@ -44,8 +44,12 @@ class KycDocumentModel extends Equatable {
       documentUrl: (map['document_url'] as String?) ?? '',
       status: (map['status'] as String?) ?? 'pending',
       rejectionReason: map['rejection_reason'] as String?,
-      submittedAt: map['submitted_at'] != null ? DateTime.tryParse(map['submitted_at'] as String) : null,
-      reviewedAt: map['reviewed_at'] != null ? DateTime.tryParse(map['reviewed_at'] as String) : null,
+      submittedAt: map['submitted_at'] != null
+          ? DateTime.tryParse(map['submitted_at'] as String)
+          : null,
+      reviewedAt: map['reviewed_at'] != null
+          ? DateTime.tryParse(map['reviewed_at'] as String)
+          : null,
       userName: userName,
       userRole: userRole,
     );

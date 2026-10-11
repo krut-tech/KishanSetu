@@ -10,11 +10,15 @@ import 'package:farmer_market_app/features/farmer/domain/repositories/farmer_rep
 import 'package:farmer_market_app/features/farmer/presentation/controllers/farmer_dashboard_notifier.dart';
 
 class FakeRealtimeChannel extends RealtimeChannel {
-  FakeRealtimeChannel() : super('fake_channel', RealtimeClient('https://fake.supabase.co'));
+  FakeRealtimeChannel()
+      : super('fake_channel', RealtimeClient('https://fake.supabase.co'));
   @override
-  RealtimeChannel subscribe([void Function(RealtimeSubscribeStatus status, Object? error)? callback, Duration? timeout]) {
+  RealtimeChannel subscribe(
+      [void Function(RealtimeSubscribeStatus status, Object? error)? callback,
+      Duration? timeout]) {
     return this;
   }
+
   @override
   Future<String> unsubscribe([Duration? timeout]) async => 'ok';
 }
@@ -31,7 +35,8 @@ class MockFarmerRepository implements FarmerRepository {
   }
 
   @override
-  Future<AppResult<DashboardStats>> getFarmerDashboardStats(String farmerId) async {
+  Future<AppResult<DashboardStats>> getFarmerDashboardStats(
+      String farmerId) async {
     return right(const DashboardStats(
       totalProduce: 3,
       activeListings: 2,
@@ -97,7 +102,8 @@ class MockFarmerRepository implements FarmerRepository {
   }
 
   @override
-  Future<AppResult<List<OfferHistoryModel>>> getOfferHistory(String offerId) async {
+  Future<AppResult<List<OfferHistoryModel>>> getOfferHistory(
+      String offerId) async {
     return right([]);
   }
 
@@ -125,7 +131,8 @@ class MockFarmerRepository implements FarmerRepository {
   }
 
   @override
-  Future<AppResult<OfferModel>> updateOfferStatus(String offerId, String status) async {
+  Future<AppResult<OfferModel>> updateOfferStatus(
+      String offerId, String status) async {
     return right(OfferModel(
       id: offerId,
       produceId: 'p1',

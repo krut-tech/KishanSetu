@@ -15,11 +15,15 @@ import 'package:farmer_market_app/features/farmer/domain/models/produce_model.da
 import 'package:farmer_market_app/features/farmer/domain/repositories/farmer_repository.dart';
 
 class FakeRealtimeChannel extends RealtimeChannel {
-  FakeRealtimeChannel() : super('fake_channel', RealtimeClient('https://fake.supabase.co'));
+  FakeRealtimeChannel()
+      : super('fake_channel', RealtimeClient('https://fake.supabase.co'));
   @override
-  RealtimeChannel subscribe([void Function(RealtimeSubscribeStatus status, Object? error)? callback, Duration? timeout]) {
+  RealtimeChannel subscribe(
+      [void Function(RealtimeSubscribeStatus status, Object? error)? callback,
+      Duration? timeout]) {
     return this;
   }
+
   @override
   Future<String> unsubscribe([Duration? timeout]) async => 'ok';
 }
@@ -57,17 +61,22 @@ class MockBuyerRepository implements BuyerRepository {
   bool throwError = false;
 
   @override
-  Future<AppResult<OfferModel>> cancelOffer(String offerId, String buyerId) async {
+  Future<AppResult<OfferModel>> cancelOffer(
+      String offerId, String buyerId) async {
     if (throwError) return left(const DatabaseFailure('Cancel offer failed'));
-    final index = offersList.indexWhere((o) => o.id == offerId && o.buyerId == buyerId);
-    if (index == -1) return left(const DatabaseFailure('Offer not found or unauthorized'));
+    final index =
+        offersList.indexWhere((o) => o.id == offerId && o.buyerId == buyerId);
+    if (index == -1) {
+      return left(const DatabaseFailure('Offer not found or unauthorized'));
+    }
     final cancelled = offersList[index].copyWith(status: 'cancelled');
     offersList[index] = cancelled;
     return right(cancelled);
   }
 
   @override
-  Future<AppResult<BuyerDashboardStats>> getBuyerDashboardStats(String buyerId) async {
+  Future<AppResult<BuyerDashboardStats>> getBuyerDashboardStats(
+      String buyerId) async {
     if (throwError) return left(const DatabaseFailure('Failed to fetch stats'));
     return right(BuyerDashboardStats(
       totalAvailableProduce: produceList.length,
@@ -78,11 +87,16 @@ class MockBuyerRepository implements BuyerRepository {
   }
 
   @override
-  Future<AppResult<List<OfferModel>>> getBuyerOffers(String buyerId, {String? status}) async {
-    if (throwError) return left(const DatabaseFailure('Failed to fetch offers'));
+  Future<AppResult<List<OfferModel>>> getBuyerOffers(String buyerId,
+      {String? status}) async {
+    if (throwError) {
+      return left(const DatabaseFailure('Failed to fetch offers'));
+    }
     var result = offersList.where((o) => o.buyerId == buyerId).toList();
     if (status != null && status.isNotEmpty && status.toLowerCase() != 'all') {
-      result = result.where((o) => o.status.toLowerCase() == status.toLowerCase()).toList();
+      result = result
+          .where((o) => o.status.toLowerCase() == status.toLowerCase())
+          .toList();
     }
     return right(result);
   }
@@ -96,17 +110,25 @@ class MockBuyerRepository implements BuyerRepository {
     double? maxPrice,
     String? sortBy,
   }) async {
-    if (throwError) return left(const DatabaseFailure('Failed to fetch produce'));
+    if (throwError) {
+      return left(const DatabaseFailure('Failed to fetch produce'));
+    }
 
     var result = List<ProduceModel>.from(produceList);
 
     if (category != null && category.isNotEmpty && category != 'All') {
-      result = result.where((p) => p.category.toLowerCase() == category.toLowerCase()).toList();
+      result = result
+          .where((p) => p.category.toLowerCase() == category.toLowerCase())
+          .toList();
     }
 
     if (searchQuery != null && searchQuery.isNotEmpty) {
       final q = searchQuery.toLowerCase();
-      result = result.where((p) => p.name.toLowerCase().contains(q) || p.category.toLowerCase().contains(q)).toList();
+      result = result
+          .where((p) =>
+              p.name.toLowerCase().contains(q) ||
+              p.category.toLowerCase().contains(q))
+          .toList();
     }
 
     if (sortBy == 'price_asc') {
@@ -126,7 +148,9 @@ class MockBuyerRepository implements BuyerRepository {
 
   @override
   Future<AppResult<OfferModel>> makeOffer(OfferModel offer) async {
-    if (throwError) return left(const DatabaseFailure('Failed to submit offer'));
+    if (throwError) {
+      return left(const DatabaseFailure('Failed to submit offer'));
+    }
     final newOffer = offer.copyWith(id: 'offer-${offersList.length + 1}');
     offersList.add(newOffer);
     return right(newOffer);
@@ -134,7 +158,9 @@ class MockBuyerRepository implements BuyerRepository {
 
   @override
   Future<AppResult<OfferModel>> updateOffer(OfferModel offer) async {
-    if (throwError) return left(const DatabaseFailure('Failed to update offer'));
+    if (throwError) {
+      return left(const DatabaseFailure('Failed to update offer'));
+    }
     final index = offersList.indexWhere((o) => o.id == offer.id);
     if (index != -1) {
       offersList[index] = offer;
@@ -144,19 +170,29 @@ class MockBuyerRepository implements BuyerRepository {
   }
 
   @override
-  Future<AppResult<OfferModel?>> getExistingOfferForProduce(String buyerId, String produceId) async {
-    if (throwError) return left(const DatabaseFailure('Failed to check existing offer'));
-    final found = offersList.where((o) => o.buyerId == buyerId && o.produceId == produceId && o.status == 'pending').firstOrNull;
+  Future<AppResult<OfferModel?>> getExistingOfferForProduce(
+      String buyerId, String produceId) async {
+    if (throwError) {
+      return left(const DatabaseFailure('Failed to check existing offer'));
+    }
+    final found = offersList
+        .where((o) =>
+            o.buyerId == buyerId &&
+            o.produceId == produceId &&
+            o.status == 'pending')
+        .firstOrNull;
     return right(found);
   }
 
   @override
-  Future<AppResult<List<OfferHistoryModel>>> getOfferHistory(String offerId) async {
+  Future<AppResult<List<OfferHistoryModel>>> getOfferHistory(
+      String offerId) async {
     return right([]);
   }
 
   @override
-  RealtimeChannel subscribeToBuyerOffers(String buyerId, void Function(OfferModel offer) onOfferChange) {
+  RealtimeChannel subscribeToBuyerOffers(
+      String buyerId, void Function(OfferModel offer) onOfferChange) {
     return FakeRealtimeChannel();
   }
 
@@ -166,26 +202,36 @@ class MockBuyerRepository implements BuyerRepository {
   }
 
   @override
-  RealtimeChannel subscribeToProduceDetails(String produceId, void Function(ProduceModel? produce) onChange) {
+  RealtimeChannel subscribeToProduceDetails(
+      String produceId, void Function(ProduceModel? produce) onChange) {
     return FakeRealtimeChannel();
   }
 }
 
 class MockFarmerRepoForBuyer implements FarmerRepository {
   @override
-  Future<AppResult<ProduceModel>> addProduce(ProduceModel produce) async => right(produce);
+  Future<AppResult<ProduceModel>> addProduce(ProduceModel produce) async =>
+      right(produce);
 
   @override
   Future<AppResult<void>> deleteProduce(String produceId) async => right(null);
 
   @override
-  Future<AppResult<DashboardStats>> getFarmerDashboardStats(String farmerId) async => right(const DashboardStats());
+  Future<AppResult<DashboardStats>> getFarmerDashboardStats(
+          String farmerId) async =>
+      right(const DashboardStats());
 
   @override
-  Future<AppResult<List<ProduceModel>>> getFarmerProduce(String farmerId, {String? status, String? searchQuery}) async => right([]);
+  Future<AppResult<List<ProduceModel>>> getFarmerProduce(String farmerId,
+          {String? status, String? searchQuery}) async =>
+      right([]);
 
   @override
-  Future<AppResult<List<MarketPriceModel>>> getMarketPrices({String? produceName, String? category, String? marketName, String? sortBy}) async {
+  Future<AppResult<List<MarketPriceModel>>> getMarketPrices(
+      {String? produceName,
+      String? category,
+      String? marketName,
+      String? sortBy}) async {
     return right([
       const MarketPriceModel(
         id: 'mp-1',
@@ -198,25 +244,44 @@ class MockFarmerRepoForBuyer implements FarmerRepository {
   }
 
   @override
-  Future<AppResult<List<OfferModel>>> getOffersForFarmer(String farmerId, {String? status}) async => right([]);
+  Future<AppResult<List<OfferModel>>> getOffersForFarmer(String farmerId,
+          {String? status}) async =>
+      right([]);
 
   @override
-  Future<AppResult<List<OfferHistoryModel>>> getOfferHistory(String offerId) async => right([]);
+  Future<AppResult<List<OfferHistoryModel>>> getOfferHistory(
+          String offerId) async =>
+      right([]);
 
   @override
-  RealtimeChannel subscribeToFarmerOffers(String farmerId, void Function(OfferModel offer) onNewOffer) => FakeRealtimeChannel();
+  RealtimeChannel subscribeToFarmerOffers(
+          String farmerId, void Function(OfferModel offer) onNewOffer) =>
+      FakeRealtimeChannel();
 
   @override
-  RealtimeChannel subscribeToProduceChanges(String farmerId, void Function() onChange) => FakeRealtimeChannel();
+  RealtimeChannel subscribeToProduceChanges(
+          String farmerId, void Function() onChange) =>
+      FakeRealtimeChannel();
 
   @override
-  RealtimeChannel subscribeToMarketPrices(void Function() onChange) => FakeRealtimeChannel();
+  RealtimeChannel subscribeToMarketPrices(void Function() onChange) =>
+      FakeRealtimeChannel();
 
   @override
-  Future<AppResult<OfferModel>> updateOfferStatus(String offerId, String status) async => right(OfferModel(id: offerId, produceId: 'p1', farmerId: 'f1', buyerId: 'b1', offeredPrice: 100, quantity: 10, status: status));
+  Future<AppResult<OfferModel>> updateOfferStatus(
+          String offerId, String status) async =>
+      right(OfferModel(
+          id: offerId,
+          produceId: 'p1',
+          farmerId: 'f1',
+          buyerId: 'b1',
+          offeredPrice: 100,
+          quantity: 10,
+          status: status));
 
   @override
-  Future<AppResult<ProduceModel>> updateProduce(ProduceModel produce) async => right(produce);
+  Future<AppResult<ProduceModel>> updateProduce(ProduceModel produce) async =>
+      right(produce);
 }
 
 void main() {
@@ -229,7 +294,8 @@ void main() {
       farmerRepo = MockFarmerRepoForBuyer();
     });
 
-    test('1-4. Buyer Dashboard loads statistics and marketplace data', () async {
+    test('1-4. Buyer Dashboard loads statistics and marketplace data',
+        () async {
       final notifier = BuyerDashboardNotifier(buyerRepo, farmerRepo);
       await notifier.loadDashboardData('buyer-1');
 
@@ -240,7 +306,8 @@ void main() {
       expect(state.marketHighlights.length, equals(1));
     });
 
-    test('5-8. Marketplace search, category filter, and sorting work correctly', () async {
+    test('5-8. Marketplace search, category filter, and sorting work correctly',
+        () async {
       final controller = MarketplaceController(buyerRepo);
 
       // Fetch all produce
@@ -255,7 +322,8 @@ void main() {
       // Search filter
       await controller.fetchProduce(category: 'All', query: 'Tomatoes');
       expect(controller.state.produceList.length, equals(1));
-      expect(controller.state.produceList.first.name, equals('Organic Tomatoes'));
+      expect(
+          controller.state.produceList.first.name, equals('Organic Tomatoes'));
 
       // Price sorting
       await controller.fetchProduce(query: '', sortBy: 'price_asc');
@@ -292,7 +360,8 @@ void main() {
       expect(offerController.state.offers.first.offeredPrice, equals(2350.0));
     });
 
-    test('15-19. Buyer My Offers filtering and pending offer cancellation', () async {
+    test('15-19. Buyer My Offers filtering and pending offer cancellation',
+        () async {
       final offerController = BuyerOfferController(buyerRepo);
 
       // Seed mock offers

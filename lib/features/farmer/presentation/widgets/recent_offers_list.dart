@@ -23,8 +23,10 @@ class RecentOffersList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final primaryText = isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight;
-    final secondaryText = isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight;
+    final primaryText =
+        isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight;
+    final secondaryText =
+        isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -108,15 +110,24 @@ class RecentOffersList extends StatelessWidget {
               return Padding(
                 padding: const EdgeInsets.only(bottom: AppSpacing.sm),
                 child: OfferCard(
-                  cropName: offer.produceName ?? context.l10n.produceListingLabel,
-                  buyerName: offer.buyerName ?? offer.buyerCompany ?? context.l10n.buyerLabel,
+                  cropName:
+                      offer.produceName ?? context.l10n.produceListingLabel,
+                  buyerName: offer.buyerName ??
+                      offer.buyerCompany ??
+                      context.l10n.buyerLabel,
                   offerPrice: offer.offeredPrice,
                   quantity: '${offer.quantity} ${offer.produceUnit ?? "units"}',
                   status: statusBadgeType,
                   expiresText: formattedTime,
-                  onAccept: isPending ? () => onRespond?.call(offer, 'accepted') : null,
-                  onReject: isPending ? () => onRespond?.call(offer, 'rejected') : null,
-                  onCounter: isPending ? () => onRespond?.call(offer, 'countered') : null,
+                  onAccept: isPending
+                      ? () => onRespond?.call(offer, 'accepted')
+                      : null,
+                  onReject: isPending
+                      ? () => onRespond?.call(offer, 'rejected')
+                      : null,
+                  onCounter: isPending
+                      ? () => onRespond?.call(offer, 'countered')
+                      : null,
                 ),
               );
             }).toList(),

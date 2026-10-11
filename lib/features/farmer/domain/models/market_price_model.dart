@@ -57,7 +57,8 @@ class MarketPriceModel extends Equatable {
       if (location != null) 'location': location,
       'price': price,
       'unit': unit,
-      if (priceDate != null) 'price_date': priceDate!.toIso8601String().split('T').first,
+      if (priceDate != null)
+        'price_date': priceDate!.toIso8601String().split('T').first,
       'trend': trend,
       if (source != null) 'source': source,
     };

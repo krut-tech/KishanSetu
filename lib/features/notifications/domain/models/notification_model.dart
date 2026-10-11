@@ -56,7 +56,8 @@ class NotificationModel extends Equatable {
       relatedType: json['related_type'] as String?,
       isRead: (json['is_read'] as bool?) ?? false,
       createdAt: json['created_at'] != null
-          ? (DateTime.tryParse(json['created_at'] as String)?.toLocal() ?? DateTime.now())
+          ? (DateTime.tryParse(json['created_at'] as String)?.toLocal() ??
+              DateTime.now())
           : DateTime.now(),
     );
   }

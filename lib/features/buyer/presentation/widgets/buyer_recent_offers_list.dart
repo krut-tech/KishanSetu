@@ -38,8 +38,10 @@ class BuyerRecentOffersList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final primaryText = isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight;
-    final secondaryText = isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight;
+    final primaryText =
+        isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight;
+    final secondaryText =
+        isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -68,11 +70,15 @@ class BuyerRecentOffersList extends StatelessWidget {
             padding: const EdgeInsets.all(AppSpacing.xl),
             child: Column(
               children: [
-                Icon(Icons.local_offer_outlined, size: 40, color: secondaryText),
+                Icon(Icons.local_offer_outlined,
+                    size: 40, color: secondaryText),
                 const SizedBox(height: AppSpacing.sm),
                 Text(
                   context.l10n.noSubmittedOffersYet,
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: primaryText),
+                  style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: primaryText),
                 ),
                 const SizedBox(height: 2),
                 Text(
@@ -88,18 +94,27 @@ class BuyerRecentOffersList extends StatelessWidget {
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             itemCount: offers.take(3).length,
-            separatorBuilder: (context, index) => const SizedBox(height: AppSpacing.md),
+            separatorBuilder: (context, index) =>
+                const SizedBox(height: AppSpacing.md),
             itemBuilder: (context, index) {
               final offer = offers[index];
-              final farmerIdDisplay = offer.farmerId.length > 6 ? offer.farmerId.substring(0, 6) : offer.farmerId;
+              final farmerIdDisplay = offer.farmerId.length > 6
+                  ? offer.farmerId.substring(0, 6)
+                  : offer.farmerId;
               return OfferCard(
                 cropName: offer.produceName ?? context.l10n.produceLabel,
-                buyerName: offer.farmerName != null ? '${context.l10n.farmerLabel}: ${offer.farmerName}' : '${context.l10n.farmerLabel} ID: $farmerIdDisplay',
+                buyerName: offer.farmerName != null
+                    ? '${context.l10n.farmerLabel}: ${offer.farmerName}'
+                    : '${context.l10n.farmerLabel} ID: $farmerIdDisplay',
                 offerPrice: offer.offeredPrice,
-                quantity: '${offer.quantity} ${offer.produceUnit ?? context.l10n.unitsLabel}',
+                quantity:
+                    '${offer.quantity} ${offer.produceUnit ?? context.l10n.unitsLabel}',
                 status: _mapStatus(offer.status),
-                expiresText: '${context.l10n.statusLabel}: ${localizedOfferStatus(context, offer.status)}',
-                onCancel: offer.status == 'pending' ? () => onCancelOffer?.call(offer) : null,
+                expiresText:
+                    '${context.l10n.statusLabel}: ${localizedOfferStatus(context, offer.status)}',
+                onCancel: offer.status == 'pending'
+                    ? () => onCancelOffer?.call(offer)
+                    : null,
               );
             },
           ),

@@ -35,42 +35,57 @@ void main() {
       expect(route, equals('/offers'));
     });
 
-    test('3. Resolves /offers for offer_accepted, offer_rejected, counter_offer, offer_updated, offer_cancelled', () {
+    test(
+        '3. Resolves /offers for offer_accepted, offer_rejected, counter_offer, offer_updated, offer_cancelled',
+        () {
       final dataAccepted = {'type': 'offer_accepted'};
       final dataRejected = {'type': 'offer_rejected'};
       final dataCounter = {'type': 'counter_offer'};
       final dataUpdated = {'type': 'offer_updated'};
       final dataCancelled = {'type': 'offer_cancelled'};
 
-      expect(PushNotificationService.resolveRouteFromData(dataAccepted), equals('/offers'));
-      expect(PushNotificationService.resolveRouteFromData(dataRejected), equals('/offers'));
-      expect(PushNotificationService.resolveRouteFromData(dataCounter), equals('/offers'));
-      expect(PushNotificationService.resolveRouteFromData(dataUpdated), equals('/offers'));
-      expect(PushNotificationService.resolveRouteFromData(dataCancelled), equals('/offers'));
+      expect(PushNotificationService.resolveRouteFromData(dataAccepted),
+          equals('/offers'));
+      expect(PushNotificationService.resolveRouteFromData(dataRejected),
+          equals('/offers'));
+      expect(PushNotificationService.resolveRouteFromData(dataCounter),
+          equals('/offers'));
+      expect(PushNotificationService.resolveRouteFromData(dataUpdated),
+          equals('/offers'));
+      expect(PushNotificationService.resolveRouteFromData(dataCancelled),
+          equals('/offers'));
     });
 
     test('4. Resolves /my-produce for produce and produce_interest types', () {
       final dataInterest = {'type': 'produce_interest'};
       final dataProduce = {'type': 'produce'};
 
-      expect(PushNotificationService.resolveRouteFromData(dataInterest), equals('/my-produce'));
-      expect(PushNotificationService.resolveRouteFromData(dataProduce), equals('/my-produce'));
+      expect(PushNotificationService.resolveRouteFromData(dataInterest),
+          equals('/my-produce'));
+      expect(PushNotificationService.resolveRouteFromData(dataProduce),
+          equals('/my-produce'));
     });
 
-    test('5. Resolves /market-prices for market_price and market_price_update types', () {
+    test(
+        '5. Resolves /market-prices for market_price and market_price_update types',
+        () {
       final dataUpdate = {'type': 'market_price_update'};
       final dataPrice = {'type': 'market_price'};
 
-      expect(PushNotificationService.resolveRouteFromData(dataUpdate), equals('/market-prices'));
-      expect(PushNotificationService.resolveRouteFromData(dataPrice), equals('/market-prices'));
+      expect(PushNotificationService.resolveRouteFromData(dataUpdate),
+          equals('/market-prices'));
+      expect(PushNotificationService.resolveRouteFromData(dataPrice),
+          equals('/market-prices'));
     });
 
     test('6. Resolves fallback /notifications for unknown or missing type', () {
       final dataUnknown = {'type': 'custom_unknown'};
       final dataEmpty = <String, dynamic>{};
 
-      expect(PushNotificationService.resolveRouteFromData(dataUnknown), equals('/notifications'));
-      expect(PushNotificationService.resolveRouteFromData(dataEmpty), equals('/notifications'));
+      expect(PushNotificationService.resolveRouteFromData(dataUnknown),
+          equals('/notifications'));
+      expect(PushNotificationService.resolveRouteFromData(dataEmpty),
+          equals('/notifications'));
     });
 
     test('7. Triggers onNavigate callback or stores pendingInitialRoute', () {
@@ -103,11 +118,14 @@ void main() {
       fakeAuthRepository.reset();
     });
 
-    test('8. AuthNotifier triggers profile fetch and authenticates user cleanly', () async {
+    test(
+        '8. AuthNotifier triggers profile fetch and authenticates user cleanly',
+        () async {
       final fakeUser = FakeUser(id: 'push-user-1');
       fakeAuthRepository.signInResult = right(
         supabase.AuthResponse(
-          session: supabase.Session(accessToken: 'token', tokenType: 'bearer', user: fakeUser),
+          session: supabase.Session(
+              accessToken: 'token', tokenType: 'bearer', user: fakeUser),
           user: fakeUser,
         ),
       );
@@ -121,7 +139,8 @@ void main() {
       );
 
       final authNotifier = AuthNotifier(fakeAuthRepository);
-      final success = await authNotifier.signIn('farmer@example.com', 'Pass123!');
+      final success =
+          await authNotifier.signIn('farmer@example.com', 'Pass123!');
 
       expect(success, isTrue);
       expect(authNotifier.state.isAuthenticated, isTrue);
@@ -130,11 +149,13 @@ void main() {
       authNotifier.dispose();
     });
 
-    test('9. AuthNotifier signOut deactivates session and resets state', () async {
+    test('9. AuthNotifier signOut deactivates session and resets state',
+        () async {
       final fakeUser = FakeUser(id: 'push-user-2');
       fakeAuthRepository.signInResult = right(
         supabase.AuthResponse(
-          session: supabase.Session(accessToken: 'token', tokenType: 'bearer', user: fakeUser),
+          session: supabase.Session(
+              accessToken: 'token', tokenType: 'bearer', user: fakeUser),
           user: fakeUser,
         ),
       );

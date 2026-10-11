@@ -7,7 +7,8 @@ class DisputeModel extends Equatable {
   final String? reportedUserId;
   final String? relatedOrderId;
   final String? relatedOfferId;
-  final String type; // quality_issue, payment_issue, no_show, fraud, harassment, other
+  final String
+      type; // quality_issue, payment_issue, no_show, fraud, harassment, other
   final String description;
   final String status; // open, investigating, resolved, dismissed
   final String? resolutionNote;
@@ -35,11 +36,13 @@ class DisputeModel extends Equatable {
   factory DisputeModel.fromMap(Map<String, dynamic> map) {
     String? reporterName;
     if (map['reporter_profile'] is Map) {
-      reporterName = (map['reporter_profile'] as Map<String, dynamic>)['full_name'] as String?;
+      reporterName = (map['reporter_profile']
+          as Map<String, dynamic>)['full_name'] as String?;
     }
     String? reportedUserName;
     if (map['reported_profile'] is Map) {
-      reportedUserName = (map['reported_profile'] as Map<String, dynamic>)['full_name'] as String?;
+      reportedUserName = (map['reported_profile']
+          as Map<String, dynamic>)['full_name'] as String?;
     }
 
     return DisputeModel(
@@ -52,8 +55,12 @@ class DisputeModel extends Equatable {
       description: (map['description'] as String?) ?? '',
       status: (map['status'] as String?) ?? 'open',
       resolutionNote: map['resolution_note'] as String?,
-      createdAt: map['created_at'] != null ? DateTime.tryParse(map['created_at'] as String) : null,
-      resolvedAt: map['resolved_at'] != null ? DateTime.tryParse(map['resolved_at'] as String) : null,
+      createdAt: map['created_at'] != null
+          ? DateTime.tryParse(map['created_at'] as String)
+          : null,
+      resolvedAt: map['resolved_at'] != null
+          ? DateTime.tryParse(map['resolved_at'] as String)
+          : null,
       reporterName: reporterName,
       reportedUserName: reportedUserName,
     );

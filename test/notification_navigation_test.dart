@@ -36,7 +36,8 @@ void main() {
         authRepositoryProvider.overrideWithValue(fakeAuthRepository),
         farmerRepositoryProvider.overrideWithValue(mockFarmerRepository),
         buyerRepositoryProvider.overrideWithValue(mockBuyerRepository),
-        appBootstrapProvider.overrideWith((ref) => MockAppBootstrapNotifier(ref)),
+        appBootstrapProvider
+            .overrideWith((ref) => MockAppBootstrapNotifier(ref)),
       ],
       child: Consumer(
         builder: (context, ref, child) {
@@ -57,11 +58,14 @@ void main() {
   }
 
   group('Notification Center Navigation Tests', () {
-    testWidgets('1. Farmer Dashboard AppBar NotificationBadgeIcon opens Notification Center', (tester) async {
+    testWidgets(
+        '1. Farmer Dashboard AppBar NotificationBadgeIcon opens Notification Center',
+        (tester) async {
       final fakeUser = FakeUser(id: 'farmer-nav-1');
       fakeAuthRepository.signInResult = right(
         supabase.AuthResponse(
-          session: supabase.Session(accessToken: 'tok', tokenType: 'bearer', user: fakeUser),
+          session: supabase.Session(
+              accessToken: 'tok', tokenType: 'bearer', user: fakeUser),
           user: fakeUser,
         ),
       );
@@ -97,11 +101,13 @@ void main() {
       expect(find.text('Notifications'), findsOneWidget);
     });
 
-    testWidgets('2. Farmer Dashboard Header Bell opens Notification Center', (tester) async {
+    testWidgets('2. Farmer Dashboard Header Bell opens Notification Center',
+        (tester) async {
       final fakeUser = FakeUser(id: 'farmer-nav-2');
       fakeAuthRepository.signInResult = right(
         supabase.AuthResponse(
-          session: supabase.Session(accessToken: 'tok', tokenType: 'bearer', user: fakeUser),
+          session: supabase.Session(
+              accessToken: 'tok', tokenType: 'bearer', user: fakeUser),
           user: fakeUser,
         ),
       );
@@ -137,11 +143,14 @@ void main() {
       expect(find.text('Notifications'), findsOneWidget);
     });
 
-    testWidgets('3. Buyer Dashboard AppBar NotificationBadgeIcon opens Notification Center', (tester) async {
+    testWidgets(
+        '3. Buyer Dashboard AppBar NotificationBadgeIcon opens Notification Center',
+        (tester) async {
       final fakeUser = FakeUser(id: 'buyer-nav-1');
       fakeAuthRepository.signInResult = right(
         supabase.AuthResponse(
-          session: supabase.Session(accessToken: 'tok', tokenType: 'bearer', user: fakeUser),
+          session: supabase.Session(
+              accessToken: 'tok', tokenType: 'bearer', user: fakeUser),
           user: fakeUser,
         ),
       );
@@ -177,11 +186,13 @@ void main() {
       expect(find.text('Notifications'), findsOneWidget);
     });
 
-    testWidgets('4. Buyer Dashboard Header Bell opens Notification Center', (tester) async {
+    testWidgets('4. Buyer Dashboard Header Bell opens Notification Center',
+        (tester) async {
       final fakeUser = FakeUser(id: 'buyer-nav-2');
       fakeAuthRepository.signInResult = right(
         supabase.AuthResponse(
-          session: supabase.Session(accessToken: 'tok', tokenType: 'bearer', user: fakeUser),
+          session: supabase.Session(
+              accessToken: 'tok', tokenType: 'bearer', user: fakeUser),
           user: fakeUser,
         ),
       );

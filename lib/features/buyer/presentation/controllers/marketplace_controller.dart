@@ -125,7 +125,8 @@ class MarketplaceController extends StateNotifier<MarketplaceState> {
     if (_marketplaceChannel != null) return;
     try {
       _marketplaceChannel = _repository.subscribeToMarketplaceProduce(() {
-        AppLogger.info('Realtime marketplace produce change event in MarketplaceController -> refreshing');
+        AppLogger.info(
+            'Realtime marketplace produce change event in MarketplaceController -> refreshing');
         fetchProduce();
       });
     } catch (e) {

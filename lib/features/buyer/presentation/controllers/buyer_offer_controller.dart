@@ -9,7 +9,8 @@ class BuyerOfferState extends Equatable {
   final List<OfferModel> offers;
   final bool isLoading;
   final bool isSubmitting;
-  final String selectedStatus; // 'All', 'pending', 'accepted', 'rejected', 'cancelled'
+  final String
+      selectedStatus; // 'All', 'pending', 'accepted', 'rejected', 'cancelled'
   final String? errorMessage;
   final String? successMessage;
 
@@ -38,7 +39,8 @@ class BuyerOfferState extends Equatable {
       isSubmitting: isSubmitting ?? this.isSubmitting,
       selectedStatus: selectedStatus ?? this.selectedStatus,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
-      successMessage: clearSuccess ? null : (successMessage ?? this.successMessage),
+      successMessage:
+          clearSuccess ? null : (successMessage ?? this.successMessage),
     );
   }
 
@@ -98,7 +100,8 @@ class BuyerOfferController extends StateNotifier<BuyerOfferState> {
     _offersChannel = null;
     try {
       _offersChannel = _repository.subscribeToBuyerOffers(buyerId, (_) {
-        AppLogger.info('Realtime offer event in BuyerOfferController -> refreshing');
+        AppLogger.info(
+            'Realtime offer event in BuyerOfferController -> refreshing');
         if (_currentBuyerId != null) {
           fetchOffers(_currentBuyerId!);
         }
@@ -116,7 +119,8 @@ class BuyerOfferController extends StateNotifier<BuyerOfferState> {
   }
 
   Future<bool> makeOffer(OfferModel offer) async {
-    state = state.copyWith(isSubmitting: true, clearError: true, clearSuccess: true);
+    state = state.copyWith(
+        isSubmitting: true, clearError: true, clearSuccess: true);
 
     final result = await _repository.makeOffer(offer);
 
@@ -143,7 +147,8 @@ class BuyerOfferController extends StateNotifier<BuyerOfferState> {
   }
 
   Future<bool> updateOffer(OfferModel offer) async {
-    state = state.copyWith(isSubmitting: true, clearError: true, clearSuccess: true);
+    state = state.copyWith(
+        isSubmitting: true, clearError: true, clearSuccess: true);
 
     final result = await _repository.updateOffer(offer);
 
@@ -178,7 +183,8 @@ class BuyerOfferController extends StateNotifier<BuyerOfferState> {
   }
 
   Future<bool> cancelOffer(String offerId, String buyerId) async {
-    state = state.copyWith(isSubmitting: true, clearError: true, clearSuccess: true);
+    state = state.copyWith(
+        isSubmitting: true, clearError: true, clearSuccess: true);
 
     final result = await _repository.cancelOffer(offerId, buyerId);
 

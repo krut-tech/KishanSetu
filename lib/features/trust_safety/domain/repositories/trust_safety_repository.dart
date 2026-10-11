@@ -9,26 +9,35 @@ import 'package:farmer_market_app/features/trust_safety/domain/models/kyc_docume
 abstract class TrustSafetyRepository {
   // ---- KYC (own) ----
   Future<AppResult<KycDocumentModel?>> getMyLatestKycDocument(String userId);
-  Future<AppResult<String>> uploadKycFile({required String userId, required File file});
-  Future<AppResult<KycDocumentModel>> submitKycDocument(KycDocumentModel document);
+  Future<AppResult<String>> uploadKycFile(
+      {required String userId, required File file});
+  Future<AppResult<KycDocumentModel>> submitKycDocument(
+      KycDocumentModel document);
 
   // ---- Disputes (own) ----
   Future<AppResult<List<DisputeModel>>> getMyDisputes(String userId);
   Future<AppResult<DisputeModel>> fileDispute(DisputeModel dispute);
 
   // ---- Admin: users ----
-  Future<AppResult<List<UserProfile>>> adminGetUsers({String? role, String? search});
-  Future<AppResult<void>> adminSetAccountStatus(String userId, String status, {String? reason});
+  Future<AppResult<List<UserProfile>>> adminGetUsers(
+      {String? role, String? search});
+  Future<AppResult<void>> adminSetAccountStatus(String userId, String status,
+      {String? reason});
 
   // ---- Admin: KYC queue ----
-  Future<AppResult<List<KycDocumentModel>>> adminGetKycQueue({String status = 'pending'});
-  Future<AppResult<void>> adminReviewKyc(String documentId, String status, {String? rejectionReason});
+  Future<AppResult<List<KycDocumentModel>>> adminGetKycQueue(
+      {String status = 'pending'});
+  Future<AppResult<void>> adminReviewKyc(String documentId, String status,
+      {String? rejectionReason});
 
   // ---- Admin: listing moderation ----
-  Future<AppResult<List<ProduceModel>>> adminGetProduceForModeration({String? moderationStatus});
-  Future<AppResult<void>> adminModerateProduce(String produceId, String status, {String? note});
+  Future<AppResult<List<ProduceModel>>> adminGetProduceForModeration(
+      {String? moderationStatus});
+  Future<AppResult<void>> adminModerateProduce(String produceId, String status,
+      {String? note});
 
   // ---- Admin: disputes ----
   Future<AppResult<List<DisputeModel>>> adminGetDisputes({String? status});
-  Future<AppResult<void>> adminResolveDispute(String disputeId, String status, {String? resolutionNote});
+  Future<AppResult<void>> adminResolveDispute(String disputeId, String status,
+      {String? resolutionNote});
 }

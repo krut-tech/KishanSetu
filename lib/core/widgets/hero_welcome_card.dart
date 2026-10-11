@@ -82,7 +82,8 @@ class _HeroWelcomeCardState extends State<HeroWelcomeCard>
                   AnimatedBuilder(
                     animation: _controller,
                     builder: (context, child) => Transform.translate(
-                      offset: Offset(0, -4 * math.sin(_controller.value * 2 * math.pi)),
+                      offset: Offset(
+                          0, -4 * math.sin(_controller.value * 2 * math.pi)),
                       child: child,
                     ),
                     child: Container(
@@ -98,7 +99,8 @@ class _HeroWelcomeCardState extends State<HeroWelcomeCard>
                           ),
                         ],
                       ),
-                      child: Icon(widget.icon, color: AppColors.forest, size: 28),
+                      child:
+                          Icon(widget.icon, color: AppColors.forest, size: 28),
                     ),
                   ),
                   const SizedBox(width: 16),

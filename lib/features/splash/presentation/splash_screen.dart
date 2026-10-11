@@ -199,8 +199,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                           if (_showDetails)
                             Container(
                               width: double.infinity,
-                              padding:
-                                  const EdgeInsets.all(AppConstants.paddingSmall),
+                              padding: const EdgeInsets.all(
+                                  AppConstants.paddingSmall),
                               decoration: BoxDecoration(
                                 color: cs.surfaceContainerHighest,
                                 borderRadius: BorderRadius.circular(
@@ -220,7 +220,9 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                         const SizedBox(height: AppConstants.paddingMedium),
                         ElevatedButton.icon(
                           onPressed: () {
-                            ref.read(appBootstrapProvider.notifier).initialize();
+                            ref
+                                .read(appBootstrapProvider.notifier)
+                                .initialize();
                           },
                           icon: const Icon(Icons.refresh),
                           label: Text(context.l10n.retryConnection),

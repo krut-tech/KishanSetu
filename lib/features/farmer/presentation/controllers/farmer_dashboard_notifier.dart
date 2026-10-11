@@ -68,11 +68,13 @@ class FarmerDashboardNotifier extends StateNotifier<FarmerDashboardState> {
   RealtimeChannel? _pricesChannel;
   String? _currentFarmerId;
 
-  FarmerDashboardNotifier(this._repository) : super(const FarmerDashboardState());
+  FarmerDashboardNotifier(this._repository)
+      : super(const FarmerDashboardState());
 
   Future<void> loadDashboardData(String farmerId) async {
     final isSameUser = _currentFarmerId == farmerId;
-    final hasData = state.stats.totalProduce > 0 || state.recentProduce.isNotEmpty;
+    final hasData =
+        state.stats.totalProduce > 0 || state.recentProduce.isNotEmpty;
     _currentFarmerId = farmerId;
 
     if (!isSameUser || !hasData) {
@@ -144,14 +146,19 @@ class FarmerDashboardNotifier extends StateNotifier<FarmerDashboardState> {
   }
 
   void _setupRealtime(String farmerId) {
-    if (_offersChannel != null && _produceChannel != null && _pricesChannel != null && _currentFarmerId == farmerId) {
+    if (_offersChannel != null &&
+        _produceChannel != null &&
+        _pricesChannel != null &&
+        _currentFarmerId == farmerId) {
       return; // Realtime channels already initialized
     }
     _cleanupRealtime();
 
     try {
-      _offersChannel = _repository.subscribeToFarmerOffers(farmerId, (newOffer) {
-        AppLogger.info('Realtime new offer notification received: ${newOffer.id}');
+      _offersChannel =
+          _repository.subscribeToFarmerOffers(farmerId, (newOffer) {
+        AppLogger.info(
+            'Realtime new offer notification received: ${newOffer.id}');
         refreshDashboard();
       });
 

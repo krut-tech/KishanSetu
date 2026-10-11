@@ -50,7 +50,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     if (mounted) {
       setState(() => _isSubmitting = false);
       if (!success) {
-        final error = ref.read(authNotifierProvider).errorMessage ?? context.l10n.loginFailedCheckCredentials;
+        final error = ref.read(authNotifierProvider).errorMessage ??
+            context.l10n.loginFailedCheckCredentials;
         AppSnackBar.show(context, message: error, type: SnackBarType.error);
       } else {
         _emailController.clear();
@@ -63,9 +64,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final authState = ref.read(authNotifierProvider);
     if (authState.isLoading || _isSubmitting) return;
 
-    final success = await ref.read(authNotifierProvider.notifier).signInWithGoogle();
+    final success =
+        await ref.read(authNotifierProvider.notifier).signInWithGoogle();
     if (!success && mounted) {
-      final error = ref.read(authNotifierProvider).errorMessage ?? context.l10n.googleAuthFailed;
+      final error = ref.read(authNotifierProvider).errorMessage ??
+          context.l10n.googleAuthFailed;
       AppSnackBar.show(context, message: error, type: SnackBarType.error);
     }
   }
@@ -83,162 +86,178 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             child: Form(
               key: _formKey,
               child: AppCard(
-                  padding: const EdgeInsets.all(AppSpacing.xl),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(AppSpacing.sm),
-                            decoration: BoxDecoration(
-                              color: colorScheme.primaryContainer,
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(Icons.agriculture_rounded, color: colorScheme.primary, size: 36),
-                          ),
-                          const SizedBox(width: AppSpacing.md),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  context.l10n.login,
-                                  style: TextStyle(
-                                    fontSize: 22,
-                                    fontWeight: FontWeight.bold,
-                                    color: colorScheme.onSurface,
-                                  ),
-                                ),
-                                Text(
-                                  context.l10n.welcomeMessage,
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    color: colorScheme.onSurfaceVariant,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: AppSpacing.xl),
-                      if (authState.errorMessage != null && authState.errorMessage!.isNotEmpty) ...[
+                padding: const EdgeInsets.all(AppSpacing.xl),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
                         Container(
-                          padding: const EdgeInsets.all(AppSpacing.md),
+                          padding: const EdgeInsets.all(AppSpacing.sm),
                           decoration: BoxDecoration(
-                            color: AppColors.rejectedBg,
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: AppColors.error.withValues(alpha: 0.3)),
+                            color: colorScheme.primaryContainer,
+                            shape: BoxShape.circle,
                           ),
-                          child: Row(
+                          child: Icon(Icons.agriculture_rounded,
+                              color: colorScheme.primary, size: 36),
+                        ),
+                        const SizedBox(width: AppSpacing.md),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Icon(Icons.error_outline_rounded, color: AppColors.error, size: 20),
-                              const SizedBox(width: AppSpacing.sm),
-                              Expanded(
-                                child: Text(
-                                  authState.errorMessage!,
-                                  style: const TextStyle(
-                                    color: AppColors.error,
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w500,
-                                  ),
+                              Text(
+                                context.l10n.login,
+                                style: TextStyle(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.bold,
+                                  color: colorScheme.onSurface,
+                                ),
+                              ),
+                              Text(
+                                context.l10n.welcomeMessage,
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: colorScheme.onSurfaceVariant,
                                 ),
                               ),
                             ],
                           ),
                         ),
-                        const SizedBox(height: AppSpacing.md),
                       ],
-                      AppTextField(
-                        label: context.l10n.email,
-                        controller: _emailController,
-                        keyboardType: TextInputType.emailAddress,
-                        prefixIcon: const Icon(Icons.email_outlined),
-                        validator: (value) {
-                          if (value == null || value.trim().isEmpty) {
-                            return context.l10n.pleaseEnterYourEmail;
-                          }
-                          if (!value.contains('@')) {
-                            return context.l10n.pleaseEnterValidEmail;
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: AppSpacing.md),
-                      AppTextField(
-                        label: context.l10n.password,
-                        controller: _passwordController,
-                        obscureText: _obscurePassword,
-                        prefixIcon: const Icon(Icons.lock_outline_rounded),
-                        suffixIcon: IconButton(
-                          icon: Icon(_obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined),
-                          onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                    ),
+                    const SizedBox(height: AppSpacing.xl),
+                    if (authState.errorMessage != null &&
+                        authState.errorMessage!.isNotEmpty) ...[
+                      Container(
+                        padding: const EdgeInsets.all(AppSpacing.md),
+                        decoration: BoxDecoration(
+                          color: AppColors.rejectedBg,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                              color: AppColors.error.withValues(alpha: 0.3)),
                         ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return context.l10n.pleaseEnterYourPassword;
-                          }
-                          return null;
-                        },
-                      ),
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: TextButton(
-                          onPressed: () => context.go(RouteNames.forgotPassword),
-                          child: Text(
-                            context.l10n.forgotPassword,
-                            style: TextStyle(color: colorScheme.primary, fontWeight: FontWeight.w600),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.md),
-                      AppButton(
-                        label: context.l10n.login,
-                        isLoading: authState.isLoading || _isSubmitting,
-                        onPressed: _handleLogin,
-                      ),
-                      const SizedBox(height: AppSpacing.lg),
-                      Row(
-                        children: [
-                          Expanded(child: Divider(color: colorScheme.outline.withValues(alpha: 0.3))),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
-                            child: Text(
-                              'OR',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w500,
-                                color: colorScheme.onSurfaceVariant,
+                        child: Row(
+                          children: [
+                            const Icon(Icons.error_outline_rounded,
+                                color: AppColors.error, size: 20),
+                            const SizedBox(width: AppSpacing.sm),
+                            Expanded(
+                              child: Text(
+                                authState.errorMessage!,
+                                style: const TextStyle(
+                                  color: AppColors.error,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w500,
+                                ),
                               ),
                             ),
-                          ),
-                          Expanded(child: Divider(color: colorScheme.outline.withValues(alpha: 0.3))),
-                        ],
-                      ),
-                      const SizedBox(height: AppSpacing.lg),
-                      GoogleSignInButton(
-                        isLoading: authState.isLoading,
-                        onPressed: _handleGoogleLogin,
+                          ],
+                        ),
                       ),
                       const SizedBox(height: AppSpacing.md),
-                      Center(
-                        child: TextButton(
-                          onPressed: () => context.go(RouteNames.register),
-                          child: Text(
-                            context.l10n.dontHaveAccount,
-                            style: TextStyle(
+                    ],
+                    AppTextField(
+                      label: context.l10n.email,
+                      controller: _emailController,
+                      keyboardType: TextInputType.emailAddress,
+                      prefixIcon: const Icon(Icons.email_outlined),
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return context.l10n.pleaseEnterYourEmail;
+                        }
+                        if (!value.contains('@')) {
+                          return context.l10n.pleaseEnterValidEmail;
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                    AppTextField(
+                      label: context.l10n.password,
+                      controller: _passwordController,
+                      obscureText: _obscurePassword,
+                      prefixIcon: const Icon(Icons.lock_outline_rounded),
+                      suffixIcon: IconButton(
+                        icon: Icon(_obscurePassword
+                            ? Icons.visibility_off_outlined
+                            : Icons.visibility_outlined),
+                        onPressed: () => setState(
+                            () => _obscurePassword = !_obscurePassword),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return context.l10n.pleaseEnterYourPassword;
+                        }
+                        return null;
+                      },
+                    ),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
+                        onPressed: () => context.go(RouteNames.forgotPassword),
+                        child: Text(
+                          context.l10n.forgotPassword,
+                          style: TextStyle(
                               color: colorScheme.primary,
-                              fontWeight: FontWeight.w600,
+                              fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                    AppButton(
+                      label: context.l10n.login,
+                      isLoading: authState.isLoading || _isSubmitting,
+                      onPressed: _handleLogin,
+                    ),
+                    const SizedBox(height: AppSpacing.lg),
+                    Row(
+                      children: [
+                        Expanded(
+                            child: Divider(
+                                color: colorScheme.outline
+                                    .withValues(alpha: 0.3))),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: AppSpacing.sm),
+                          child: Text(
+                            'OR',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                              color: colorScheme.onSurfaceVariant,
                             ),
                           ),
                         ),
+                        Expanded(
+                            child: Divider(
+                                color: colorScheme.outline
+                                    .withValues(alpha: 0.3))),
+                      ],
+                    ),
+                    const SizedBox(height: AppSpacing.lg),
+                    GoogleSignInButton(
+                      isLoading: authState.isLoading,
+                      onPressed: _handleGoogleLogin,
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                    Center(
+                      child: TextButton(
+                        onPressed: () => context.go(RouteNames.register),
+                        child: Text(
+                          context.l10n.dontHaveAccount,
+                          style: TextStyle(
+                            color: colorScheme.primary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
+            ),
           ),
         ),
       ),

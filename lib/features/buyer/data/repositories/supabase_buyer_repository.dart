@@ -25,13 +25,17 @@ class SupabaseBuyerRepository implements BuyerRepository {
     String? sortBy,
   }) async {
     try {
-      AppLogger.info('Fetching marketplace produce: query=$searchQuery, cat=$category, loc=$location, sort=$sortBy');
+      AppLogger.info(
+          'Fetching marketplace produce: query=$searchQuery, cat=$category, loc=$location, sort=$sortBy');
       var query = _client
           .from('produce')
-          .select('*, farmer_profile:farmer_id(full_name, district, village, state)')
+          .select(
+              '*, farmer_profile:farmer_id(full_name, district, village, state)')
           .eq('status', 'active');
 
-      if (category != null && category.trim().isNotEmpty && category.toLowerCase() != 'all') {
+      if (category != null &&
+          category.trim().isNotEmpty &&
+          category.toLowerCase() != 'all') {
         query = query.eq('category', category.trim());
       }
 
@@ -49,7 +53,8 @@ class SupabaseBuyerRepository implements BuyerRepository {
 
       if (searchQuery != null && searchQuery.trim().isNotEmpty) {
         final term = '%${searchQuery.trim()}%';
-        query = query.or('name.ilike.$term,category.ilike.$term,location.ilike.$term');
+        query = query
+            .or('name.ilike.$term,category.ilike.$term,location.ilike.$term');
       }
 
       // Cap the page size: the marketplace spans every farmer's active
@@ -72,7 +77,8 @@ class SupabaseBuyerRepository implements BuyerRepository {
       AppLogger.error('Network error fetching marketplace produce', e);
       return left(const NetworkFailure());
     } on PostgrestException catch (e) {
-      AppLogger.error('Database failure fetching marketplace produce: ${e.message}', e);
+      AppLogger.error(
+          'Database failure fetching marketplace produce: ${e.message}', e);
       return left(DatabaseFailure(e.message, code: e.code));
     } catch (e, stack) {
       AppLogger.error('Unknown failure fetching marketplace produce', e, stack);
@@ -86,7 +92,8 @@ class SupabaseBuyerRepository implements BuyerRepository {
       AppLogger.info('Fetching produce details for id: $produceId');
       final response = await _client
           .from('produce')
-          .select('*, farmer_profile:farmer_id(full_name, district, village, state)')
+          .select(
+              '*, farmer_profile:farmer_id(full_name, district, village, state)')
           .eq('id', produceId)
           .single();
 
@@ -95,7 +102,8 @@ class SupabaseBuyerRepository implements BuyerRepository {
       AppLogger.error('Network error fetching produce details', e);
       return left(const NetworkFailure());
     } on PostgrestException catch (e) {
-      AppLogger.error('Database failure fetching produce details: ${e.message}', e);
+      AppLogger.error(
+          'Database failure fetching produce details: ${e.message}', e);
       return left(DatabaseFailure(e.message, code: e.code));
     } catch (e, stack) {
       AppLogger.error('Unknown failure fetching produce details', e, stack);
@@ -112,10 +120,13 @@ class SupabaseBuyerRepository implements BuyerRepository {
       AppLogger.info('Fetching offers for buyer: $buyerId, status: $status');
       var query = _client
           .from('offers')
-          .select('*, offer_history(*), produce:produce_id(name, unit, category, expected_price, location), farmer_profile:farmer_id(full_name, district)')
+          .select(
+              '*, offer_history(*), produce:produce_id(name, unit, category, expected_price, location), farmer_profile:farmer_id(full_name, district)')
           .eq('buyer_id', buyerId);
 
-      if (status != null && status.isNotEmpty && status.toLowerCase() != 'all') {
+      if (status != null &&
+          status.isNotEmpty &&
+          status.toLowerCase() != 'all') {
         query = query.eq('status', status.toLowerCase());
       }
 
@@ -129,7 +140,8 @@ class SupabaseBuyerRepository implements BuyerRepository {
       AppLogger.error('Network error fetching buyer offers', e);
       return left(const NetworkFailure());
     } on PostgrestException catch (e) {
-      AppLogger.error('Database failure fetching buyer offers: ${e.message}', e);
+      AppLogger.error(
+          'Database failure fetching buyer offers: ${e.message}', e);
       return left(DatabaseFailure(e.message, code: e.code));
     } catch (e, stack) {
       AppLogger.error('Unknown failure fetching buyer offers', e, stack);
@@ -140,11 +152,13 @@ class SupabaseBuyerRepository implements BuyerRepository {
   @override
   Future<AppResult<OfferModel>> makeOffer(OfferModel offer) async {
     try {
-      AppLogger.info('Submitting offer for produce: ${offer.produceId} by buyer: ${offer.buyerId}');
+      AppLogger.info(
+          'Submitting offer for produce: ${offer.produceId} by buyer: ${offer.buyerId}');
 
       final currentUser = _client.auth.currentUser;
       if (currentUser == null || currentUser.id != offer.buyerId) {
-        return left(const AuthFailure('You are not authorized to submit this offer.'));
+        return left(
+            const AuthFailure('You are not authorized to submit this offer.'));
       }
 
       // Offer creation is delegated to the create_offer() Postgres RPC
@@ -164,7 +178,8 @@ class SupabaseBuyerRepository implements BuyerRepository {
 
       final response = await _client
           .from('offers')
-          .select('*, offer_history(*), produce:produce_id(name, unit, category, expected_price, location), farmer_profile:farmer_id(full_name, district)')
+          .select(
+              '*, offer_history(*), produce:produce_id(name, unit, category, expected_price, location), farmer_profile:farmer_id(full_name, district)')
           .eq('id', created['id'] as String)
           .single();
 
@@ -184,11 +199,13 @@ class SupabaseBuyerRepository implements BuyerRepository {
   @override
   Future<AppResult<OfferModel>> updateOffer(OfferModel offer) async {
     try {
-      AppLogger.info('Updating offer id: ${offer.id} by buyer: ${offer.buyerId}');
+      AppLogger.info(
+          'Updating offer id: ${offer.id} by buyer: ${offer.buyerId}');
 
       final currentUser = _client.auth.currentUser;
       if (currentUser == null || currentUser.id != offer.buyerId) {
-        return left(const AuthFailure('You are not authorized to edit this offer.'));
+        return left(
+            const AuthFailure('You are not authorized to edit this offer.'));
       }
 
       final response = await _client
@@ -202,7 +219,8 @@ class SupabaseBuyerRepository implements BuyerRepository {
           .eq('id', offer.id)
           .eq('buyer_id', currentUser.id)
           .eq('status', 'pending')
-          .select('*, offer_history(*), produce:produce_id(name, unit, category, expected_price, location), farmer_profile:farmer_id(full_name, district)')
+          .select(
+              '*, offer_history(*), produce:produce_id(name, unit, category, expected_price, location), farmer_profile:farmer_id(full_name, district)')
           .single();
 
       return right(OfferModel.fromMap(response));
@@ -219,12 +237,15 @@ class SupabaseBuyerRepository implements BuyerRepository {
   }
 
   @override
-  Future<AppResult<OfferModel?>> getExistingOfferForProduce(String buyerId, String produceId) async {
+  Future<AppResult<OfferModel?>> getExistingOfferForProduce(
+      String buyerId, String produceId) async {
     try {
-      AppLogger.info('Checking existing pending offer for buyer: $buyerId, produce: $produceId');
+      AppLogger.info(
+          'Checking existing pending offer for buyer: $buyerId, produce: $produceId');
       final response = await _client
           .from('offers')
-          .select('*, offer_history(*), produce:produce_id(name, unit, category, expected_price, location), farmer_profile:farmer_id(full_name, district)')
+          .select(
+              '*, offer_history(*), produce:produce_id(name, unit, category, expected_price, location), farmer_profile:farmer_id(full_name, district)')
           .eq('produce_id', produceId)
           .eq('buyer_id', buyerId)
           .eq('status', 'pending')
@@ -238,7 +259,8 @@ class SupabaseBuyerRepository implements BuyerRepository {
       AppLogger.error('Network error checking existing offer', e);
       return left(const NetworkFailure());
     } on PostgrestException catch (e) {
-      AppLogger.error('Database failure checking existing offer: ${e.message}', e);
+      AppLogger.error(
+          'Database failure checking existing offer: ${e.message}', e);
       return left(DatabaseFailure(e.message, code: e.code));
     } catch (e, stack) {
       AppLogger.error('Unknown failure checking existing offer', e, stack);
@@ -247,7 +269,8 @@ class SupabaseBuyerRepository implements BuyerRepository {
   }
 
   @override
-  Future<AppResult<List<OfferHistoryModel>>> getOfferHistory(String offerId) async {
+  Future<AppResult<List<OfferHistoryModel>>> getOfferHistory(
+      String offerId) async {
     try {
       AppLogger.info('Fetching offer history for offer: $offerId');
       final response = await _client
@@ -265,7 +288,8 @@ class SupabaseBuyerRepository implements BuyerRepository {
       AppLogger.error('Network error fetching offer history', e);
       return left(const NetworkFailure());
     } on PostgrestException catch (e) {
-      AppLogger.error('Database failure fetching offer history: ${e.message}', e);
+      AppLogger.error(
+          'Database failure fetching offer history: ${e.message}', e);
       return left(DatabaseFailure(e.message, code: e.code));
     } catch (e, stack) {
       AppLogger.error('Unknown failure fetching offer history', e, stack);
@@ -274,12 +298,14 @@ class SupabaseBuyerRepository implements BuyerRepository {
   }
 
   @override
-  Future<AppResult<OfferModel>> cancelOffer(String offerId, String buyerId) async {
+  Future<AppResult<OfferModel>> cancelOffer(
+      String offerId, String buyerId) async {
     try {
       AppLogger.info('Cancelling offer id: $offerId by buyer: $buyerId');
       final currentUser = _client.auth.currentUser;
       if (currentUser == null || currentUser.id != buyerId) {
-        return left(const AuthFailure('You are not authorized to cancel this offer.'));
+        return left(
+            const AuthFailure('You are not authorized to cancel this offer.'));
       }
       final response = await _client
           .from('offers')
@@ -290,7 +316,8 @@ class SupabaseBuyerRepository implements BuyerRepository {
           .eq('id', offerId)
           .eq('buyer_id', buyerId)
           .eq('status', 'pending')
-          .select('*, produce:produce_id(name, unit, category, expected_price, location), farmer_profile:farmer_id(full_name, district)')
+          .select(
+              '*, produce:produce_id(name, unit, category, expected_price, location), farmer_profile:farmer_id(full_name, district)')
           .single();
 
       return right(OfferModel.fromMap(response));
@@ -307,27 +334,26 @@ class SupabaseBuyerRepository implements BuyerRepository {
   }
 
   @override
-  Future<AppResult<BuyerDashboardStats>> getBuyerDashboardStats(String buyerId) async {
+  Future<AppResult<BuyerDashboardStats>> getBuyerDashboardStats(
+      String buyerId) async {
     try {
       AppLogger.info('Calculating dashboard stats for buyer: $buyerId');
 
-      final produceResponse = await _client
-          .from('produce')
-          .select('id')
-          .eq('status', 'active');
+      final produceResponse =
+          await _client.from('produce').select('id').eq('status', 'active');
 
       final produceList = produceResponse as List;
       final totalAvailable = produceList.length;
 
-      final offersResponse = await _client
-          .from('offers')
-          .select('status')
-          .eq('buyer_id', buyerId);
+      final offersResponse =
+          await _client.from('offers').select('status').eq('buyer_id', buyerId);
 
       final offersList = offersResponse as List;
       final totalOffers = offersList.length;
-      final pendingOffers = offersList.where((r) => r['status'] == 'pending').length;
-      final acceptedOffers = offersList.where((r) => r['status'] == 'accepted').length;
+      final pendingOffers =
+          offersList.where((r) => r['status'] == 'pending').length;
+      final acceptedOffers =
+          offersList.where((r) => r['status'] == 'accepted').length;
 
       return right(BuyerDashboardStats(
         totalAvailableProduce: totalAvailable,
@@ -339,7 +365,8 @@ class SupabaseBuyerRepository implements BuyerRepository {
       AppLogger.error('Network error calculating buyer stats', e);
       return left(const NetworkFailure());
     } on PostgrestException catch (e) {
-      AppLogger.error('Database failure calculating buyer stats: ${e.message}', e);
+      AppLogger.error(
+          'Database failure calculating buyer stats: ${e.message}', e);
       return left(DatabaseFailure(e.message, code: e.code));
     } catch (e, stack) {
       AppLogger.error('Unknown failure calculating buyer stats', e, stack);
@@ -352,27 +379,33 @@ class SupabaseBuyerRepository implements BuyerRepository {
     String buyerId,
     void Function(OfferModel offer) onOfferChange,
   ) {
-    AppLogger.info('Setting up Realtime subscription for buyer offers: $buyerId');
+    AppLogger.info(
+        'Setting up Realtime subscription for buyer offers: $buyerId');
     final uniqueId = DateTime.now().microsecondsSinceEpoch;
-    final channel = _client.channel('public:offers:buyer_id=${buyerId}_$uniqueId');
+    final channel =
+        _client.channel('public:offers:buyer_id=${buyerId}_$uniqueId');
 
-    channel.onPostgresChanges(
-      event: PostgresChangeEvent.all,
-      schema: 'public',
-      table: 'offers',
-      filter: PostgresChangeFilter(
-        type: PostgresChangeFilterType.eq,
-        column: 'buyer_id',
-        value: buyerId,
-      ),
-      callback: (payload) {
-        AppLogger.info('Realtime buyer offer payload received');
-        final record = payload.newRecord.isNotEmpty ? payload.newRecord : payload.oldRecord;
-        if (record.isNotEmpty) {
-          onOfferChange(OfferModel.fromMap(record));
-        }
-      },
-    ).subscribe();
+    channel
+        .onPostgresChanges(
+          event: PostgresChangeEvent.all,
+          schema: 'public',
+          table: 'offers',
+          filter: PostgresChangeFilter(
+            type: PostgresChangeFilterType.eq,
+            column: 'buyer_id',
+            value: buyerId,
+          ),
+          callback: (payload) {
+            AppLogger.info('Realtime buyer offer payload received');
+            final record = payload.newRecord.isNotEmpty
+                ? payload.newRecord
+                : payload.oldRecord;
+            if (record.isNotEmpty) {
+              onOfferChange(OfferModel.fromMap(record));
+            }
+          },
+        )
+        .subscribe();
 
     return channel;
   }
@@ -385,15 +418,18 @@ class SupabaseBuyerRepository implements BuyerRepository {
     final uniqueId = DateTime.now().microsecondsSinceEpoch;
     final channel = _client.channel('public:produce:marketplace_$uniqueId');
 
-    channel.onPostgresChanges(
-      event: PostgresChangeEvent.all,
-      schema: 'public',
-      table: 'produce',
-      callback: (payload) {
-        AppLogger.info('Realtime marketplace produce change event received');
-        onChange();
-      },
-    ).subscribe();
+    channel
+        .onPostgresChanges(
+          event: PostgresChangeEvent.all,
+          schema: 'public',
+          table: 'produce',
+          callback: (payload) {
+            AppLogger.info(
+                'Realtime marketplace produce change event received');
+            onChange();
+          },
+        )
+        .subscribe();
 
     return channel;
   }
@@ -403,32 +439,36 @@ class SupabaseBuyerRepository implements BuyerRepository {
     String produceId,
     void Function(ProduceModel? produce) onChange,
   ) {
-    AppLogger.info('Setting up Realtime subscription for produce details: $produceId');
+    AppLogger.info(
+        'Setting up Realtime subscription for produce details: $produceId');
     final uniqueId = DateTime.now().microsecondsSinceEpoch;
     final channel = _client.channel('public:produce:id=${produceId}_$uniqueId');
 
-    channel.onPostgresChanges(
-      event: PostgresChangeEvent.all,
-      schema: 'public',
-      table: 'produce',
-      filter: PostgresChangeFilter(
-        type: PostgresChangeFilterType.eq,
-        column: 'id',
-        value: produceId,
-      ),
-      callback: (payload) async {
-        AppLogger.info('Realtime produce details change payload received for $produceId');
-        if (payload.eventType == PostgresChangeEvent.delete) {
-          onChange(null);
-        } else if (payload.newRecord.isNotEmpty) {
-          final updatedRes = await getProduceDetails(produceId);
-          updatedRes.fold(
-            (_) => onChange(null),
-            (updatedProduce) => onChange(updatedProduce),
-          );
-        }
-      },
-    ).subscribe();
+    channel
+        .onPostgresChanges(
+          event: PostgresChangeEvent.all,
+          schema: 'public',
+          table: 'produce',
+          filter: PostgresChangeFilter(
+            type: PostgresChangeFilterType.eq,
+            column: 'id',
+            value: produceId,
+          ),
+          callback: (payload) async {
+            AppLogger.info(
+                'Realtime produce details change payload received for $produceId');
+            if (payload.eventType == PostgresChangeEvent.delete) {
+              onChange(null);
+            } else if (payload.newRecord.isNotEmpty) {
+              final updatedRes = await getProduceDetails(produceId);
+              updatedRes.fold(
+                (_) => onChange(null),
+                (updatedProduce) => onChange(updatedProduce),
+              );
+            }
+          },
+        )
+        .subscribe();
 
     return channel;
   }

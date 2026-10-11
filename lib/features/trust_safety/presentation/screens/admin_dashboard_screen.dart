@@ -59,7 +59,8 @@ class _AdminUsersTabState extends ConsumerState<_AdminUsersTab> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => ref.read(adminControllerProvider.notifier).fetchUsers());
+    WidgetsBinding.instance.addPostFrameCallback(
+        (_) => ref.read(adminControllerProvider.notifier).fetchUsers());
   }
 
   @override
@@ -72,18 +73,29 @@ class _AdminUsersTabState extends ConsumerState<_AdminUsersTab> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text('${newStatus[0].toUpperCase()}${newStatus.substring(1)} this account?'),
-        content: Text('This will set the account status to "$newStatus" and notify the user.'),
+        title: Text(
+            '${newStatus[0].toUpperCase()}${newStatus.substring(1)} this account?'),
+        content: Text(
+            'This will set the account status to "$newStatus" and notify the user.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
-          TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Confirm')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: const Text('Confirm')),
         ],
       ),
     );
     if (confirmed != true) return;
-    final ok = await ref.read(adminControllerProvider.notifier).setAccountStatus(userId, newStatus);
+    final ok = await ref
+        .read(adminControllerProvider.notifier)
+        .setAccountStatus(userId, newStatus);
     if (!mounted) return;
-    if (ok) AppSnackBar.show(context, message: 'Account status updated.', type: SnackBarType.success);
+    if (ok) {
+      AppSnackBar.show(context,
+          message: 'Account status updated.', type: SnackBarType.success);
+    }
   }
 
   @override
@@ -99,18 +111,25 @@ class _AdminUsersTabState extends ConsumerState<_AdminUsersTab> {
             label: 'Search by name, phone, or company',
             controller: _searchController,
             prefixIcon: const Icon(Icons.search_rounded),
-            onChanged: (v) => ref.read(adminControllerProvider.notifier).fetchUsers(search: v),
+            onChanged: (v) => ref
+                .read(adminControllerProvider.notifier)
+                .fetchUsers(search: v),
           ),
         ),
         Expanded(
           child: state.isLoading
               ? const Center(child: CircularProgressIndicator())
               : state.users.isEmpty
-                  ? const EmptyStateWidget(icon: Icons.people_outline, title: 'No users found', message: '')
+                  ? const EmptyStateWidget(
+                      icon: Icons.people_outline,
+                      title: 'No users found',
+                      message: '')
                   : ListView.separated(
-                      padding: const EdgeInsets.fromLTRB(AppSpacing.md, 0, AppSpacing.md, AppSpacing.xxxl),
+                      padding: const EdgeInsets.fromLTRB(
+                          AppSpacing.md, 0, AppSpacing.md, AppSpacing.xxxl),
                       itemCount: state.users.length,
-                      separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.sm),
+                      separatorBuilder: (_, __) =>
+                          const SizedBox(height: AppSpacing.sm),
                       itemBuilder: (context, index) {
                         final user = state.users[index];
                         final isBanned = user.accountStatus == 'banned';
@@ -120,13 +139,17 @@ class _AdminUsersTabState extends ConsumerState<_AdminUsersTab> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   Expanded(
-                                    child: Text(user.fullName, style: const TextStyle(fontWeight: FontWeight.bold)),
+                                    child: Text(user.fullName,
+                                        style: const TextStyle(
+                                            fontWeight: FontWeight.bold)),
                                   ),
                                   Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 8, vertical: 3),
                                     decoration: BoxDecoration(
                                       color: (isBanned
                                               ? colorScheme.error
@@ -153,7 +176,9 @@ class _AdminUsersTabState extends ConsumerState<_AdminUsersTab> {
                               ),
                               Text(
                                 '${user.role?.value ?? 'unknown'} • ${user.phone ?? 'no phone'} • KYC: ${user.kycStatus}',
-                                style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant),
+                                style: TextStyle(
+                                    fontSize: 12,
+                                    color: colorScheme.onSurfaceVariant),
                               ),
                               const SizedBox(height: AppSpacing.sm),
                               Row(
@@ -163,16 +188,19 @@ class _AdminUsersTabState extends ConsumerState<_AdminUsersTab> {
                                       child: AppButton(
                                         label: 'Reactivate',
                                         style: AppButtonStyle.outlined,
-                                        onPressed: () => _confirmAndSetStatus(user.id, 'active'),
+                                        onPressed: () => _confirmAndSetStatus(
+                                            user.id, 'active'),
                                       ),
                                     ),
                                   if (user.accountStatus != 'suspended') ...[
-                                    if (user.accountStatus != 'active') const SizedBox(width: AppSpacing.sm),
+                                    if (user.accountStatus != 'active')
+                                      const SizedBox(width: AppSpacing.sm),
                                     Expanded(
                                       child: AppButton(
                                         label: 'Suspend',
                                         style: AppButtonStyle.outlined,
-                                        onPressed: () => _confirmAndSetStatus(user.id, 'suspended'),
+                                        onPressed: () => _confirmAndSetStatus(
+                                            user.id, 'suspended'),
                                       ),
                                     ),
                                   ],
@@ -182,7 +210,8 @@ class _AdminUsersTabState extends ConsumerState<_AdminUsersTab> {
                                       child: AppButton(
                                         label: 'Ban',
                                         style: AppButtonStyle.outlined,
-                                        onPressed: () => _confirmAndSetStatus(user.id, 'banned'),
+                                        onPressed: () => _confirmAndSetStatus(
+                                            user.id, 'banned'),
                                       ),
                                     ),
                                   ],
@@ -213,7 +242,8 @@ class _AdminKycTabState extends ConsumerState<_AdminKycTab> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => ref.read(adminControllerProvider.notifier).fetchKycQueue());
+    WidgetsBinding.instance.addPostFrameCallback(
+        (_) => ref.read(adminControllerProvider.notifier).fetchKycQueue());
   }
 
   Future<void> _reject(String documentId) async {
@@ -228,15 +258,23 @@ class _AdminKycTabState extends ConsumerState<_AdminKycTab> {
           maxLines: 2,
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
-          TextButton(onPressed: () => Navigator.pop(ctx, controller.text.trim()), child: const Text('Reject')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, controller.text.trim()),
+              child: const Text('Reject')),
         ],
       ),
     );
     if (reason == null || reason.isEmpty) return;
-    final ok = await ref.read(adminControllerProvider.notifier).reviewKyc(documentId, 'rejected', rejectionReason: reason);
+    final ok = await ref
+        .read(adminControllerProvider.notifier)
+        .reviewKyc(documentId, 'rejected', rejectionReason: reason);
     if (!mounted) return;
-    if (ok) AppSnackBar.show(context, message: 'Document rejected.', type: SnackBarType.info);
+    if (ok) {
+      AppSnackBar.show(context,
+          message: 'Document rejected.', type: SnackBarType.info);
+    }
   }
 
   @override
@@ -244,7 +282,9 @@ class _AdminKycTabState extends ConsumerState<_AdminKycTab> {
     final state = ref.watch(adminControllerProvider);
     final colorScheme = Theme.of(context).colorScheme;
 
-    if (state.isLoading) return const Center(child: CircularProgressIndicator());
+    if (state.isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
     if (state.kycQueue.isEmpty) {
       return const EmptyStateWidget(
         icon: Icons.verified_user_outlined,
@@ -254,7 +294,8 @@ class _AdminKycTabState extends ConsumerState<_AdminKycTab> {
     }
 
     return ListView.separated(
-      padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.md, AppSpacing.md, AppSpacing.xxxl),
+      padding: const EdgeInsets.fromLTRB(
+          AppSpacing.md, AppSpacing.md, AppSpacing.md, AppSpacing.xxxl),
       itemCount: state.kycQueue.length,
       separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.sm),
       itemBuilder: (context, index) {
@@ -263,10 +304,12 @@ class _AdminKycTabState extends ConsumerState<_AdminKycTab> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(doc.userName ?? 'User', style: const TextStyle(fontWeight: FontWeight.bold)),
+              Text(doc.userName ?? 'User',
+                  style: const TextStyle(fontWeight: FontWeight.bold)),
               Text(
                 '${doc.documentType.toUpperCase()} • ${doc.documentNumber} • ${doc.userRole ?? ''}',
-                style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant),
+                style: TextStyle(
+                    fontSize: 12, color: colorScheme.onSurfaceVariant),
               ),
               const SizedBox(height: AppSpacing.sm),
               Row(
@@ -276,9 +319,13 @@ class _AdminKycTabState extends ConsumerState<_AdminKycTab> {
                       label: 'Verify',
                       icon: Icons.check_rounded,
                       onPressed: () async {
-                        final ok = await ref.read(adminControllerProvider.notifier).reviewKyc(doc.id, 'verified');
+                        final ok = await ref
+                            .read(adminControllerProvider.notifier)
+                            .reviewKyc(doc.id, 'verified');
                         if (ok && context.mounted) {
-                          AppSnackBar.show(context, message: 'Document verified.', type: SnackBarType.success);
+                          AppSnackBar.show(context,
+                              message: 'Document verified.',
+                              type: SnackBarType.success);
                         }
                       },
                     ),
@@ -316,7 +363,8 @@ class _AdminListingsTabState extends ConsumerState<_AdminListingsTab> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => ref.read(adminControllerProvider.notifier).fetchListings());
+    WidgetsBinding.instance.addPostFrameCallback(
+        (_) => ref.read(adminControllerProvider.notifier).fetchListings());
   }
 
   @override
@@ -324,13 +372,17 @@ class _AdminListingsTabState extends ConsumerState<_AdminListingsTab> {
     final state = ref.watch(adminControllerProvider);
     final colorScheme = Theme.of(context).colorScheme;
 
-    if (state.isLoading) return const Center(child: CircularProgressIndicator());
+    if (state.isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
     if (state.listings.isEmpty) {
-      return const EmptyStateWidget(icon: Icons.inventory_2_outlined, title: 'No listings', message: '');
+      return const EmptyStateWidget(
+          icon: Icons.inventory_2_outlined, title: 'No listings', message: '');
     }
 
     return ListView.separated(
-      padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.md, AppSpacing.md, AppSpacing.xxxl),
+      padding: const EdgeInsets.fromLTRB(
+          AppSpacing.md, AppSpacing.md, AppSpacing.md, AppSpacing.xxxl),
       itemCount: state.listings.length,
       separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.sm),
       itemBuilder: (context, index) {
@@ -344,11 +396,16 @@ class _AdminListingsTabState extends ConsumerState<_AdminListingsTab> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Expanded(child: Text(p.name, style: const TextStyle(fontWeight: FontWeight.bold))),
+                  Expanded(
+                      child: Text(p.name,
+                          style: const TextStyle(fontWeight: FontWeight.bold))),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
-                      color: (isRemoved ? colorScheme.error : (isFlagged ? Colors.orange : Colors.green))
+                      color: (isRemoved
+                              ? colorScheme.error
+                              : (isFlagged ? Colors.orange : Colors.green))
                           .withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(6),
                     ),
@@ -357,7 +414,9 @@ class _AdminListingsTabState extends ConsumerState<_AdminListingsTab> {
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.bold,
-                        color: isRemoved ? colorScheme.error : (isFlagged ? Colors.orange : Colors.green),
+                        color: isRemoved
+                            ? colorScheme.error
+                            : (isFlagged ? Colors.orange : Colors.green),
                       ),
                     ),
                   ),
@@ -365,7 +424,8 @@ class _AdminListingsTabState extends ConsumerState<_AdminListingsTab> {
               ),
               Text(
                 'By ${p.farmerName ?? 'farmer'} • ${p.quantity} ${p.unit} • ₹${p.expectedPrice.toStringAsFixed(0)}',
-                style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant),
+                style: TextStyle(
+                    fontSize: 12, color: colorScheme.onSurfaceVariant),
               ),
               const SizedBox(height: AppSpacing.sm),
               Row(
@@ -375,16 +435,21 @@ class _AdminListingsTabState extends ConsumerState<_AdminListingsTab> {
                       child: AppButton(
                         label: 'Approve',
                         style: AppButtonStyle.outlined,
-                        onPressed: () => ref.read(adminControllerProvider.notifier).moderateProduce(p.id, 'approved'),
+                        onPressed: () => ref
+                            .read(adminControllerProvider.notifier)
+                            .moderateProduce(p.id, 'approved'),
                       ),
                     ),
                   if (p.moderationStatus != 'flagged') ...[
-                    if (p.moderationStatus != 'approved') const SizedBox(width: AppSpacing.sm),
+                    if (p.moderationStatus != 'approved')
+                      const SizedBox(width: AppSpacing.sm),
                     Expanded(
                       child: AppButton(
                         label: 'Flag',
                         style: AppButtonStyle.outlined,
-                        onPressed: () => ref.read(adminControllerProvider.notifier).moderateProduce(p.id, 'flagged'),
+                        onPressed: () => ref
+                            .read(adminControllerProvider.notifier)
+                            .moderateProduce(p.id, 'flagged'),
                       ),
                     ),
                   ],
@@ -394,7 +459,9 @@ class _AdminListingsTabState extends ConsumerState<_AdminListingsTab> {
                       child: AppButton(
                         label: 'Remove',
                         style: AppButtonStyle.outlined,
-                        onPressed: () => ref.read(adminControllerProvider.notifier).moderateProduce(p.id, 'removed'),
+                        onPressed: () => ref
+                            .read(adminControllerProvider.notifier)
+                            .moderateProduce(p.id, 'removed'),
                       ),
                     ),
                   ],
@@ -422,7 +489,8 @@ class _AdminDisputesTabState extends ConsumerState<_AdminDisputesTab> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => ref.read(adminControllerProvider.notifier).fetchDisputes());
+    WidgetsBinding.instance.addPostFrameCallback(
+        (_) => ref.read(adminControllerProvider.notifier).fetchDisputes());
   }
 
   Future<void> _resolve(String disputeId, String status) async {
@@ -430,24 +498,32 @@ class _AdminDisputesTabState extends ConsumerState<_AdminDisputesTab> {
     final note = await showDialog<String>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text(status == 'resolved' ? 'Resolve Dispute' : 'Dismiss Dispute'),
+        title:
+            Text(status == 'resolved' ? 'Resolve Dispute' : 'Dismiss Dispute'),
         content: TextField(
           controller: controller,
-          decoration: const InputDecoration(labelText: 'Resolution note (optional)'),
+          decoration:
+              const InputDecoration(labelText: 'Resolution note (optional)'),
           maxLines: 2,
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
-          TextButton(onPressed: () => Navigator.pop(ctx, controller.text.trim()), child: const Text('Confirm')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, controller.text.trim()),
+              child: const Text('Confirm')),
         ],
       ),
     );
     if (note == null) return;
-    final ok = await ref
-        .read(adminControllerProvider.notifier)
-        .resolveDispute(disputeId, status, resolutionNote: note.isEmpty ? null : note);
+    final ok = await ref.read(adminControllerProvider.notifier).resolveDispute(
+        disputeId, status,
+        resolutionNote: note.isEmpty ? null : note);
     if (!mounted) return;
-    if (ok) AppSnackBar.show(context, message: 'Dispute updated.', type: SnackBarType.success);
+    if (ok) {
+      AppSnackBar.show(context,
+          message: 'Dispute updated.', type: SnackBarType.success);
+    }
   }
 
   @override
@@ -455,13 +531,17 @@ class _AdminDisputesTabState extends ConsumerState<_AdminDisputesTab> {
     final state = ref.watch(adminControllerProvider);
     final colorScheme = Theme.of(context).colorScheme;
 
-    if (state.isLoading) return const Center(child: CircularProgressIndicator());
+    if (state.isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
     if (state.disputes.isEmpty) {
-      return const EmptyStateWidget(icon: Icons.shield_outlined, title: 'No disputes', message: '');
+      return const EmptyStateWidget(
+          icon: Icons.shield_outlined, title: 'No disputes', message: '');
     }
 
     return ListView.separated(
-      padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.md, AppSpacing.md, AppSpacing.xxxl),
+      padding: const EdgeInsets.fromLTRB(
+          AppSpacing.md, AppSpacing.md, AppSpacing.md, AppSpacing.xxxl),
       itemCount: state.disputes.length,
       separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.sm),
       itemBuilder: (context, index) {
@@ -474,13 +554,20 @@ class _AdminDisputesTabState extends ConsumerState<_AdminDisputesTab> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Expanded(child: Text(d.type, style: const TextStyle(fontWeight: FontWeight.bold))),
-                  Text(d.status.toUpperCase(), style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: colorScheme.primary)),
+                  Expanded(
+                      child: Text(d.type,
+                          style: const TextStyle(fontWeight: FontWeight.bold))),
+                  Text(d.status.toUpperCase(),
+                      style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: colorScheme.primary)),
                 ],
               ),
               Text(
                 'From: ${d.reporterName ?? 'user'}${d.reportedUserName != null ? ' • Against: ${d.reportedUserName}' : ''}',
-                style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant),
+                style: TextStyle(
+                    fontSize: 12, color: colorScheme.onSurfaceVariant),
               ),
               const SizedBox(height: 4),
               Text(d.description),
@@ -496,9 +583,12 @@ class _AdminDisputesTabState extends ConsumerState<_AdminDisputesTab> {
                           onPressed: () => _resolve(d.id, 'investigating'),
                         ),
                       ),
-                    if (d.status == 'open') const SizedBox(width: AppSpacing.sm),
+                    if (d.status == 'open')
+                      const SizedBox(width: AppSpacing.sm),
                     Expanded(
-                      child: AppButton(label: 'Resolve', onPressed: () => _resolve(d.id, 'resolved')),
+                      child: AppButton(
+                          label: 'Resolve',
+                          onPressed: () => _resolve(d.id, 'resolved')),
                     ),
                     const SizedBox(width: AppSpacing.sm),
                     Expanded(

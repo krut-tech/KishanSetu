@@ -14,7 +14,8 @@ class SuccessCheckmarkAnimation extends StatefulWidget {
   });
 
   @override
-  State<SuccessCheckmarkAnimation> createState() => _SuccessCheckmarkAnimationState();
+  State<SuccessCheckmarkAnimation> createState() =>
+      _SuccessCheckmarkAnimationState();
 }
 
 class _SuccessCheckmarkAnimationState extends State<SuccessCheckmarkAnimation>
@@ -47,7 +48,8 @@ class _SuccessCheckmarkAnimationState extends State<SuccessCheckmarkAnimation>
   @override
   Widget build(BuildContext context) {
     if (!AppAnimations.shouldAnimate(context)) {
-      return Icon(Icons.check_circle_rounded, size: widget.size, color: widget.color);
+      return Icon(Icons.check_circle_rounded,
+          size: widget.size, color: widget.color);
     }
 
     return ScaleTransition(

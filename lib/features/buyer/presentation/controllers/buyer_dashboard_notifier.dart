@@ -70,12 +70,14 @@ class BuyerDashboardNotifier extends StateNotifier<BuyerDashboardState> {
 
   Future<void> loadDashboardData(String buyerId) async {
     final isSameUser = _currentBuyerId == buyerId;
-    final hasData = state.featuredProduce.isNotEmpty || state.recentOffers.isNotEmpty;
+    final hasData =
+        state.featuredProduce.isNotEmpty || state.recentOffers.isNotEmpty;
     _currentBuyerId = buyerId;
 
     if (!isSameUser || !hasData) {
       state = state.copyWith(isLoading: true, clearError: true);
-      AppLogger.info('BuyerDashboardNotifier loading dashboard for buyer: $buyerId');
+      AppLogger.info(
+          'BuyerDashboardNotifier loading dashboard for buyer: $buyerId');
       await _fetchData(buyerId);
     } else if (state.isLoading) {
       await _fetchData(buyerId);
@@ -104,7 +106,8 @@ class BuyerDashboardNotifier extends StateNotifier<BuyerDashboardState> {
     produceRes.fold((f) => null, (data) => produce = data.take(5).toList());
 
     // 3. Market Price Highlights
-    final pricesRes = await _farmerRepository.getMarketPrices(sortBy: 'date_desc');
+    final pricesRes =
+        await _farmerRepository.getMarketPrices(sortBy: 'date_desc');
     List<MarketPriceModel> prices = state.marketHighlights;
     pricesRes.fold((f) => null, (data) => prices = data.take(4).toList());
 
@@ -123,24 +126,30 @@ class BuyerDashboardNotifier extends StateNotifier<BuyerDashboardState> {
   }
 
   void _setupRealtimeSubscription(String buyerId) {
-    if (_offersChannel != null && _produceChannel != null && _pricesChannel != null && _currentBuyerId == buyerId) {
+    if (_offersChannel != null &&
+        _produceChannel != null &&
+        _pricesChannel != null &&
+        _currentBuyerId == buyerId) {
       return; // Already subscribed
     }
     _cleanupRealtime();
 
     try {
       _offersChannel = _buyerRepository.subscribeToBuyerOffers(buyerId, (_) {
-        AppLogger.info('Realtime offer event triggered -> refreshing buyer dashboard');
+        AppLogger.info(
+            'Realtime offer event triggered -> refreshing buyer dashboard');
         refreshDashboard();
       });
 
       _produceChannel = _buyerRepository.subscribeToMarketplaceProduce(() {
-        AppLogger.info('Realtime marketplace produce change event -> refreshing buyer dashboard');
+        AppLogger.info(
+            'Realtime marketplace produce change event -> refreshing buyer dashboard');
         refreshDashboard();
       });
 
       _pricesChannel = _farmerRepository.subscribeToMarketPrices(() {
-        AppLogger.info('Realtime market price change event -> refreshing buyer dashboard');
+        AppLogger.info(
+            'Realtime market price change event -> refreshing buyer dashboard');
         refreshDashboard();
       });
     } catch (e) {

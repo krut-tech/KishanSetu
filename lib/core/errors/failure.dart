@@ -13,7 +13,8 @@ abstract class Failure extends Equatable {
 
 class NetworkFailure extends Failure {
   const NetworkFailure([
-    super.message = 'No internet connection available. Please check your network.',
+    super.message =
+        'No internet connection available. Please check your network.',
     String? code,
   ]) : super(code: code);
 }

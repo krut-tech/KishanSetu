@@ -23,16 +23,20 @@ class SupabaseFarmerRepository implements FarmerRepository {
     String? searchQuery,
   }) async {
     try {
-      AppLogger.info('Fetching produce for farmer: $farmerId, status: $status, search: $searchQuery');
+      AppLogger.info(
+          'Fetching produce for farmer: $farmerId, status: $status, search: $searchQuery');
       var query = _client.from('produce').select().eq('farmer_id', farmerId);
 
-      if (status != null && status.isNotEmpty && status.toLowerCase() != 'all') {
+      if (status != null &&
+          status.isNotEmpty &&
+          status.toLowerCase() != 'all') {
         query = query.eq('status', status.toLowerCase());
       }
 
       if (searchQuery != null && searchQuery.trim().isNotEmpty) {
         final term = '%${searchQuery.trim()}%';
-        query = query.or('name.ilike.$term,category.ilike.$term,location.ilike.$term');
+        query = query
+            .or('name.ilike.$term,category.ilike.$term,location.ilike.$term');
       }
 
       final response = await query.order('created_at', ascending: false);
@@ -58,9 +62,11 @@ class SupabaseFarmerRepository implements FarmerRepository {
     try {
       final currentUser = _client.auth.currentUser;
       if (currentUser == null || currentUser.id != produce.farmerId) {
-        return left(const AuthFailure('You are not authorized to create this produce listing.'));
+        return left(const AuthFailure(
+            'You are not authorized to create this produce listing.'));
       }
-      AppLogger.info('Adding new produce: ${produce.name} for farmer: ${produce.farmerId}');
+      AppLogger.info(
+          'Adding new produce: ${produce.name} for farmer: ${produce.farmerId}');
       final response = await _client
           .from('produce')
           .insert(produce.toMap())
@@ -87,7 +93,8 @@ class SupabaseFarmerRepository implements FarmerRepository {
       AppLogger.info('Updating produce id: ${produce.id}');
       final currentUser = _client.auth.currentUser;
       if (currentUser == null) {
-        return left(const AuthFailure('Your session has expired. Please sign in again.'));
+        return left(const AuthFailure(
+            'Your session has expired. Please sign in again.'));
       }
       final response = await _client
           .from('produce')
@@ -115,7 +122,8 @@ class SupabaseFarmerRepository implements FarmerRepository {
     try {
       final currentUser = _client.auth.currentUser;
       if (currentUser == null) {
-        return left(const AuthFailure('Your session has expired. Please sign in again.'));
+        return left(const AuthFailure(
+            'Your session has expired. Please sign in again.'));
       }
       AppLogger.info('Deleting produce id: $produceId');
       await _client
@@ -144,14 +152,17 @@ class SupabaseFarmerRepository implements FarmerRepository {
     String? sortBy,
   }) async {
     try {
-      AppLogger.info('Fetching market prices: produce=$produceName, market=$marketName, sort=$sortBy');
+      AppLogger.info(
+          'Fetching market prices: produce=$produceName, market=$marketName, sort=$sortBy');
       var query = _client.from('market_prices').select();
 
       if (produceName != null && produceName.trim().isNotEmpty) {
         query = query.ilike('produce_name', '%${produceName.trim()}%');
       }
 
-      if (category != null && category.trim().isNotEmpty && category.toLowerCase() != 'all') {
+      if (category != null &&
+          category.trim().isNotEmpty &&
+          category.toLowerCase() != 'all') {
         query = query.eq('category', category.trim());
       }
 
@@ -178,7 +189,8 @@ class SupabaseFarmerRepository implements FarmerRepository {
       AppLogger.error('Network error fetching market prices', e);
       return left(const NetworkFailure());
     } on PostgrestException catch (e) {
-      AppLogger.error('Database failure fetching market prices: ${e.message}', e);
+      AppLogger.error(
+          'Database failure fetching market prices: ${e.message}', e);
       return left(DatabaseFailure(e.message, code: e.code));
     } catch (e, stack) {
       AppLogger.error('Unknown failure fetching market prices', e, stack);
@@ -195,10 +207,13 @@ class SupabaseFarmerRepository implements FarmerRepository {
       AppLogger.info('Fetching offers for farmer: $farmerId, status: $status');
       var query = _client
           .from('offers')
-          .select('*, offer_history(*), produce:produce_id(name, unit), buyer_profile:buyer_id(full_name, company_name, district, state)')
+          .select(
+              '*, offer_history(*), produce:produce_id(name, unit), buyer_profile:buyer_id(full_name, company_name, district, state)')
           .eq('farmer_id', farmerId);
 
-      if (status != null && status.isNotEmpty && status.toLowerCase() != 'all') {
+      if (status != null &&
+          status.isNotEmpty &&
+          status.toLowerCase() != 'all') {
         query = query.eq('status', status.toLowerCase());
       }
 
@@ -221,7 +236,8 @@ class SupabaseFarmerRepository implements FarmerRepository {
   }
 
   @override
-  Future<AppResult<List<OfferHistoryModel>>> getOfferHistory(String offerId) async {
+  Future<AppResult<List<OfferHistoryModel>>> getOfferHistory(
+      String offerId) async {
     try {
       AppLogger.info('Fetching offer history for offer: $offerId');
       final response = await _client
@@ -239,7 +255,8 @@ class SupabaseFarmerRepository implements FarmerRepository {
       AppLogger.error('Network error fetching offer history', e);
       return left(const NetworkFailure());
     } on PostgrestException catch (e) {
-      AppLogger.error('Database failure fetching offer history: ${e.message}', e);
+      AppLogger.error(
+          'Database failure fetching offer history: ${e.message}', e);
       return left(DatabaseFailure(e.message, code: e.code));
     } catch (e, stack) {
       AppLogger.error('Unknown failure fetching offer history', e, stack);
@@ -248,12 +265,14 @@ class SupabaseFarmerRepository implements FarmerRepository {
   }
 
   @override
-  Future<AppResult<OfferModel>> updateOfferStatus(String offerId, String status) async {
+  Future<AppResult<OfferModel>> updateOfferStatus(
+      String offerId, String status) async {
     try {
       AppLogger.info('Updating offer status id: $offerId to $status');
       final currentUser = _client.auth.currentUser;
       if (currentUser == null) {
-        return left(const AuthFailure('Your session has expired. Please sign in again.'));
+        return left(const AuthFailure(
+            'Your session has expired. Please sign in again.'));
       }
       const allowedStatuses = {'accepted', 'rejected', 'countered'};
       final normalizedStatus = status.toLowerCase();
@@ -287,7 +306,8 @@ class SupabaseFarmerRepository implements FarmerRepository {
 
       final response = await _client
           .from('offers')
-          .select('*, produce:produce_id(name, unit), buyer_profile:buyer_id(full_name, company_name, district, state)')
+          .select(
+              '*, produce:produce_id(name, unit), buyer_profile:buyer_id(full_name, company_name, district, state)')
           .eq('id', created['id'] as String)
           .single();
 
@@ -296,7 +316,8 @@ class SupabaseFarmerRepository implements FarmerRepository {
       AppLogger.error('Network error updating offer status', e);
       return left(const NetworkFailure());
     } on PostgrestException catch (e) {
-      AppLogger.error('Database failure updating offer status: ${e.message}', e);
+      AppLogger.error(
+          'Database failure updating offer status: ${e.message}', e);
       return left(DatabaseFailure(e.message, code: e.code));
     } catch (e, stack) {
       AppLogger.error('Unknown failure updating offer status', e, stack);
@@ -305,7 +326,8 @@ class SupabaseFarmerRepository implements FarmerRepository {
   }
 
   @override
-  Future<AppResult<DashboardStats>> getFarmerDashboardStats(String farmerId) async {
+  Future<AppResult<DashboardStats>> getFarmerDashboardStats(
+      String farmerId) async {
     try {
       AppLogger.info('Calculating dashboard stats for farmer: $farmerId');
       final produceResponse = await _client
@@ -315,9 +337,11 @@ class SupabaseFarmerRepository implements FarmerRepository {
 
       final produceList = produceResponse as List;
       int totalProduce = produceList.length;
-      int activeListings = produceList.where((r) => r['status'] == 'active').length;
+      int activeListings =
+          produceList.where((r) => r['status'] == 'active').length;
       int soldProduce = produceList.where((r) => r['status'] == 'sold').length;
-      int draftProduce = produceList.where((r) => r['status'] == 'draft').length;
+      int draftProduce =
+          produceList.where((r) => r['status'] == 'draft').length;
 
       final offersResponse = await _client
           .from('offers')
@@ -325,8 +349,10 @@ class SupabaseFarmerRepository implements FarmerRepository {
           .eq('farmer_id', farmerId);
 
       final offersList = offersResponse as List;
-      int pendingOffers = offersList.where((r) => r['status'] == 'pending').length;
-      int acceptedOffers = offersList.where((r) => r['status'] == 'accepted').length;
+      int pendingOffers =
+          offersList.where((r) => r['status'] == 'pending').length;
+      int acceptedOffers =
+          offersList.where((r) => r['status'] == 'accepted').length;
 
       return right(DashboardStats(
         totalProduce: totalProduce,
@@ -353,27 +379,33 @@ class SupabaseFarmerRepository implements FarmerRepository {
     String farmerId,
     void Function(OfferModel offer) onNewOffer,
   ) {
-    AppLogger.info('Setting up Realtime subscription for farmer offers: $farmerId');
+    AppLogger.info(
+        'Setting up Realtime subscription for farmer offers: $farmerId');
     final uniqueId = DateTime.now().microsecondsSinceEpoch;
-    final channel = _client.channel('public:offers:farmer_id=${farmerId}_$uniqueId');
+    final channel =
+        _client.channel('public:offers:farmer_id=${farmerId}_$uniqueId');
 
-    channel.onPostgresChanges(
-      event: PostgresChangeEvent.all,
-      schema: 'public',
-      table: 'offers',
-      filter: PostgresChangeFilter(
-        type: PostgresChangeFilterType.eq,
-        column: 'farmer_id',
-        value: farmerId,
-      ),
-      callback: (payload) {
-        AppLogger.info('Realtime offer event payload received for farmer');
-        final record = payload.newRecord.isNotEmpty ? payload.newRecord : payload.oldRecord;
-        if (record.isNotEmpty) {
-          onNewOffer(OfferModel.fromMap(record));
-        }
-      },
-    ).subscribe();
+    channel
+        .onPostgresChanges(
+          event: PostgresChangeEvent.all,
+          schema: 'public',
+          table: 'offers',
+          filter: PostgresChangeFilter(
+            type: PostgresChangeFilterType.eq,
+            column: 'farmer_id',
+            value: farmerId,
+          ),
+          callback: (payload) {
+            AppLogger.info('Realtime offer event payload received for farmer');
+            final record = payload.newRecord.isNotEmpty
+                ? payload.newRecord
+                : payload.oldRecord;
+            if (record.isNotEmpty) {
+              onNewOffer(OfferModel.fromMap(record));
+            }
+          },
+        )
+        .subscribe();
 
     return channel;
   }
@@ -385,22 +417,25 @@ class SupabaseFarmerRepository implements FarmerRepository {
   ) {
     AppLogger.info('Setting up Realtime subscription for produce: $farmerId');
     final uniqueId = DateTime.now().microsecondsSinceEpoch;
-    final channel = _client.channel('public:produce:farmer_id=${farmerId}_$uniqueId');
+    final channel =
+        _client.channel('public:produce:farmer_id=${farmerId}_$uniqueId');
 
-    channel.onPostgresChanges(
-      event: PostgresChangeEvent.all,
-      schema: 'public',
-      table: 'produce',
-      filter: PostgresChangeFilter(
-        type: PostgresChangeFilterType.eq,
-        column: 'farmer_id',
-        value: farmerId,
-      ),
-      callback: (payload) {
-        AppLogger.info('Realtime produce change payload received');
-        onChange();
-      },
-    ).subscribe();
+    channel
+        .onPostgresChanges(
+          event: PostgresChangeEvent.all,
+          schema: 'public',
+          table: 'produce',
+          filter: PostgresChangeFilter(
+            type: PostgresChangeFilterType.eq,
+            column: 'farmer_id',
+            value: farmerId,
+          ),
+          callback: (payload) {
+            AppLogger.info('Realtime produce change payload received');
+            onChange();
+          },
+        )
+        .subscribe();
 
     return channel;
   }
@@ -413,15 +448,17 @@ class SupabaseFarmerRepository implements FarmerRepository {
     final uniqueId = DateTime.now().microsecondsSinceEpoch;
     final channel = _client.channel('public:market_prices_$uniqueId');
 
-    channel.onPostgresChanges(
-      event: PostgresChangeEvent.all,
-      schema: 'public',
-      table: 'market_prices',
-      callback: (payload) {
-        AppLogger.info('Realtime market price change payload received');
-        onChange();
-      },
-    ).subscribe();
+    channel
+        .onPostgresChanges(
+          event: PostgresChangeEvent.all,
+          schema: 'public',
+          table: 'market_prices',
+          callback: (payload) {
+            AppLogger.info('Realtime market price change payload received');
+            onChange();
+          },
+        )
+        .subscribe();
 
     return channel;
   }

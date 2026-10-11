@@ -22,7 +22,8 @@ class QuickActionsGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final primaryText = isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight;
+    final primaryText =
+        isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -52,8 +53,10 @@ class QuickActionsGrid extends StatelessWidget {
               child: _buildActionButton(
                 label: context.l10n.myProduce,
                 icon: Icons.inventory_2_outlined,
-                bgColor: isDark ? const Color(0xFF14532D) : AppColors.primaryLight,
-                fgColor: isDark ? const Color(0xFFDCFCE7) : AppColors.primaryDark,
+                bgColor:
+                    isDark ? const Color(0xFF14532D) : AppColors.primaryLight,
+                fgColor:
+                    isDark ? const Color(0xFFDCFCE7) : AppColors.primaryDark,
                 onTap: onMyProduce,
               ),
             ),
@@ -66,8 +69,10 @@ class QuickActionsGrid extends StatelessWidget {
               child: _buildActionButton(
                 label: context.l10n.marketPrices,
                 icon: Icons.trending_up_rounded,
-                bgColor: isDark ? const Color(0xFF78350F) : AppColors.secondaryLight,
-                fgColor: isDark ? const Color(0xFFFEF3C7) : AppColors.secondaryDark,
+                bgColor:
+                    isDark ? const Color(0xFF78350F) : AppColors.secondaryLight,
+                fgColor:
+                    isDark ? const Color(0xFFFEF3C7) : AppColors.secondaryDark,
                 onTap: onMarketPrices,
               ),
             ),
@@ -76,8 +81,10 @@ class QuickActionsGrid extends StatelessWidget {
               child: _buildActionButton(
                 label: context.l10n.myOffers,
                 icon: Icons.local_offer_outlined,
-                bgColor: isDark ? const Color(0xFF0C4A6E) : AppColors.inTransitBg,
-                fgColor: isDark ? const Color(0xFFE0F2FE) : AppColors.inTransitFg,
+                bgColor:
+                    isDark ? const Color(0xFF0C4A6E) : AppColors.inTransitBg,
+                fgColor:
+                    isDark ? const Color(0xFFE0F2FE) : AppColors.inTransitFg,
                 onTap: onMyOffers,
               ),
             ),

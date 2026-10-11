@@ -117,7 +117,8 @@ class MarketPriceController extends StateNotifier<MarketPriceState> {
         // refetching (and flashing the loading shimmer) for every event.
         _realtimeDebounce?.cancel();
         _realtimeDebounce = Timer(const Duration(seconds: 2), () {
-          AppLogger.info('Realtime market price change -> refreshing (debounced)');
+          AppLogger.info(
+              'Realtime market price change -> refreshing (debounced)');
           fetchMarketPrices(silent: true);
         });
       });

@@ -39,10 +39,12 @@ class SupabaseAuthRepository implements AuthRepository {
 
   String _sanitizeAuthError(String message) {
     final lower = message.toLowerCase();
-    if (lower.contains('invalid login credentials') || lower.contains('invalid_credentials')) {
+    if (lower.contains('invalid login credentials') ||
+        lower.contains('invalid_credentials')) {
       return 'Invalid email or password. Please check your credentials and try again.';
     }
-    if (lower.contains('user already registered') || lower.contains('already exists')) {
+    if (lower.contains('user already registered') ||
+        lower.contains('already exists')) {
       return 'An account with this email address already exists. Please log in.';
     }
     if (lower.contains('password should be at least')) {
@@ -90,9 +92,11 @@ class SupabaseAuthRepository implements AuthRepository {
           errorStr.contains('clientexception') ||
           errorStr.contains('timeout') ||
           errorStr.contains('network')) {
-        return left(const NetworkFailure('Network error. Please check your internet connection and try again.'));
+        return left(const NetworkFailure(
+            'Network error. Please check your internet connection and try again.'));
       }
-      return left(const ServerFailure('Failed to complete sign up. Please try again.'));
+      return left(
+          const ServerFailure('Failed to complete sign up. Please try again.'));
     }
   }
 
@@ -109,7 +113,8 @@ class SupabaseAuthRepository implements AuthRepository {
       );
       return right(response);
     } on AuthException catch (e) {
-      AppLogger.error('SignIn AuthException (statusCode: ${e.statusCode}): ${e.message}');
+      AppLogger.error(
+          'SignIn AuthException (statusCode: ${e.statusCode}): ${e.message}');
       return left(AuthFailure(_sanitizeAuthError(e.message)));
     } catch (e, st) {
       AppLogger.error('SignIn Unexpected Error: $e', e, st);
@@ -118,9 +123,11 @@ class SupabaseAuthRepository implements AuthRepository {
           errorStr.contains('clientexception') ||
           errorStr.contains('timeout') ||
           errorStr.contains('network')) {
-        return left(const NetworkFailure('Network error. Please check your internet connection and try again.'));
+        return left(const NetworkFailure(
+            'Network error. Please check your internet connection and try again.'));
       }
-      return left(const ServerFailure('Authentication failed. Please try again.'));
+      return left(
+          const ServerFailure('Authentication failed. Please try again.'));
     }
   }
 
@@ -143,9 +150,11 @@ class SupabaseAuthRepository implements AuthRepository {
           errorStr.contains('clientexception') ||
           errorStr.contains('timeout') ||
           errorStr.contains('network')) {
-        return left(const NetworkFailure('Network error. Please check your internet connection and try again.'));
+        return left(const NetworkFailure(
+            'Network error. Please check your internet connection and try again.'));
       }
-      return left(const ServerFailure('Google Sign-In failed. Please try again.'));
+      return left(
+          const ServerFailure('Google Sign-In failed. Please try again.'));
     }
   }
 
@@ -158,7 +167,8 @@ class SupabaseAuthRepository implements AuthRepository {
     } on AuthException catch (e) {
       return left(AuthFailure(_sanitizeAuthError(e.message)));
     } catch (e) {
-      return left(const ServerFailure('Failed to send reset email. Please try again.'));
+      return left(
+          const ServerFailure('Failed to send reset email. Please try again.'));
     }
   }
 
@@ -192,18 +202,15 @@ class SupabaseAuthRepository implements AuthRepository {
   Future<AppResult<UserProfile>> getUserProfile(String userId) async {
     try {
       final client = _effectiveClient;
-      final data = await client
-          .from('profiles')
-          .select()
-          .eq('id', userId)
-          .maybeSingle();
+      final data =
+          await client.from('profiles').select().eq('id', userId).maybeSingle();
 
       final user = currentUser;
       final userMeta = user?.userMetadata;
-      final googleName = userMeta?['full_name'] as String? ??
-          userMeta?['name'] as String?;
-      final googleAvatar = userMeta?['avatar_url'] as String? ??
-          userMeta?['picture'] as String?;
+      final googleName =
+          userMeta?['full_name'] as String? ?? userMeta?['name'] as String?;
+      final googleAvatar =
+          userMeta?['avatar_url'] as String? ?? userMeta?['picture'] as String?;
       final roleStr = userMeta?['role'] as String?;
       final phoneStr = userMeta?['phone'] as String?;
 
@@ -233,7 +240,8 @@ class SupabaseAuthRepository implements AuthRepository {
       return right(profile);
     } on PostgrestException catch (e) {
       AppLogger.error('Fetch profile database error: ${e.message}');
-      return left(DatabaseFailure('Database error loading profile: ${e.message}'));
+      return left(
+          DatabaseFailure('Database error loading profile: ${e.message}'));
     } catch (e, st) {
       AppLogger.error('Fetch profile unexpected error: $e', e, st);
       final errorStr = e.toString().toLowerCase();
@@ -241,9 +249,11 @@ class SupabaseAuthRepository implements AuthRepository {
           errorStr.contains('clientexception') ||
           errorStr.contains('timeout') ||
           errorStr.contains('network')) {
-        return left(const NetworkFailure('Network error loading profile. Please check your connection.'));
+        return left(const NetworkFailure(
+            'Network error loading profile. Please check your connection.'));
       }
-      return left(const ServerFailure('Failed to fetch user profile. Please try again.'));
+      return left(const ServerFailure(
+          'Failed to fetch user profile. Please try again.'));
     }
   }
 
@@ -253,7 +263,8 @@ class SupabaseAuthRepository implements AuthRepository {
       final client = _effectiveClient;
       final currentUser = client.auth.currentUser;
       if (currentUser == null) {
-        return left(const AuthFailure('Your session has expired. Please sign in again.'));
+        return left(const AuthFailure(
+            'Your session has expired. Please sign in again.'));
       }
 
       // Never trust a caller-supplied profile id. The authenticated Supabase
@@ -288,25 +299,30 @@ class SupabaseAuthRepository implements AuthRepository {
     final uniqueId = DateTime.now().microsecondsSinceEpoch;
     final channel = client.channel('public:profiles:id=${userId}_$uniqueId');
 
-    channel.onPostgresChanges(
-      event: PostgresChangeEvent.all,
-      schema: 'public',
-      table: 'profiles',
-      filter: PostgresChangeFilter(
-        type: PostgresChangeFilterType.eq,
-        column: 'id',
-        value: userId,
-      ),
-      callback: (payload) {
-        AppLogger.info('Realtime profile change payload received for $userId');
-        if (payload.eventType == PostgresChangeEvent.delete || payload.newRecord.isEmpty) {
-          AppLogger.warning('Realtime profile DELETE event received for $userId');
-          onProfileChange(null);
-        } else if (payload.newRecord.isNotEmpty) {
-          onProfileChange(UserProfile.fromMap(payload.newRecord));
-        }
-      },
-    ).subscribe();
+    channel
+        .onPostgresChanges(
+          event: PostgresChangeEvent.all,
+          schema: 'public',
+          table: 'profiles',
+          filter: PostgresChangeFilter(
+            type: PostgresChangeFilterType.eq,
+            column: 'id',
+            value: userId,
+          ),
+          callback: (payload) {
+            AppLogger.info(
+                'Realtime profile change payload received for $userId');
+            if (payload.eventType == PostgresChangeEvent.delete ||
+                payload.newRecord.isEmpty) {
+              AppLogger.warning(
+                  'Realtime profile DELETE event received for $userId');
+              onProfileChange(null);
+            } else if (payload.newRecord.isNotEmpty) {
+              onProfileChange(UserProfile.fromMap(payload.newRecord));
+            }
+          },
+        )
+        .subscribe();
 
     return channel;
   }

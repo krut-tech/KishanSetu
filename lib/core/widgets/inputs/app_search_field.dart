@@ -69,10 +69,12 @@ class _AppSearchFieldState extends State<AppSearchField> {
       decoration: InputDecoration(
         hintText: widget.hint,
         hintStyle: TextStyle(color: colorScheme.onSurfaceVariant),
-        prefixIcon: Icon(Icons.search_rounded, color: colorScheme.onSurfaceVariant),
+        prefixIcon:
+            Icon(Icons.search_rounded, color: colorScheme.onSurfaceVariant),
         suffixIcon: controller != null && controller.text.isNotEmpty
             ? IconButton(
-                icon: Icon(Icons.close_rounded, size: 20, color: colorScheme.onSurfaceVariant),
+                icon: Icon(Icons.close_rounded,
+                    size: 20, color: colorScheme.onSurfaceVariant),
                 onPressed: _handleClear,
               )
             : null,

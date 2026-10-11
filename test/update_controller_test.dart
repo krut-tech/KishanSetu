@@ -66,7 +66,8 @@ void main() {
       expect(notifier.state.downloadProgress, 0.0);
     });
 
-    test('checkForUpdate sets status to available when update exists', () async {
+    test('checkForUpdate sets status to available when update exists',
+        () async {
       mockUpdateService.mockInfo = const AppUpdateInfo(
         installedVersion: '1.0.11+11',
         latestVersion: 'v1.0.11+12',
@@ -91,8 +92,11 @@ void main() {
       expect(notifier.state.status, UpdateStatus.idle);
     });
 
-    test('triggerInstall moves to permissionRequired when canRequestPackageInstalls is false', () async {
-      final tempFile = File('${Directory.systemTemp.path}/test_app-release.apk');
+    test(
+        'triggerInstall moves to permissionRequired when canRequestPackageInstalls is false',
+        () async {
+      final tempFile =
+          File('${Directory.systemTemp.path}/test_app-release.apk');
       // Create a dummy file > 1MB
       await tempFile.writeAsBytes(List.filled(1000005, 0));
 
@@ -113,8 +117,11 @@ void main() {
       }
     });
 
-    test('recheckPermissionAndInstall moves from permissionRequired to installing when permission granted', () async {
-      final tempFile = File('${Directory.systemTemp.path}/test_app-release.apk');
+    test(
+        'recheckPermissionAndInstall moves from permissionRequired to installing when permission granted',
+        () async {
+      final tempFile =
+          File('${Directory.systemTemp.path}/test_app-release.apk');
       await tempFile.writeAsBytes(List.filled(1000005, 0));
 
       notifier.state = notifier.state.copyWith(
@@ -134,8 +141,10 @@ void main() {
       }
     });
 
-    test('onAppResumed rechecks permission when status is permissionRequired', () async {
-      final tempFile = File('${Directory.systemTemp.path}/test_app-release.apk');
+    test('onAppResumed rechecks permission when status is permissionRequired',
+        () async {
+      final tempFile =
+          File('${Directory.systemTemp.path}/test_app-release.apk');
       await tempFile.writeAsBytes(List.filled(1000005, 0));
 
       notifier.state = notifier.state.copyWith(

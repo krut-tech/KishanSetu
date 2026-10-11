@@ -32,12 +32,14 @@ class KycState extends Equatable {
       isLoading: isLoading ?? this.isLoading,
       isSubmitting: isSubmitting ?? this.isSubmitting,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
-      successMessage: clearSuccess ? null : (successMessage ?? this.successMessage),
+      successMessage:
+          clearSuccess ? null : (successMessage ?? this.successMessage),
     );
   }
 
   @override
-  List<Object?> get props => [document, isLoading, isSubmitting, errorMessage, successMessage];
+  List<Object?> get props =>
+      [document, isLoading, isSubmitting, errorMessage, successMessage];
 }
 
 class KycController extends StateNotifier<KycState> {
@@ -50,7 +52,8 @@ class KycController extends StateNotifier<KycState> {
     final result = await _repository.getMyLatestKycDocument(userId);
     if (!mounted) return;
     result.fold(
-      (failure) => state = state.copyWith(isLoading: false, errorMessage: failure.message),
+      (failure) => state =
+          state.copyWith(isLoading: false, errorMessage: failure.message),
       (doc) => state = state.copyWith(isLoading: false, document: doc),
     );
   }
@@ -59,16 +62,20 @@ class KycController extends StateNotifier<KycState> {
     required String userId,
     required String documentType,
     required String documentNumber,
-    required dynamic file, // io.File, kept dynamic here to avoid importing dart:io in state logic
+    required dynamic
+        file, // io.File, kept dynamic here to avoid importing dart:io in state logic
   }) async {
-    state = state.copyWith(isSubmitting: true, clearError: true, clearSuccess: true);
+    state = state.copyWith(
+        isSubmitting: true, clearError: true, clearSuccess: true);
 
-    final uploadResult = await _repository.uploadKycFile(userId: userId, file: file);
+    final uploadResult =
+        await _repository.uploadKycFile(userId: userId, file: file);
     if (!mounted) return false;
 
     return uploadResult.fold(
       (failure) {
-        state = state.copyWith(isSubmitting: false, errorMessage: failure.message);
+        state =
+            state.copyWith(isSubmitting: false, errorMessage: failure.message);
         return false;
       },
       (storagePath) async {
@@ -82,7 +89,8 @@ class KycController extends StateNotifier<KycState> {
         if (!mounted) return false;
         return docResult.fold(
           (failure) {
-            state = state.copyWith(isSubmitting: false, errorMessage: failure.message);
+            state = state.copyWith(
+                isSubmitting: false, errorMessage: failure.message);
             return false;
           },
           (doc) {

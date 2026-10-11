@@ -35,7 +35,8 @@ class AuthNotifier extends ChangeNotifier {
 
   final SupabaseClient? _supabaseClient;
 
-  AuthNotifier(this._repository, {SupabaseClient? supabaseClient, this.onSignOutCallback})
+  AuthNotifier(this._repository,
+      {SupabaseClient? supabaseClient, this.onSignOutCallback})
       : _supabaseClient = supabaseClient {
     _init();
   }
@@ -66,7 +67,8 @@ class AuthNotifier extends ChangeNotifier {
     final bool routingChanged = _state.status != newState.status ||
         _state.user?.id != newState.user?.id ||
         _state.profile?.role != newState.profile?.role ||
-        _state.profile?.isProfileComplete != newState.profile?.isProfileComplete;
+        _state.profile?.isProfileComplete !=
+            newState.profile?.isProfileComplete;
 
     _state = newState;
     notifyListeners();
@@ -86,8 +88,10 @@ class AuthNotifier extends ChangeNotifier {
     _cleanupProfileRealtime();
     try {
       _subscribedUserId = userId;
-      _profileChannel = _repository.subscribeToProfile(userId, (updatedProfile) {
-        AppLogger.info('AuthNotifier received realtime profile update for $userId');
+      _profileChannel =
+          _repository.subscribeToProfile(userId, (updatedProfile) {
+        AppLogger.info(
+            'AuthNotifier received realtime profile update for $userId');
         if (_state.user?.id == userId) {
           if (updatedProfile == null) {
             AppLogger.warning('Profile deleted for active user $userId');
@@ -120,13 +124,16 @@ class AuthNotifier extends ChangeNotifier {
   Future<void> _init() async {
     try {
       _authSubscription?.cancel();
-      _authSubscription = _repository.onAuthStateChanges.listen((sbAuthState) async {
+      _authSubscription =
+          _repository.onAuthStateChanges.listen((sbAuthState) async {
         final user = sbAuthState.session?.user;
         if (user != null) {
           if (_isSignUpInProgress) return;
 
           final isSameUser = _state.user?.id == user.id;
-          final isAlreadyAuthenticated = _state.status == AuthStatus.authenticated && _state.profile != null;
+          final isAlreadyAuthenticated =
+              _state.status == AuthStatus.authenticated &&
+                  _state.profile != null;
           if (!isSameUser || !isAlreadyAuthenticated) {
             await _fetchProfileForUser(user);
           }
@@ -148,7 +155,9 @@ class AuthNotifier extends ChangeNotifier {
       if (currentUser != null) {
         if (!_isSignUpInProgress) {
           final isSameUser = _state.user?.id == currentUser.id;
-          final isAlreadyAuthenticated = _state.status == AuthStatus.authenticated && _state.profile != null;
+          final isAlreadyAuthenticated =
+              _state.status == AuthStatus.authenticated &&
+                  _state.profile != null;
           if (!isSameUser || !isAlreadyAuthenticated) {
             await _fetchProfileForUser(currentUser);
           }
@@ -231,7 +240,8 @@ class AuthNotifier extends ChangeNotifier {
     final result = await _repository.signIn(email: email, password: password);
     return result.fold(
       (failure) {
-        _updateState(_state.copyWith(isLoading: false, errorMessage: failure.message));
+        _updateState(
+            _state.copyWith(isLoading: false, errorMessage: failure.message));
         return false;
       },
       (authResponse) async {
@@ -257,7 +267,8 @@ class AuthNotifier extends ChangeNotifier {
     final result = await _repository.signInWithGoogle();
     return result.fold(
       (failure) {
-        _updateState(_state.copyWith(isLoading: false, errorMessage: failure.message));
+        _updateState(
+            _state.copyWith(isLoading: false, errorMessage: failure.message));
         return false;
       },
       (success) async {
@@ -292,14 +303,16 @@ class AuthNotifier extends ChangeNotifier {
       );
       return await result.fold(
         (failure) async {
-          _updateState(_state.copyWith(isLoading: false, errorMessage: failure.message));
+          _updateState(
+              _state.copyWith(isLoading: false, errorMessage: failure.message));
           return false;
         },
         (authResponse) async {
           if (authResponse.session == null) {
             _updateState(_state.copyWith(
               isLoading: false,
-              errorMessage: 'Account created! Please check your email to confirm your account before logging in.',
+              errorMessage:
+                  'Account created! Please check your email to confirm your account before logging in.',
             ));
             return false;
           }
@@ -313,7 +326,8 @@ class AuthNotifier extends ChangeNotifier {
             final updateResult = await _repository.updateUserProfile(profile);
             return updateResult.fold(
               (failure) {
-                _updateState(_state.copyWith(isLoading: false, errorMessage: failure.message));
+                _updateState(_state.copyWith(
+                    isLoading: false, errorMessage: failure.message));
                 return false;
               },
               (savedProfile) {
@@ -347,7 +361,8 @@ class AuthNotifier extends ChangeNotifier {
 
     return result.fold(
       (failure) {
-        _updateState(_state.copyWith(isLoading: false, errorMessage: failure.message));
+        _updateState(
+            _state.copyWith(isLoading: false, errorMessage: failure.message));
         return false;
       },
       (savedProfile) {
@@ -363,7 +378,8 @@ class AuthNotifier extends ChangeNotifier {
 
     return result.fold(
       (failure) {
-        _updateState(_state.copyWith(isLoading: false, errorMessage: failure.message));
+        _updateState(
+            _state.copyWith(isLoading: false, errorMessage: failure.message));
         return false;
       },
       (savedProfile) {
@@ -378,7 +394,8 @@ class AuthNotifier extends ChangeNotifier {
     final result = await _repository.sendPasswordResetEmail(email);
     return result.fold(
       (failure) {
-        _updateState(_state.copyWith(isLoading: false, errorMessage: failure.message));
+        _updateState(
+            _state.copyWith(isLoading: false, errorMessage: failure.message));
         return false;
       },
       (_) {
@@ -393,7 +410,8 @@ class AuthNotifier extends ChangeNotifier {
     final result = await _repository.resetPassword(newPassword);
     return result.fold(
       (failure) {
-        _updateState(_state.copyWith(isLoading: false, errorMessage: failure.message));
+        _updateState(
+            _state.copyWith(isLoading: false, errorMessage: failure.message));
         return false;
       },
       (_) {

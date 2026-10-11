@@ -24,7 +24,8 @@ class AuthState extends Equatable {
     this.errorMessage,
   });
 
-  bool get isAuthenticated => status == AuthStatus.authenticated && user != null;
+  bool get isAuthenticated =>
+      status == AuthStatus.authenticated && user != null;
   bool get hasRole => profile?.role != null;
   bool get isProfileComplete => profile?.isProfileComplete ?? false;
 

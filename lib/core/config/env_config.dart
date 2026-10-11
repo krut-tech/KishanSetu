@@ -12,9 +12,11 @@ class EnvConfig {
     } catch (e) {
       try {
         await dotenv.load(fileName: '.env.example');
-        AppLogger.info('Environment variables loaded from .env.example fallback.');
+        AppLogger.info(
+            'Environment variables loaded from .env.example fallback.');
       } catch (e2) {
-        AppLogger.warning('Failed to load environment configuration files, using default fallbacks: $e2');
+        AppLogger.warning(
+            'Failed to load environment configuration files, using default fallbacks: $e2');
       }
     }
   }
@@ -30,8 +32,7 @@ class EnvConfig {
   static String get supabaseAnonKey =>
       dotenv.get('SUPABASE_ANON_KEY', fallback: '');
 
-  static String get appEnv =>
-      dotenv.get('APP_ENV', fallback: 'development');
+  static String get appEnv => dotenv.get('APP_ENV', fallback: 'development');
 
   static bool get isProduction => appEnv == 'production';
 }

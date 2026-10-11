@@ -58,7 +58,9 @@ class _MakeOfferDialogState extends ConsumerState<MakeOfferDialog> {
 
     final initialPrice = _existingOffer != null
         ? _existingOffer!.offeredPrice
-        : (widget.produce.expectedPrice > 0 ? widget.produce.expectedPrice : 0.0);
+        : (widget.produce.expectedPrice > 0
+            ? widget.produce.expectedPrice
+            : 0.0);
     final initialQuantity = _existingOffer != null
         ? _existingOffer!.quantity
         : (widget.produce.quantity > 0 ? widget.produce.quantity : 0.0);
@@ -73,7 +75,8 @@ class _MakeOfferDialogState extends ConsumerState<MakeOfferDialog> {
     _messageController = TextEditingController(text: initialMessage);
 
     if (_existingOffer == null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) => _checkExistingOffer());
+      WidgetsBinding.instance
+          .addPostFrameCallback((_) => _checkExistingOffer());
     }
   }
 
@@ -85,7 +88,8 @@ class _MakeOfferDialogState extends ConsumerState<MakeOfferDialog> {
     final offers = ref.read(buyerOfferControllerProvider).offers;
     for (final o in offers) {
       if (o.produceId == widget.produce.id &&
-          (o.status.toLowerCase() == 'pending' || o.status.toLowerCase() == 'countered')) {
+          (o.status.toLowerCase() == 'pending' ||
+              o.status.toLowerCase() == 'countered')) {
         if (mounted) {
           setState(() {
             _existingOffer = o;
@@ -100,14 +104,17 @@ class _MakeOfferDialogState extends ConsumerState<MakeOfferDialog> {
 
     // Otherwise check backend repository directly
     final repo = ref.read(buyerRepositoryProvider);
-    final res = await repo.getExistingOfferForProduce(user.id, widget.produce.id);
+    final res =
+        await repo.getExistingOfferForProduce(user.id, widget.produce.id);
     res.fold((_) => null, (existing) {
       if (existing != null && mounted) {
         setState(() {
           _existingOffer = existing;
           _priceController.text = existing.offeredPrice.toStringAsFixed(2);
           _quantityController.text = existing.quantity.toStringAsFixed(1);
-          if (existing.message != null) _messageController.text = existing.message!;
+          if (existing.message != null) {
+            _messageController.text = existing.message!;
+          }
         });
       }
     });
@@ -122,34 +129,44 @@ class _MakeOfferDialogState extends ConsumerState<MakeOfferDialog> {
   }
 
   Future<void> _submitOffer() async {
-    if (_isSubmitting || ref.read(buyerOfferControllerProvider).isSubmitting) return;
+    if (_isSubmitting || ref.read(buyerOfferControllerProvider).isSubmitting) {
+      return;
+    }
 
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
     final user = ref.read(authNotifierProvider).state.user;
     if (user == null) {
-      AppSnackBar.show(context, message: context.l10n.mustBeLoggedInToOffer, type: SnackBarType.error);
+      AppSnackBar.show(context,
+          message: context.l10n.mustBeLoggedInToOffer,
+          type: SnackBarType.error);
       return;
     }
 
     final offeredPrice = double.tryParse(_priceController.text.trim()) ?? 0.0;
-    final offerQuantity = double.tryParse(_quantityController.text.trim()) ?? 0.0;
+    final offerQuantity =
+        double.tryParse(_quantityController.text.trim()) ?? 0.0;
     final message = _messageController.text.trim();
 
     if (offeredPrice <= 0) {
-      AppSnackBar.show(context, message: context.l10n.offeredPriceMustBeGreaterThanZero, type: SnackBarType.error);
+      AppSnackBar.show(context,
+          message: context.l10n.offeredPriceMustBeGreaterThanZero,
+          type: SnackBarType.error);
       return;
     }
 
     if (offerQuantity <= 0) {
-      AppSnackBar.show(context, message: context.l10n.quantityMustBeGreaterThanZero, type: SnackBarType.error);
+      AppSnackBar.show(context,
+          message: context.l10n.quantityMustBeGreaterThanZero,
+          type: SnackBarType.error);
       return;
     }
 
     if (offerQuantity > widget.produce.quantity) {
       AppSnackBar.show(
         context,
-        message: '${context.l10n.quantityCannotExceedAvailable} (${widget.produce.quantity} ${widget.produce.unit})',
+        message:
+            '${context.l10n.quantityCannotExceedAvailable} (${widget.produce.quantity} ${widget.produce.unit})',
         type: SnackBarType.error,
       );
       return;
@@ -186,13 +203,16 @@ class _MakeOfferDialogState extends ConsumerState<MakeOfferDialog> {
         ref.read(buyerDashboardNotifierProvider.notifier).refreshDashboard();
         AppSnackBar.show(
           context,
-          message: isEditing ? context.l10n.offerUpdatedSuccessfully : context.l10n.offerSubmittedSuccessfully,
+          message: isEditing
+              ? context.l10n.offerUpdatedSuccessfully
+              : context.l10n.offerSubmittedSuccessfully,
           type: SnackBarType.success,
         );
         Navigator.of(context).pop(true);
       } else {
         setState(() => _isSubmitting = false);
-        final error = ref.read(buyerOfferControllerProvider).errorMessage ?? context.l10n.failedToSubmitOffer;
+        final error = ref.read(buyerOfferControllerProvider).errorMessage ??
+            context.l10n.failedToSubmitOffer;
         AppSnackBar.show(context, message: error, type: SnackBarType.error);
       }
     }
@@ -231,7 +251,9 @@ class _MakeOfferDialogState extends ConsumerState<MakeOfferDialog> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          isEditing ? context.l10n.editOfferLabel : context.l10n.makeAnOffer,
+                          isEditing
+                              ? context.l10n.editOfferLabel
+                              : context.l10n.makeAnOffer,
                           style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
@@ -266,20 +288,32 @@ class _MakeOfferDialogState extends ConsumerState<MakeOfferDialog> {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(context.l10n.askingPrice, style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant)),
+                        Text(context.l10n.askingPrice,
+                            style: TextStyle(
+                                fontSize: 12,
+                                color: colorScheme.onSurfaceVariant)),
                         Text(
                           '₹${widget.produce.expectedPrice.toStringAsFixed(0)} / ${widget.produce.unit}',
-                          style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: colorScheme.primary),
+                          style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                              color: colorScheme.primary),
                         ),
                       ],
                     ),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
-                        Text(context.l10n.availableLabel, style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant)),
+                        Text(context.l10n.availableLabel,
+                            style: TextStyle(
+                                fontSize: 12,
+                                color: colorScheme.onSurfaceVariant)),
                         Text(
                           '${widget.produce.quantity} ${widget.produce.unit}',
-                          style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: colorScheme.onSurface),
+                          style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                              color: colorScheme.onSurface),
                         ),
                       ],
                     ),
@@ -290,12 +324,17 @@ class _MakeOfferDialogState extends ConsumerState<MakeOfferDialog> {
 
               // Offered Price Field
               AppCurrencyField(
-                label: '${context.l10n.offeredPriceLabel} (per ${widget.produce.unit})',
+                label:
+                    '${context.l10n.offeredPriceLabel} (per ${widget.produce.unit})',
                 controller: _priceController,
                 validator: (v) {
-                  if (v == null || v.trim().isEmpty) return context.l10n.offeredPriceRequired;
+                  if (v == null || v.trim().isEmpty) {
+                    return context.l10n.offeredPriceRequired;
+                  }
                   final p = double.tryParse(v.trim());
-                  if (p == null || p <= 0) return context.l10n.enterValidPriceGreaterThanZero;
+                  if (p == null || p <= 0) {
+                    return context.l10n.enterValidPriceGreaterThanZero;
+                  }
                   return null;
                 },
               ),
@@ -305,12 +344,17 @@ class _MakeOfferDialogState extends ConsumerState<MakeOfferDialog> {
               AppTextField(
                 label: '${context.l10n.offerQuantity} (${widget.produce.unit})',
                 controller: _quantityController,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
                 prefixIcon: const Icon(Icons.scale_outlined),
                 validator: (v) {
-                  if (v == null || v.trim().isEmpty) return context.l10n.quantityIsRequired;
+                  if (v == null || v.trim().isEmpty) {
+                    return context.l10n.quantityIsRequired;
+                  }
                   final q = double.tryParse(v.trim());
-                  if (q == null || q <= 0) return context.l10n.enterValidQuantityGreaterThanZero;
+                  if (q == null || q <= 0) {
+                    return context.l10n.enterValidQuantityGreaterThanZero;
+                  }
                   if (q > widget.produce.quantity) {
                     return '${context.l10n.exceedsAvailableQuantity} (${widget.produce.quantity})';
                   }
@@ -336,7 +380,9 @@ class _MakeOfferDialogState extends ConsumerState<MakeOfferDialog> {
 
               // Submit Button
               AppButton(
-                label: isEditing ? context.l10n.saveUpdateOffer : context.l10n.submitOffer,
+                label: isEditing
+                    ? context.l10n.saveUpdateOffer
+                    : context.l10n.submitOffer,
                 style: AppButtonStyle.secondary,
                 isLoading: offerState.isSubmitting,
                 onPressed: _submitOffer,

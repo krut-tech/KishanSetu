@@ -33,8 +33,10 @@ class ProduceCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final primaryText = isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight;
-    final secondaryText = isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight;
+    final primaryText =
+        isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight;
+    final secondaryText =
+        isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight;
     final dividerColor = isDark ? AppColors.borderDark : AppColors.borderLight;
 
     return AppCard(
@@ -48,7 +50,8 @@ class ProduceCard extends StatelessWidget {
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: isDark ? AppColors.primaryDark : AppColors.primaryLight,
+                  color:
+                      isDark ? AppColors.primaryDark : AppColors.primaryLight,
                   borderRadius: AppRadius.borderMd,
                 ),
                 child: Icon(
@@ -79,9 +82,12 @@ class ProduceCard extends StatelessWidget {
                         const SizedBox(width: AppSpacing.xs),
                         Flexible(
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 2),
                             decoration: BoxDecoration(
-                              color: isDark ? AppColors.primaryDark : AppColors.primaryLight,
+                              color: isDark
+                                  ? AppColors.primaryDark
+                                  : AppColors.primaryLight,
                               borderRadius: AppRadius.borderSm,
                             ),
                             child: Text(
@@ -89,7 +95,9 @@ class ProduceCard extends StatelessWidget {
                               style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.bold,
-                                color: isDark ? const Color(0xFFDCFCE7) : AppColors.primaryDark,
+                                color: isDark
+                                    ? const Color(0xFFDCFCE7)
+                                    : AppColors.primaryDark,
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -99,7 +107,8 @@ class ProduceCard extends StatelessWidget {
                         if (onDelete != null) ...[
                           const SizedBox(width: AppSpacing.xs),
                           IconButton(
-                            icon: const Icon(Icons.delete_outline, color: AppColors.error, size: 20),
+                            icon: const Icon(Icons.delete_outline,
+                                color: AppColors.error, size: 20),
                             constraints: const BoxConstraints(),
                             padding: const EdgeInsets.all(4),
                             tooltip: 'Delete Produce',
@@ -111,12 +120,14 @@ class ProduceCard extends StatelessWidget {
                     const SizedBox(height: 2),
                     Row(
                       children: [
-                        Icon(Icons.location_on_outlined, size: 14, color: secondaryText),
+                        Icon(Icons.location_on_outlined,
+                            size: 14, color: secondaryText),
                         const SizedBox(width: 2),
                         Expanded(
                           child: Text(
                             '$location • $farmerName',
-                            style: TextStyle(fontSize: 13, color: secondaryText),
+                            style:
+                                TextStyle(fontSize: 13, color: secondaryText),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -147,7 +158,10 @@ class ProduceCard extends StatelessWidget {
                     const SizedBox(height: 2),
                     Text(
                       quantity,
-                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: primaryText),
+                      style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          color: primaryText),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -176,7 +190,9 @@ class ProduceCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(AppSpacing.md),
             decoration: BoxDecoration(
-              color: isDark ? AppColors.primaryDark.withValues(alpha: 0.3) : AppColors.netRealizationBg,
+              color: isDark
+                  ? AppColors.primaryDark.withValues(alpha: 0.3)
+                  : AppColors.netRealizationBg,
               borderRadius: AppRadius.borderSm,
               border: Border.all(
                 color: isDark ? AppColors.primaryDark : AppColors.primaryLight,
@@ -186,7 +202,9 @@ class ProduceCard extends StatelessWidget {
               children: [
                 Icon(
                   Icons.stars_rounded,
-                  color: isDark ? const Color(0xFF34D399) : AppColors.netRealizationBadge,
+                  color: isDark
+                      ? const Color(0xFF34D399)
+                      : AppColors.netRealizationBadge,
                   size: 20,
                 ),
                 const SizedBox(width: AppSpacing.sm),
@@ -196,7 +214,9 @@ class ProduceCard extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
-                      color: isDark ? AppColors.textPrimaryDark : AppColors.primaryDark,
+                      color: isDark
+                          ? AppColors.textPrimaryDark
+                          : AppColors.primaryDark,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -210,7 +230,9 @@ class ProduceCard extends StatelessWidget {
                     priceStyle: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: isDark ? const Color(0xFF34D399) : AppColors.netRealizationBadge,
+                      color: isDark
+                          ? const Color(0xFF34D399)
+                          : AppColors.netRealizationBadge,
                     ),
                   ),
                 ),

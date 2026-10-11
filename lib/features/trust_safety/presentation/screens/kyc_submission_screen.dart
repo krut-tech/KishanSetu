@@ -18,7 +18,8 @@ class KycSubmissionScreen extends ConsumerStatefulWidget {
   const KycSubmissionScreen({super.key});
 
   @override
-  ConsumerState<KycSubmissionScreen> createState() => _KycSubmissionScreenState();
+  ConsumerState<KycSubmissionScreen> createState() =>
+      _KycSubmissionScreenState();
 }
 
 class _KycSubmissionScreenState extends ConsumerState<KycSubmissionScreen> {
@@ -55,11 +56,14 @@ class _KycSubmissionScreenState extends ConsumerState<KycSubmissionScreen> {
 
   Future<void> _pickPhoto() async {
     try {
-      final picked = await _imagePicker.pickImage(source: ImageSource.gallery, imageQuality: 85);
+      final picked = await _imagePicker.pickImage(
+          source: ImageSource.gallery, imageQuality: 85);
       if (picked != null && mounted) setState(() => _photo = picked);
     } catch (_) {
       if (!mounted) return;
-      AppSnackBar.show(context, message: 'Could not open the photo gallery.', type: SnackBarType.error);
+      AppSnackBar.show(context,
+          message: 'Could not open the photo gallery.',
+          type: SnackBarType.error);
     }
   }
 
@@ -68,7 +72,9 @@ class _KycSubmissionScreenState extends ConsumerState<KycSubmissionScreen> {
     if (userId == null) return;
     if (!(_formKey.currentState?.validate() ?? false)) return;
     if (_photo == null) {
-      AppSnackBar.show(context, message: 'Please attach a photo of your document.', type: SnackBarType.error);
+      AppSnackBar.show(context,
+          message: 'Please attach a photo of your document.',
+          type: SnackBarType.error);
       return;
     }
 
@@ -80,10 +86,13 @@ class _KycSubmissionScreenState extends ConsumerState<KycSubmissionScreen> {
         );
     if (!mounted) return;
     if (ok) {
-      AppSnackBar.show(context, message: 'Submitted for verification!', type: SnackBarType.success);
+      AppSnackBar.show(context,
+          message: 'Submitted for verification!', type: SnackBarType.success);
     } else {
       final err = ref.read(kycControllerProvider).errorMessage;
-      if (err != null) AppSnackBar.show(context, message: err, type: SnackBarType.error);
+      if (err != null) {
+        AppSnackBar.show(context, message: err, type: SnackBarType.error);
+      }
     }
   }
 
@@ -125,12 +134,16 @@ class _KycSubmissionScreenState extends ConsumerState<KycSubmissionScreen> {
                             children: [
                               Text(
                                 'Current Submission',
-                                style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.onSurface),
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: colorScheme.onSurface),
                               ),
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 3),
                                 decoration: BoxDecoration(
-                                  color: _statusColor(doc.status, colorScheme).withValues(alpha: 0.12),
+                                  color: _statusColor(doc.status, colorScheme)
+                                      .withValues(alpha: 0.12),
                                   borderRadius: BorderRadius.circular(6),
                                 ),
                                 child: Text(
@@ -138,20 +151,24 @@ class _KycSubmissionScreenState extends ConsumerState<KycSubmissionScreen> {
                                   style: TextStyle(
                                     fontSize: 11,
                                     fontWeight: FontWeight.bold,
-                                    color: _statusColor(doc.status, colorScheme),
+                                    color:
+                                        _statusColor(doc.status, colorScheme),
                                   ),
                                 ),
                               ),
                             ],
                           ),
                           const SizedBox(height: 4),
-                          Text('${_docTypes[doc.documentType] ?? doc.documentType} • ${doc.documentNumber}'),
-                          if (doc.status == 'rejected' && doc.rejectionReason != null)
+                          Text(
+                              '${_docTypes[doc.documentType] ?? doc.documentType} • ${doc.documentNumber}'),
+                          if (doc.status == 'rejected' &&
+                              doc.rejectionReason != null)
                             Padding(
                               padding: const EdgeInsets.only(top: 4),
                               child: Text(
                                 'Reason: ${doc.rejectionReason}',
-                                style: TextStyle(color: colorScheme.error, fontSize: 13),
+                                style: TextStyle(
+                                    color: colorScheme.error, fontSize: 13),
                               ),
                             ),
                         ],
@@ -172,12 +189,16 @@ class _KycSubmissionScreenState extends ConsumerState<KycSubmissionScreen> {
                   if (doc == null || doc.status == 'rejected') ...[
                     Text(
                       doc == null ? 'Submit a Document' : 'Resubmit a Document',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: colorScheme.onSurface),
+                      style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: colorScheme.onSurface),
                     ),
                     const SizedBox(height: AppSpacing.xs),
                     Text(
                       'Verified accounts build trust with buyers and farmers.',
-                      style: TextStyle(fontSize: 13, color: colorScheme.onSurfaceVariant),
+                      style: TextStyle(
+                          fontSize: 13, color: colorScheme.onSurfaceVariant),
                     ),
                     const SizedBox(height: AppSpacing.md),
                     Form(
@@ -189,15 +210,19 @@ class _KycSubmissionScreenState extends ConsumerState<KycSubmissionScreen> {
                             label: 'Document Type',
                             value: _docType,
                             items: _docTypes.entries
-                                .map((e) => DropdownMenuItem(value: e.key, child: Text(e.value)))
+                                .map((e) => DropdownMenuItem(
+                                    value: e.key, child: Text(e.value)))
                                 .toList(),
-                            onChanged: (v) => setState(() => _docType = v ?? _docType),
+                            onChanged: (v) =>
+                                setState(() => _docType = v ?? _docType),
                           ),
                           const SizedBox(height: AppSpacing.md),
                           AppTextField(
                             label: 'Document Number',
                             controller: _numberController,
-                            validator: (v) => (v == null || v.trim().length < 4) ? 'Enter a valid number' : null,
+                            validator: (v) => (v == null || v.trim().length < 4)
+                                ? 'Enter a valid number'
+                                : null,
                           ),
                           const SizedBox(height: AppSpacing.md),
                           InkWell(
@@ -212,13 +237,17 @@ class _KycSubmissionScreenState extends ConsumerState<KycSubmissionScreen> {
                               child: _photo != null
                                   ? ClipRRect(
                                       borderRadius: BorderRadius.circular(8),
-                                      child: Image.file(File(_photo!.path), height: 160, fit: BoxFit.cover),
+                                      child: Image.file(File(_photo!.path),
+                                          height: 160, fit: BoxFit.cover),
                                     )
                                   : Column(
                                       children: [
-                                        Icon(Icons.upload_file_rounded, color: colorScheme.primary, size: 32),
+                                        Icon(Icons.upload_file_rounded,
+                                            color: colorScheme.primary,
+                                            size: 32),
                                         const SizedBox(height: AppSpacing.xs),
-                                        Text('Tap to attach a clear photo of your document'),
+                                        Text(
+                                            'Tap to attach a clear photo of your document'),
                                       ],
                                     ),
                             ),

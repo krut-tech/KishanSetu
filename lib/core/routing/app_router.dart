@@ -104,23 +104,29 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       // Admin-only guard. Checked before the generic role guards below so a
       // non-admin hitting /admin-panel is bounced straight to their own home.
       if (location == RouteNames.adminPanel && profile?.isAdmin != true) {
-        return profile?.role == UserRole.buyer ? RouteNames.buyerHome : RouteNames.farmerHome;
+        return profile?.role == UserRole.buyer
+            ? RouteNames.buyerHome
+            : RouteNames.farmerHome;
       }
 
       // Role-based cross-route separation guard. Farmer-only routes must not be
       // reachable by a completed buyer through a direct URL/deep link.
-      if (location == RouteNames.addProduce && profile?.role != UserRole.farmer) {
+      if (location == RouteNames.addProduce &&
+          profile?.role != UserRole.farmer) {
         return RouteNames.buyerHome;
       }
-      if (location == RouteNames.myProduce && profile?.role != UserRole.farmer) {
+      if (location == RouteNames.myProduce &&
+          profile?.role != UserRole.farmer) {
         return RouteNames.buyerHome;
       }
-      if (location == RouteNames.buyerOffers && profile?.role != UserRole.buyer) {
+      if (location == RouteNames.buyerOffers &&
+          profile?.role != UserRole.buyer) {
         return RouteNames.farmerHome;
       }
 
       if (profile?.role == UserRole.farmer) {
-        if (location == RouteNames.buyerHome || location == RouteNames.buyerProfile) {
+        if (location == RouteNames.buyerHome ||
+            location == RouteNames.buyerProfile) {
           return RouteNames.farmerHome;
         }
       } else if (profile?.role == UserRole.buyer) {
@@ -137,7 +143,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           authState.isProfileComplete) {
         final pendingRoute = PushNotificationService.pendingInitialRoute!;
         PushNotificationService.pendingInitialRoute = null;
-        AppLogger.info('Consuming pending push notification initial route: $pendingRoute');
+        AppLogger.info(
+            'Consuming pending push notification initial route: $pendingRoute');
         return pendingRoute;
       }
 
@@ -258,7 +265,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => Consumer(
           builder: (context, ref, _) {
             final role = ref.watch(authNotifierProvider).profile?.role;
-            return role == UserRole.buyer ? const BuyerOffersScreen() : const OffersScreen();
+            return role == UserRole.buyer
+                ? const BuyerOffersScreen()
+                : const OffersScreen();
           },
         ),
       ),
@@ -273,7 +282,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => Consumer(
           builder: (context, ref, _) {
             final role = ref.watch(authNotifierProvider).profile?.role;
-            return role == UserRole.buyer ? const MarketplaceScreen() : const MyProduceScreen();
+            return role == UserRole.buyer
+                ? const MarketplaceScreen()
+                : const MyProduceScreen();
           },
         ),
       ),
@@ -300,7 +311,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     try {
       router.go(targetRoute);
     } catch (e) {
-      AppLogger.warning('GoRouter error navigating to $targetRoute, falling back to /notifications: $e');
+      AppLogger.warning(
+          'GoRouter error navigating to $targetRoute, falling back to /notifications: $e');
       router.go(RouteNames.notifications);
     }
   };

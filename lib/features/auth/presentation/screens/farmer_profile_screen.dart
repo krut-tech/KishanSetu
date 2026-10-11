@@ -16,7 +16,8 @@ class FarmerProfileScreen extends ConsumerStatefulWidget {
   const FarmerProfileScreen({super.key});
 
   @override
-  ConsumerState<FarmerProfileScreen> createState() => _FarmerProfileScreenState();
+  ConsumerState<FarmerProfileScreen> createState() =>
+      _FarmerProfileScreenState();
 }
 
 class _FarmerProfileScreenState extends ConsumerState<FarmerProfileScreen> {
@@ -64,7 +65,8 @@ class _FarmerProfileScreenState extends ConsumerState<FarmerProfileScreen> {
         _cropController.text = profile.primaryCrop ?? '';
         _latitudeController.text = profile.latitude?.toString() ?? '';
         _longitudeController.text = profile.longitude?.toString() ?? '';
-        _selectedLanguage = profile.language.isNotEmpty ? profile.language : 'en';
+        _selectedLanguage =
+            profile.language.isNotEmpty ? profile.language : 'en';
       }
       _isInitialized = true;
     }
@@ -97,9 +99,14 @@ class _FarmerProfileScreenState extends ConsumerState<FarmerProfileScreen> {
     if ((latText.isEmpty) != (lngText.isEmpty) ||
         (latText.isNotEmpty && latitude == null) ||
         (lngText.isNotEmpty && longitude == null) ||
-        (latitude != null && (!latitude.isFinite || latitude < -90 || latitude > 90)) ||
-        (longitude != null && (!longitude.isFinite || longitude < -180 || longitude > 180))) {
-      AppSnackBar.show(context, message: 'Enter valid latitude and longitude together, or leave both empty.', type: SnackBarType.error);
+        (latitude != null &&
+            (!latitude.isFinite || latitude < -90 || latitude > 90)) ||
+        (longitude != null &&
+            (!longitude.isFinite || longitude < -180 || longitude > 180))) {
+      AppSnackBar.show(context,
+          message:
+              'Enter valid latitude and longitude together, or leave both empty.',
+          type: SnackBarType.error);
       return;
     }
 
@@ -125,7 +132,8 @@ class _FarmerProfileScreenState extends ConsumerState<FarmerProfileScreen> {
         .updateProfile(updatedProfile);
 
     if (!success && mounted) {
-      final error = ref.read(authNotifierProvider).errorMessage ?? context.l10n.failedToSaveProfile;
+      final error = ref.read(authNotifierProvider).errorMessage ??
+          context.l10n.failedToSaveProfile;
       AppSnackBar.show(context, message: error, type: SnackBarType.error);
     }
   }
@@ -161,7 +169,8 @@ class _FarmerProfileScreenState extends ConsumerState<FarmerProfileScreen> {
                         CircleAvatar(
                           radius: 28,
                           backgroundColor: colorScheme.primaryContainer,
-                          child: Icon(Icons.agriculture_rounded, color: colorScheme.primary, size: 32),
+                          child: Icon(Icons.agriculture_rounded,
+                              color: colorScheme.primary, size: 32),
                         ),
                         const SizedBox(width: AppSpacing.md),
                         Expanded(
@@ -178,7 +187,9 @@ class _FarmerProfileScreenState extends ConsumerState<FarmerProfileScreen> {
                               ),
                               Text(
                                 context.l10n.completeFarmContactInfo,
-                                style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant),
+                                style: TextStyle(
+                                    fontSize: 12,
+                                    color: colorScheme.onSurfaceVariant),
                               ),
                             ],
                           ),
@@ -190,7 +201,9 @@ class _FarmerProfileScreenState extends ConsumerState<FarmerProfileScreen> {
                       label: context.l10n.fullName,
                       controller: _nameController,
                       prefixIcon: const Icon(Icons.person_outline),
-                      validator: (v) => v == null || v.trim().isEmpty ? context.l10n.fullNameRequired : null,
+                      validator: (v) => v == null || v.trim().isEmpty
+                          ? context.l10n.fullNameRequired
+                          : null,
                     ),
                     const SizedBox(height: AppSpacing.md),
                     AppTextField(
@@ -199,8 +212,12 @@ class _FarmerProfileScreenState extends ConsumerState<FarmerProfileScreen> {
                       keyboardType: TextInputType.phone,
                       prefixIcon: const Icon(Icons.phone_outlined),
                       validator: (v) {
-                        if (v == null || v.trim().isEmpty) return context.l10n.phoneNumberRequired;
-                        if (!RegExp(r'^[6-9]\d{9}$').hasMatch(v.trim())) return context.l10n.enterValid10DigitMobile;
+                        if (v == null || v.trim().isEmpty) {
+                          return context.l10n.phoneNumberRequired;
+                        }
+                        if (!RegExp(r'^[6-9]\d{9}$').hasMatch(v.trim())) {
+                          return context.l10n.enterValid10DigitMobile;
+                        }
                         return null;
                       },
                     ),
@@ -209,33 +226,44 @@ class _FarmerProfileScreenState extends ConsumerState<FarmerProfileScreen> {
                       label: context.l10n.preferredLanguage,
                       value: _selectedLanguage,
                       items: [
-                        DropdownMenuItem(value: 'en', child: Text(context.l10n.english)),
-                        DropdownMenuItem(value: 'hi', child: Text(context.l10n.hindi)),
-                        DropdownMenuItem(value: 'gu', child: Text(context.l10n.gujarati)),
+                        DropdownMenuItem(
+                            value: 'en', child: Text(context.l10n.english)),
+                        DropdownMenuItem(
+                            value: 'hi', child: Text(context.l10n.hindi)),
+                        DropdownMenuItem(
+                            value: 'gu', child: Text(context.l10n.gujarati)),
                       ],
                       onChanged: (val) {
-                        if (val != null) setState(() => _selectedLanguage = val);
+                        if (val != null) {
+                          setState(() => _selectedLanguage = val);
+                        }
                       },
                     ),
                     const SizedBox(height: AppSpacing.md),
                     AppTextField(
                       label: context.l10n.state,
                       controller: _stateController,
-                      validator: (v) => v == null || v.trim().isEmpty ? context.l10n.stateRequired : null,
+                      validator: (v) => v == null || v.trim().isEmpty
+                          ? context.l10n.stateRequired
+                          : null,
                     ),
                     const SizedBox(height: AppSpacing.md),
                     AppTextField(
                       label: context.l10n.district,
                       controller: _districtController,
                       hint: 'e.g. Anand, Rajkot, Junagadh',
-                      validator: (v) => v == null || v.trim().isEmpty ? context.l10n.districtRequired : null,
+                      validator: (v) => v == null || v.trim().isEmpty
+                          ? context.l10n.districtRequired
+                          : null,
                     ),
                     const SizedBox(height: AppSpacing.md),
                     AppTextField(
                       label: context.l10n.village,
                       controller: _villageController,
                       hint: context.l10n.enterYourVillageName,
-                      validator: (v) => v == null || v.trim().isEmpty ? context.l10n.villageRequired : null,
+                      validator: (v) => v == null || v.trim().isEmpty
+                          ? context.l10n.villageRequired
+                          : null,
                     ),
                     const SizedBox(height: AppSpacing.md),
                     AppTextField(
@@ -248,14 +276,16 @@ class _FarmerProfileScreenState extends ConsumerState<FarmerProfileScreen> {
                     AppTextField(
                       label: context.l10n.mapLatitudeOptional,
                       controller: _latitudeController,
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
+                      keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true, signed: true),
                       hint: 'e.g. 22.123456',
                     ),
                     const SizedBox(height: AppSpacing.md),
                     AppTextField(
                       label: context.l10n.mapLongitudeOptional,
                       controller: _longitudeController,
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
+                      keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true, signed: true),
                       hint: 'e.g. 70.123456',
                     ),
                     const SizedBox(height: AppSpacing.md),
@@ -263,7 +293,9 @@ class _FarmerProfileScreenState extends ConsumerState<FarmerProfileScreen> {
                       label: context.l10n.primaryCrop,
                       controller: _cropController,
                       hint: 'e.g. Wheat, Cotton, Mustard, Groundnut',
-                      validator: (v) => v == null || v.trim().isEmpty ? context.l10n.primaryCropRequired : null,
+                      validator: (v) => v == null || v.trim().isEmpty
+                          ? context.l10n.primaryCropRequired
+                          : null,
                     ),
                     const SizedBox(height: AppSpacing.xxl),
                     AppButton(

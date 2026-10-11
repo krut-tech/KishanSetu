@@ -20,7 +20,8 @@ class ProduceSummaryCards extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final primaryText = isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight;
+    final primaryText =
+        isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -43,7 +44,8 @@ class ProduceSummaryCards extends StatelessWidget {
                 count: stats.activeListings,
                 icon: Icons.eco_rounded,
                 iconBg: isDark ? const Color(0xFF064E3B) : AppColors.activeBg,
-                iconColor: isDark ? const Color(0xFF34D399) : AppColors.activeFg,
+                iconColor:
+                    isDark ? const Color(0xFF34D399) : AppColors.activeFg,
                 onTap: () => onStatCardTap?.call(2), // My Produce tab
               ),
             ),
@@ -55,7 +57,8 @@ class ProduceSummaryCards extends StatelessWidget {
                 count: stats.pendingOffers,
                 icon: Icons.local_offer_rounded,
                 iconBg: isDark ? const Color(0xFF78350F) : AppColors.pendingBg,
-                iconColor: isDark ? const Color(0xFFFBBF24) : AppColors.pendingFg,
+                iconColor:
+                    isDark ? const Color(0xFFFBBF24) : AppColors.pendingFg,
                 onTap: () => onStatCardTap?.call(3), // Offers tab
               ),
             ),
@@ -71,7 +74,8 @@ class ProduceSummaryCards extends StatelessWidget {
                 count: stats.soldProduce,
                 icon: Icons.check_circle_rounded,
                 iconBg: isDark ? const Color(0xFF14532D) : AppColors.acceptedBg,
-                iconColor: isDark ? const Color(0xFF4ADE80) : AppColors.acceptedFg,
+                iconColor:
+                    isDark ? const Color(0xFF4ADE80) : AppColors.acceptedFg,
                 onTap: () => onStatCardTap?.call(2),
               ),
             ),
@@ -83,7 +87,8 @@ class ProduceSummaryCards extends StatelessWidget {
                 count: stats.draftProduce,
                 icon: Icons.edit_document,
                 iconBg: isDark ? AppColors.borderDark : AppColors.draftBg,
-                iconColor: isDark ? AppColors.textSecondaryDark : AppColors.draftFg,
+                iconColor:
+                    isDark ? AppColors.textSecondaryDark : AppColors.draftFg,
                 onTap: () => onStatCardTap?.call(2),
               ),
             ),
@@ -103,8 +108,10 @@ class ProduceSummaryCards extends StatelessWidget {
     VoidCallback? onTap,
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final primaryText = isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight;
-    final secondaryText = isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight;
+    final primaryText =
+        isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight;
+    final secondaryText =
+        isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight;
 
     return AppCard(
       onTap: onTap,

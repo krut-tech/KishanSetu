@@ -316,7 +316,8 @@ class UpdateDialog extends ConsumerWidget {
                                   onPressed: () {
                                     updateNotifier.openSettings();
                                   },
-                                  icon: const Icon(Icons.settings_rounded, size: 18),
+                                  icon: const Icon(Icons.settings_rounded,
+                                      size: 18),
                                   label: Text(context.l10n.openSettings),
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: AppColors.warning,
@@ -358,7 +359,8 @@ class UpdateDialog extends ConsumerWidget {
                         Container(
                           padding: const EdgeInsets.all(AppSpacing.md),
                           decoration: BoxDecoration(
-                            color: colorScheme.errorContainer.withValues(alpha: 0.5),
+                            color: colorScheme.errorContainer
+                                .withValues(alpha: 0.5),
                             borderRadius: AppRadius.borderLg,
                             border: Border.all(color: colorScheme.error),
                           ),

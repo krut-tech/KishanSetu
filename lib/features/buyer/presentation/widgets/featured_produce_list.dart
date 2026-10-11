@@ -22,8 +22,10 @@ class FeaturedProduceList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final primaryText = isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight;
-    final secondaryText = isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight;
+    final primaryText =
+        isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight;
+    final secondaryText =
+        isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -56,7 +58,10 @@ class FeaturedProduceList extends StatelessWidget {
                 const SizedBox(height: AppSpacing.sm),
                 Text(
                   context.l10n.noProduceListedYet,
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: primaryText),
+                  style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: primaryText),
                 ),
                 const SizedBox(height: 2),
                 Text(
@@ -72,7 +77,8 @@ class FeaturedProduceList extends StatelessWidget {
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             itemCount: produceList.length,
-            separatorBuilder: (context, index) => const SizedBox(height: AppSpacing.md),
+            separatorBuilder: (context, index) =>
+                const SizedBox(height: AppSpacing.md),
             itemBuilder: (context, index) {
               final item = produceList[index];
               return ProduceCard(

@@ -32,7 +32,8 @@ abstract class BuyerRepository {
   Future<AppResult<OfferModel>> updateOffer(OfferModel offer);
 
   /// Get active/pending offer for a specific produce listing by buyer.
-  Future<AppResult<OfferModel?>> getExistingOfferForProduce(String buyerId, String produceId);
+  Future<AppResult<OfferModel?>> getExistingOfferForProduce(
+      String buyerId, String produceId);
 
   /// Get version history for a specific offer.
   Future<AppResult<List<OfferHistoryModel>>> getOfferHistory(String offerId);

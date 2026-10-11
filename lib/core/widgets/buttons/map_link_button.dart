@@ -78,14 +78,16 @@ class MapLinkButton extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.location_on_outlined, size: 16, color: colorScheme.primary),
+            Icon(Icons.location_on_outlined,
+                size: 16, color: colorScheme.primary),
             const SizedBox(width: 4),
             Flexible(
               child: Text(
                 location,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant),
+                style: TextStyle(
+                    fontSize: 12, color: colorScheme.onSurfaceVariant),
               ),
             ),
             const SizedBox(width: 6),

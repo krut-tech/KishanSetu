@@ -38,7 +38,8 @@ class AppStyles {
         color: AppColors.priceHighlight,
       );
 
-  static BoxDecoration cardDecoration(BuildContext context, {Color? backgroundColor, Color? borderColor}) {
+  static BoxDecoration cardDecoration(BuildContext context,
+      {Color? backgroundColor, Color? borderColor}) {
     final colorScheme = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return BoxDecoration(

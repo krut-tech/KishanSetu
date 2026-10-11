@@ -62,9 +62,8 @@ class _ChatEntryButtonState extends State<ChatEntryButton> {
           builder: (_) => ChatScreen(
             repository: repo,
             conversation: conversation,
-            otherUserId: uid == widget.farmerId
-                ? widget.buyerId
-                : widget.farmerId,
+            otherUserId:
+                uid == widget.farmerId ? widget.buyerId : widget.farmerId,
             otherUserName: widget.otherUserName,
           ),
         ),

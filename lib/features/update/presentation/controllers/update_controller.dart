@@ -185,8 +185,11 @@ class UpdateNotifier extends StateNotifier<UpdateState>
         final actualSize = await existingFile.length();
         final expectedSize = info.apkSizeBytes;
         if (actualSize >= 1000000 &&
-            (expectedSize == null || expectedSize == 0 || actualSize == expectedSize)) {
-          AppLogger.info('Found complete previously downloaded APK at: $existingPath');
+            (expectedSize == null ||
+                expectedSize == 0 ||
+                actualSize == expectedSize)) {
+          AppLogger.info(
+              'Found complete previously downloaded APK at: $existingPath');
           state = state.copyWith(
             status: UpdateStatus.downloaded,
             downloadProgress: 1.0,
@@ -308,14 +311,17 @@ class UpdateNotifier extends StateNotifier<UpdateState>
     if (!await file.exists()) {
       state = state.copyWith(
         status: UpdateStatus.error,
-        errorMessage: 'Downloaded APK file no longer exists. Please redownload.',
+        errorMessage:
+            'Downloaded APK file no longer exists. Please redownload.',
       );
       return;
     }
 
     final actualSize = await file.length();
     final expectedSize = state.updateInfo?.apkSizeBytes;
-    if (expectedSize != null && expectedSize > 0 && actualSize != expectedSize) {
+    if (expectedSize != null &&
+        expectedSize > 0 &&
+        actualSize != expectedSize) {
       state = state.copyWith(
         status: UpdateStatus.error,
         errorMessage:
@@ -325,7 +331,8 @@ class UpdateNotifier extends StateNotifier<UpdateState>
     } else if (actualSize < 1000000) {
       state = state.copyWith(
         status: UpdateStatus.error,
-        errorMessage: 'Downloaded APK file is invalid or corrupted. Please redownload.',
+        errorMessage:
+            'Downloaded APK file is invalid or corrupted. Please redownload.',
       );
       return;
     }

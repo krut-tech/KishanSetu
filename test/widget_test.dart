@@ -16,10 +16,13 @@ import 'package:farmer_market_app/core/errors/result.dart';
 import 'package:farmer_market_app/features/auth/presentation/screens/login_screen.dart';
 
 class FakeRealtimeChannel extends RealtimeChannel {
-  FakeRealtimeChannel() : super('fake_channel', RealtimeClient('https://fake.supabase.co'));
+  FakeRealtimeChannel()
+      : super('fake_channel', RealtimeClient('https://fake.supabase.co'));
 
   @override
-  RealtimeChannel subscribe([void Function(RealtimeSubscribeStatus status, Object? error)? callback, Duration? timeout]) {
+  RealtimeChannel subscribe(
+      [void Function(RealtimeSubscribeStatus status, Object? error)? callback,
+      Duration? timeout]) {
     return this;
   }
 
@@ -83,7 +86,8 @@ class FakeAuthRepository implements AuthRepository {
   }
 
   @override
-  RealtimeChannel subscribeToProfile(String userId, void Function(UserProfile? profile) onProfileChange) {
+  RealtimeChannel subscribeToProfile(
+      String userId, void Function(UserProfile? profile) onProfileChange) {
     return FakeRealtimeChannel();
   }
 }

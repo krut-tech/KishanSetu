@@ -46,9 +46,13 @@ class _ChatListScreenState extends State<ChatListScreen> {
     if (dt == null) return '';
     final local = dt.toLocal();
     final now = DateTime.now();
-    final isToday = local.year == now.year && local.month == now.month && local.day == now.day;
+    final isToday = local.year == now.year &&
+        local.month == now.month &&
+        local.day == now.day;
     final yesterday = now.subtract(const Duration(days: 1));
-    final isYesterday = local.year == yesterday.year && local.month == yesterday.month && local.day == yesterday.day;
+    final isYesterday = local.year == yesterday.year &&
+        local.month == yesterday.month &&
+        local.day == yesterday.day;
     if (isToday) {
       final hour = local.hour % 12 == 0 ? 12 : local.hour % 12;
       final period = local.hour < 12 ? 'AM' : 'PM';
@@ -70,7 +74,8 @@ class _ChatListScreenState extends State<ChatListScreen> {
                     border: InputBorder.none,
                   ),
                   style: Theme.of(context).appBarTheme.titleTextStyle,
-                  onChanged: (value) => setState(() => _query = value.trim().toLowerCase()),
+                  onChanged: (value) =>
+                      setState(() => _query = value.trim().toLowerCase()),
                 )
               : const Text('Messages'),
           actions: [
@@ -171,31 +176,41 @@ class _ChatListScreenState extends State<ChatListScreen> {
                 itemBuilder: (context, index) {
                   final chat = items[index];
                   final hasUnread = chat.unreadCount > 0;
-                  final isMine = chat.lastMessageSenderId != null && chat.lastMessageSenderId == uid;
+                  final isMine = chat.lastMessageSenderId != null &&
+                      chat.lastMessageSenderId == uid;
                   final previewText = chat.lastMessage == null
                       ? 'Say hello to start the conversation'
-                      : (isMine ? 'You: ${chat.lastMessage}' : chat.lastMessage!);
+                      : (isMine
+                          ? 'You: ${chat.lastMessage}'
+                          : chat.lastMessage!);
 
                   return ListTile(
                     leading: CircleAvatar(
-                      backgroundImage: chat.otherUserAvatar != null && chat.otherUserAvatar!.isNotEmpty
+                      backgroundImage: chat.otherUserAvatar != null &&
+                              chat.otherUserAvatar!.isNotEmpty
                           ? NetworkImage(chat.otherUserAvatar!)
                           : null,
-                      child: chat.otherUserAvatar == null || chat.otherUserAvatar!.isEmpty
+                      child: chat.otherUserAvatar == null ||
+                              chat.otherUserAvatar!.isEmpty
                           ? Text(chat.otherUserName[0].toUpperCase())
                           : null,
                     ),
                     title: Text(
                       chat.otherUserName,
-                      style: TextStyle(fontWeight: hasUnread ? FontWeight.bold : FontWeight.normal),
+                      style: TextStyle(
+                          fontWeight:
+                              hasUnread ? FontWeight.bold : FontWeight.normal),
                     ),
                     subtitle: Text(
                       previewText,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        fontWeight: hasUnread ? FontWeight.w600 : FontWeight.normal,
-                        color: hasUnread ? Theme.of(context).colorScheme.onSurface : null,
+                        fontWeight:
+                            hasUnread ? FontWeight.w600 : FontWeight.normal,
+                        color: hasUnread
+                            ? Theme.of(context).colorScheme.onSurface
+                            : null,
                       ),
                     ),
                     trailing: Column(
@@ -209,19 +224,23 @@ class _ChatListScreenState extends State<ChatListScreen> {
                             color: hasUnread
                                 ? Theme.of(context).colorScheme.primary
                                 : Theme.of(context).colorScheme.outline,
-                            fontWeight: hasUnread ? FontWeight.bold : FontWeight.normal,
+                            fontWeight:
+                                hasUnread ? FontWeight.bold : FontWeight.normal,
                           ),
                         ),
                         const SizedBox(height: 6),
                         if (hasUnread)
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 7, vertical: 2),
                             decoration: BoxDecoration(
                               color: Theme.of(context).colorScheme.primary,
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Text(
-                              chat.unreadCount > 99 ? '99+' : chat.unreadCount.toString(),
+                              chat.unreadCount > 99
+                                  ? '99+'
+                                  : chat.unreadCount.toString(),
                               style: TextStyle(
                                 color: Theme.of(context).colorScheme.onPrimary,
                                 fontSize: 11,
@@ -231,8 +250,9 @@ class _ChatListScreenState extends State<ChatListScreen> {
                           ),
                       ],
                     ),
-                    onTap: () => Navigator.of(context).push(
-                      MaterialPageRoute<void>(
+                    onTap: () => Navigator.of(context)
+                        .push(
+                      MaterialPageRoute<dynamic>(
                         builder: (_) => ChatScreen(
                           repository: widget.repository,
                           conversation: chat.toConversation(),
@@ -240,7 +260,21 @@ class _ChatListScreenState extends State<ChatListScreen> {
                           otherUserName: chat.otherUserName,
                         ),
                       ),
-                    ).then((_) => _refresh()),
+                    )
+                        .then((result) {
+                      if (result == 'deleted') {
+                        if (mounted) {
+                          setState(() {
+                            _conversations = _conversations.then((list) => list
+                                .where((c) =>
+                                    c.conversationId != chat.conversationId)
+                                .toList());
+                          });
+                        }
+                      } else {
+                        _refresh();
+                      }
+                    }),
                   );
                 },
               );

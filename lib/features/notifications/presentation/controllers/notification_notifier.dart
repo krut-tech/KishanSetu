@@ -12,7 +12,7 @@ class NotificationState extends Equatable {
   final bool isLoading;
   final List<NotificationModel> notifications;
   final String? errorMessage;
-  
+
   int get unreadCount => notifications.where((n) => !n.isRead).length;
 
   const NotificationState({
@@ -45,7 +45,8 @@ class NotificationNotifier extends StateNotifier<NotificationState> {
   StreamSubscription<AuthState>? _authSubscription;
   String? _currentUserId;
 
-  NotificationNotifier(this._repository, this._supabaseClient) : super(const NotificationState()) {
+  NotificationNotifier(this._repository, this._supabaseClient)
+      : super(const NotificationState()) {
     _init();
   }
 
@@ -60,8 +61,9 @@ class NotificationNotifier extends StateNotifier<NotificationState> {
       if (!mounted) return;
       final session = event.session;
       final userId = session?.user.id;
-      
-      if (userId != null && (userId != _currentUserId || _streamSubscription == null)) {
+
+      if (userId != null &&
+          (userId != _currentUserId || _streamSubscription == null)) {
         _currentUserId = userId;
         _setupStream(userId);
       } else if (userId == null) {
@@ -74,15 +76,14 @@ class NotificationNotifier extends StateNotifier<NotificationState> {
 
   void _setupStream(String userId) {
     _streamSubscription?.cancel();
-    
+
     state = state.copyWith(isLoading: true, clearError: true);
-    
+
     _streamSubscription = _repository.getNotificationStream(userId).listen(
       (data) {
-        final notifications = data
-            .map((json) => NotificationModel.fromJson(json))
-            .toList();
-            
+        final notifications =
+            data.map((json) => NotificationModel.fromJson(json)).toList();
+
         state = state.copyWith(
           isLoading: false,
           notifications: notifications,
@@ -100,10 +101,10 @@ class NotificationNotifier extends StateNotifier<NotificationState> {
 
   Future<void> refresh() async {
     if (_currentUserId == null) return;
-    
+
     state = state.copyWith(isLoading: true, clearError: true);
     final result = await _repository.getNotifications();
-    
+
     result.fold(
       (failure) {
         state = state.copyWith(
@@ -124,7 +125,8 @@ class NotificationNotifier extends StateNotifier<NotificationState> {
     final result = await _repository.markAsRead(id);
     result.fold(
       (failure) {
-        AppLogger.error('Failed to mark notification $id as read: ${failure.message}');
+        AppLogger.error(
+            'Failed to mark notification $id as read: ${failure.message}');
       },
       (_) {
         // We let the realtime stream handle the update on UI
@@ -168,7 +170,8 @@ class NotificationNotifier extends StateNotifier<NotificationState> {
   }
 }
 
-final notificationNotifierProvider = StateNotifierProvider<NotificationNotifier, NotificationState>((ref) {
+final notificationNotifierProvider =
+    StateNotifierProvider<NotificationNotifier, NotificationState>((ref) {
   final repository = ref.watch(notificationRepositoryProvider);
   final supabaseClient = ref.watch(supabaseClientProvider);
   return NotificationNotifier(repository, supabaseClient);

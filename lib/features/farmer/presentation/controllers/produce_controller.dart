@@ -40,10 +40,12 @@ class ProduceState extends Equatable {
       produceList: produceList ?? this.produceList,
       isLoading: isLoading ?? this.isLoading,
       isSubmitting: isSubmitting ?? this.isSubmitting,
-      selectedStatus: clearStatus ? null : (selectedStatus ?? this.selectedStatus),
+      selectedStatus:
+          clearStatus ? null : (selectedStatus ?? this.selectedStatus),
       searchQuery: searchQuery ?? this.searchQuery,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
-      successMessage: clearSuccess ? null : (successMessage ?? this.successMessage),
+      successMessage:
+          clearSuccess ? null : (successMessage ?? this.successMessage),
     );
   }
 
@@ -66,7 +68,8 @@ class ProduceController extends StateNotifier<ProduceState> {
 
   ProduceController(this._repository) : super(const ProduceState());
 
-  Future<void> fetchProduce(String farmerId, {String? status, String? query}) async {
+  Future<void> fetchProduce(String farmerId,
+      {String? status, String? query}) async {
     _currentFarmerId = farmerId;
     state = state.copyWith(
       isLoading: true,
@@ -106,7 +109,8 @@ class ProduceController extends StateNotifier<ProduceState> {
     _produceChannel = null;
     try {
       _produceChannel = _repository.subscribeToProduceChanges(farmerId, () {
-        AppLogger.info('Realtime produce change event in ProduceController -> refreshing');
+        AppLogger.info(
+            'Realtime produce change event in ProduceController -> refreshing');
         if (_currentFarmerId != null) {
           fetchProduce(_currentFarmerId!);
         }
@@ -124,7 +128,8 @@ class ProduceController extends StateNotifier<ProduceState> {
   }
 
   Future<bool> addProduce(ProduceModel produce) async {
-    state = state.copyWith(isSubmitting: true, clearError: true, clearSuccess: true);
+    state = state.copyWith(
+        isSubmitting: true, clearError: true, clearSuccess: true);
     AppLogger.info('ProduceController adding produce: ${produce.name}');
 
     final result = await _repository.addProduce(produce);
@@ -152,7 +157,8 @@ class ProduceController extends StateNotifier<ProduceState> {
   }
 
   Future<bool> updateProduce(ProduceModel produce) async {
-    state = state.copyWith(isSubmitting: true, clearError: true, clearSuccess: true);
+    state = state.copyWith(
+        isSubmitting: true, clearError: true, clearSuccess: true);
 
     final result = await _repository.updateProduce(produce);
 
@@ -181,7 +187,8 @@ class ProduceController extends StateNotifier<ProduceState> {
   }
 
   Future<bool> deleteProduce(String produceId) async {
-    state = state.copyWith(isSubmitting: true, clearError: true, clearSuccess: true);
+    state = state.copyWith(
+        isSubmitting: true, clearError: true, clearSuccess: true);
 
     final result = await _repository.deleteProduce(produceId);
 
@@ -196,7 +203,8 @@ class ProduceController extends StateNotifier<ProduceState> {
         return false;
       },
       (_) {
-        final updatedList = state.produceList.where((p) => p.id != produceId).toList();
+        final updatedList =
+            state.produceList.where((p) => p.id != produceId).toList();
         state = state.copyWith(
           isSubmitting: false,
           produceList: updatedList,

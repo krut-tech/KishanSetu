@@ -122,8 +122,12 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
                             _categoryLabel(cat),
                             style: TextStyle(
                               fontSize: 12,
-                              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                              color: isSelected ? colorScheme.onPrimary : colorScheme.onSurface,
+                              fontWeight: isSelected
+                                  ? FontWeight.bold
+                                  : FontWeight.normal,
+                              color: isSelected
+                                  ? colorScheme.onPrimary
+                                  : colorScheme.onSurface,
                             ),
                           ),
                           selected: isSelected,
@@ -173,10 +177,18 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
                             color: colorScheme.primary,
                           ),
                           items: [
-                            DropdownMenuItem(value: 'newest', child: Text(context.l10n.sortNewest)),
-                            DropdownMenuItem(value: 'price_asc', child: Text(context.l10n.priceLowToHighArrow)),
-                            DropdownMenuItem(value: 'price_desc', child: Text(context.l10n.priceHighToLowArrow)),
-                            DropdownMenuItem(value: 'quantity_desc', child: Text(context.l10n.quantityHighToLow)),
+                            DropdownMenuItem(
+                                value: 'newest',
+                                child: Text(context.l10n.sortNewest)),
+                            DropdownMenuItem(
+                                value: 'price_asc',
+                                child: Text(context.l10n.priceLowToHighArrow)),
+                            DropdownMenuItem(
+                                value: 'price_desc',
+                                child: Text(context.l10n.priceHighToLowArrow)),
+                            DropdownMenuItem(
+                                value: 'quantity_desc',
+                                child: Text(context.l10n.quantityHighToLow)),
                           ],
                           onChanged: (val) {
                             if (val != null) {
@@ -199,7 +211,9 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
           Expanded(
             child: RefreshIndicator(
               onRefresh: () async {
-                await ref.read(marketplaceControllerProvider.notifier).fetchProduce();
+                await ref
+                    .read(marketplaceControllerProvider.notifier)
+                    .fetchProduce();
               },
               child: _buildBody(state),
             ),
@@ -219,8 +233,10 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
           AppSpacing.xxxl + 24,
         ),
         itemCount: 4,
-        separatorBuilder: (context, index) => const SizedBox(height: AppSpacing.md),
-        itemBuilder: (context, index) => const ShimmerLoading(width: double.infinity, height: 160),
+        separatorBuilder: (context, index) =>
+            const SizedBox(height: AppSpacing.md),
+        itemBuilder: (context, index) =>
+            const ShimmerLoading(width: double.infinity, height: 160),
       );
     }
 
@@ -234,7 +250,8 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
           child: ErrorStateWidget(
             title: context.l10n.failedToLoadMarketplace,
             message: state.errorMessage!,
-            onRetry: () => ref.read(marketplaceControllerProvider.notifier).fetchProduce(),
+            onRetry: () =>
+                ref.read(marketplaceControllerProvider.notifier).fetchProduce(),
           ),
         ),
       );
@@ -269,7 +286,8 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
         AppSpacing.xxxl + 24,
       ),
       itemCount: state.produceList.length,
-      separatorBuilder: (context, index) => const SizedBox(height: AppSpacing.md),
+      separatorBuilder: (context, index) =>
+          const SizedBox(height: AppSpacing.md),
       itemBuilder: (context, index) {
         final produce = state.produceList[index];
         return ProduceCard(

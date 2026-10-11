@@ -10,7 +10,8 @@ class NotificationBadgeIcon extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final unreadCount = ref.watch(notificationNotifierProvider.select((state) => state.unreadCount));
+    final unreadCount = ref.watch(
+        notificationNotifierProvider.select((state) => state.unreadCount));
 
     return Stack(
       alignment: Alignment.center,
@@ -24,7 +25,8 @@ class NotificationBadgeIcon extends ConsumerWidget {
             try {
               context.pushNamed('notifications');
             } catch (e, stackTrace) {
-              AppLogger.error('Failed to navigate to Notification Center', e, stackTrace);
+              AppLogger.error(
+                  'Failed to navigate to Notification Center', e, stackTrace);
             }
           },
         ),

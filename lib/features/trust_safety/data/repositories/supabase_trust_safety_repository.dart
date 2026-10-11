@@ -16,7 +16,8 @@ class SupabaseTrustSafetyRepository implements TrustSafetyRepository {
   SupabaseTrustSafetyRepository(this._client);
 
   @override
-  Future<AppResult<KycDocumentModel?>> getMyLatestKycDocument(String userId) async {
+  Future<AppResult<KycDocumentModel?>> getMyLatestKycDocument(
+      String userId) async {
     try {
       AppLogger.info('Fetching latest KYC document for user: $userId');
       final response = await _client
@@ -32,7 +33,8 @@ class SupabaseTrustSafetyRepository implements TrustSafetyRepository {
       AppLogger.error('Network error fetching KYC document', e);
       return left(const NetworkFailure());
     } on PostgrestException catch (e) {
-      AppLogger.error('Database failure fetching KYC document: ${e.message}', e);
+      AppLogger.error(
+          'Database failure fetching KYC document: ${e.message}', e);
       return left(DatabaseFailure(e.message, code: e.code));
     } catch (e, stack) {
       AppLogger.error('Unknown failure fetching KYC document', e, stack);
@@ -41,14 +43,19 @@ class SupabaseTrustSafetyRepository implements TrustSafetyRepository {
   }
 
   @override
-  Future<AppResult<String>> uploadKycFile({required String userId, required File file}) async {
+  Future<AppResult<String>> uploadKycFile(
+      {required String userId, required File file}) async {
     try {
       final currentUser = _client.auth.currentUser;
       if (currentUser == null || currentUser.id != userId) {
-        return left(const AuthFailure('You are not authorized to upload this document.'));
+        return left(const AuthFailure(
+            'You are not authorized to upload this document.'));
       }
-      final ext = file.path.contains('.') ? file.path.split('.').last.toLowerCase() : 'jpg';
-      final storagePath = '$userId/${DateTime.now().microsecondsSinceEpoch}.$ext';
+      final ext = file.path.contains('.')
+          ? file.path.split('.').last.toLowerCase()
+          : 'jpg';
+      final storagePath =
+          '$userId/${DateTime.now().microsecondsSinceEpoch}.$ext';
       AppLogger.info('Uploading KYC file to $storagePath');
       await _client.storage.from('kyc-documents').upload(
             storagePath,
@@ -71,20 +78,27 @@ class SupabaseTrustSafetyRepository implements TrustSafetyRepository {
   }
 
   @override
-  Future<AppResult<KycDocumentModel>> submitKycDocument(KycDocumentModel document) async {
+  Future<AppResult<KycDocumentModel>> submitKycDocument(
+      KycDocumentModel document) async {
     try {
       final currentUser = _client.auth.currentUser;
       if (currentUser == null || currentUser.id != document.userId) {
-        return left(const AuthFailure('You are not authorized to submit this document.'));
+        return left(const AuthFailure(
+            'You are not authorized to submit this document.'));
       }
       AppLogger.info('Submitting KYC document for user: ${document.userId}');
-      final response = await _client.from('kyc_documents').insert(document.toMap()).select().single();
+      final response = await _client
+          .from('kyc_documents')
+          .insert(document.toMap())
+          .select()
+          .single();
       return right(KycDocumentModel.fromMap(response));
     } on SocketException catch (e) {
       AppLogger.error('Network error submitting KYC document', e);
       return left(const NetworkFailure());
     } on PostgrestException catch (e) {
-      AppLogger.error('Database failure submitting KYC document: ${e.message}', e);
+      AppLogger.error(
+          'Database failure submitting KYC document: ${e.message}', e);
       return left(DatabaseFailure(e.message, code: e.code));
     } catch (e, stack) {
       AppLogger.error('Unknown failure submitting KYC document', e, stack);
@@ -98,10 +112,13 @@ class SupabaseTrustSafetyRepository implements TrustSafetyRepository {
       AppLogger.info('Fetching disputes for user: $userId');
       final response = await _client
           .from('disputes')
-          .select('*, reporter_profile:reporter_id(full_name), reported_profile:reported_user_id(full_name)')
+          .select(
+              '*, reporter_profile:reporter_id(full_name), reported_profile:reported_user_id(full_name)')
           .or('reporter_id.eq.$userId,reported_user_id.eq.$userId')
           .order('created_at', ascending: false);
-      final list = (response as List).map((r) => DisputeModel.fromMap(r as Map<String, dynamic>)).toList();
+      final list = (response as List)
+          .map((r) => DisputeModel.fromMap(r as Map<String, dynamic>))
+          .toList();
       return right(list);
     } on SocketException catch (e) {
       AppLogger.error('Network error fetching disputes', e);
@@ -120,10 +137,15 @@ class SupabaseTrustSafetyRepository implements TrustSafetyRepository {
     try {
       final currentUser = _client.auth.currentUser;
       if (currentUser == null || currentUser.id != dispute.reporterId) {
-        return left(const AuthFailure('You are not authorized to file this report.'));
+        return left(
+            const AuthFailure('You are not authorized to file this report.'));
       }
       AppLogger.info('Filing dispute of type: ${dispute.type}');
-      final response = await _client.from('disputes').insert(dispute.toMap()).select().single();
+      final response = await _client
+          .from('disputes')
+          .insert(dispute.toMap())
+          .select()
+          .single();
       return right(DisputeModel.fromMap(response));
     } on SocketException catch (e) {
       AppLogger.error('Network error filing dispute', e);
@@ -138,7 +160,8 @@ class SupabaseTrustSafetyRepository implements TrustSafetyRepository {
   }
 
   @override
-  Future<AppResult<List<UserProfile>>> adminGetUsers({String? role, String? search}) async {
+  Future<AppResult<List<UserProfile>>> adminGetUsers(
+      {String? role, String? search}) async {
     try {
       AppLogger.info('Admin fetching users: role=$role, search=$search');
       var query = _client.from('profiles').select();
@@ -147,10 +170,14 @@ class SupabaseTrustSafetyRepository implements TrustSafetyRepository {
       }
       if (search != null && search.trim().isNotEmpty) {
         final term = '%${search.trim()}%';
-        query = query.or('full_name.ilike.$term,phone.ilike.$term,company_name.ilike.$term');
+        query = query.or(
+            'full_name.ilike.$term,phone.ilike.$term,company_name.ilike.$term');
       }
-      final response = await query.order('created_at', ascending: false).limit(100);
-      final list = (response as List).map((r) => UserProfile.fromMap(r as Map<String, dynamic>)).toList();
+      final response =
+          await query.order('created_at', ascending: false).limit(100);
+      final list = (response as List)
+          .map((r) => UserProfile.fromMap(r as Map<String, dynamic>))
+          .toList();
       return right(list);
     } on SocketException catch (e) {
       AppLogger.error('Network error fetching users', e);
@@ -165,7 +192,8 @@ class SupabaseTrustSafetyRepository implements TrustSafetyRepository {
   }
 
   @override
-  Future<AppResult<void>> adminSetAccountStatus(String userId, String status, {String? reason}) async {
+  Future<AppResult<void>> adminSetAccountStatus(String userId, String status,
+      {String? reason}) async {
     try {
       AppLogger.info('Admin setting account status for $userId to $status');
       await _client.rpc('admin_set_account_status', params: {
@@ -178,7 +206,8 @@ class SupabaseTrustSafetyRepository implements TrustSafetyRepository {
       AppLogger.error('Network error setting account status', e);
       return left(const NetworkFailure());
     } on PostgrestException catch (e) {
-      AppLogger.error('Database failure setting account status: ${e.message}', e);
+      AppLogger.error(
+          'Database failure setting account status: ${e.message}', e);
       return left(DatabaseFailure(e.message, code: e.code));
     } catch (e, stack) {
       AppLogger.error('Unknown failure setting account status', e, stack);
@@ -187,15 +216,20 @@ class SupabaseTrustSafetyRepository implements TrustSafetyRepository {
   }
 
   @override
-  Future<AppResult<List<KycDocumentModel>>> adminGetKycQueue({String status = 'pending'}) async {
+  Future<AppResult<List<KycDocumentModel>>> adminGetKycQueue(
+      {String status = 'pending'}) async {
     try {
       AppLogger.info('Admin fetching KYC queue: status=$status');
-      var query = _client.from('kyc_documents').select('*, profile:user_id(full_name, role)');
+      var query = _client
+          .from('kyc_documents')
+          .select('*, profile:user_id(full_name, role)');
       if (status != 'all') {
         query = query.eq('status', status);
       }
       final response = await query.order('submitted_at', ascending: true);
-      final list = (response as List).map((r) => KycDocumentModel.fromMap(r as Map<String, dynamic>)).toList();
+      final list = (response as List)
+          .map((r) => KycDocumentModel.fromMap(r as Map<String, dynamic>))
+          .toList();
       return right(list);
     } on SocketException catch (e) {
       AppLogger.error('Network error fetching KYC queue', e);
@@ -210,7 +244,8 @@ class SupabaseTrustSafetyRepository implements TrustSafetyRepository {
   }
 
   @override
-  Future<AppResult<void>> adminReviewKyc(String documentId, String status, {String? rejectionReason}) async {
+  Future<AppResult<void>> adminReviewKyc(String documentId, String status,
+      {String? rejectionReason}) async {
     try {
       AppLogger.info('Admin reviewing KYC document $documentId: $status');
       await _client.rpc('admin_review_kyc', params: {
@@ -223,7 +258,8 @@ class SupabaseTrustSafetyRepository implements TrustSafetyRepository {
       AppLogger.error('Network error reviewing KYC document', e);
       return left(const NetworkFailure());
     } on PostgrestException catch (e) {
-      AppLogger.error('Database failure reviewing KYC document: ${e.message}', e);
+      AppLogger.error(
+          'Database failure reviewing KYC document: ${e.message}', e);
       return left(DatabaseFailure(e.message, code: e.code));
     } catch (e, stack) {
       AppLogger.error('Unknown failure reviewing KYC document', e, stack);
@@ -232,30 +268,40 @@ class SupabaseTrustSafetyRepository implements TrustSafetyRepository {
   }
 
   @override
-  Future<AppResult<List<ProduceModel>>> adminGetProduceForModeration({String? moderationStatus}) async {
+  Future<AppResult<List<ProduceModel>>> adminGetProduceForModeration(
+      {String? moderationStatus}) async {
     try {
-      AppLogger.info('Admin fetching produce for moderation: $moderationStatus');
-      var query = _client.from('produce').select('*, farmer_profile:farmer_id(full_name, district)');
+      AppLogger.info(
+          'Admin fetching produce for moderation: $moderationStatus');
+      var query = _client
+          .from('produce')
+          .select('*, farmer_profile:farmer_id(full_name, district)');
       if (moderationStatus != null && moderationStatus != 'all') {
         query = query.eq('moderation_status', moderationStatus);
       }
-      final response = await query.order('created_at', ascending: false).limit(100);
-      final list = (response as List).map((r) => ProduceModel.fromMap(r as Map<String, dynamic>)).toList();
+      final response =
+          await query.order('created_at', ascending: false).limit(100);
+      final list = (response as List)
+          .map((r) => ProduceModel.fromMap(r as Map<String, dynamic>))
+          .toList();
       return right(list);
     } on SocketException catch (e) {
       AppLogger.error('Network error fetching produce for moderation', e);
       return left(const NetworkFailure());
     } on PostgrestException catch (e) {
-      AppLogger.error('Database failure fetching produce for moderation: ${e.message}', e);
+      AppLogger.error(
+          'Database failure fetching produce for moderation: ${e.message}', e);
       return left(DatabaseFailure(e.message, code: e.code));
     } catch (e, stack) {
-      AppLogger.error('Unknown failure fetching produce for moderation', e, stack);
+      AppLogger.error(
+          'Unknown failure fetching produce for moderation', e, stack);
       return left(UnknownFailure(e.toString()));
     }
   }
 
   @override
-  Future<AppResult<void>> adminModerateProduce(String produceId, String status, {String? note}) async {
+  Future<AppResult<void>> adminModerateProduce(String produceId, String status,
+      {String? note}) async {
     try {
       AppLogger.info('Admin moderating produce $produceId: $status');
       await _client.rpc('admin_moderate_produce', params: {
@@ -277,23 +323,26 @@ class SupabaseTrustSafetyRepository implements TrustSafetyRepository {
   }
 
   @override
-  Future<AppResult<List<DisputeModel>>> adminGetDisputes({String? status}) async {
+  Future<AppResult<List<DisputeModel>>> adminGetDisputes(
+      {String? status}) async {
     try {
       AppLogger.info('Admin fetching disputes: status=$status');
-      var query = _client
-          .from('disputes')
-          .select('*, reporter_profile:reporter_id(full_name), reported_profile:reported_user_id(full_name)');
+      var query = _client.from('disputes').select(
+          '*, reporter_profile:reporter_id(full_name), reported_profile:reported_user_id(full_name)');
       if (status != null && status != 'all') {
         query = query.eq('status', status);
       }
       final response = await query.order('created_at', ascending: false);
-      final list = (response as List).map((r) => DisputeModel.fromMap(r as Map<String, dynamic>)).toList();
+      final list = (response as List)
+          .map((r) => DisputeModel.fromMap(r as Map<String, dynamic>))
+          .toList();
       return right(list);
     } on SocketException catch (e) {
       AppLogger.error('Network error fetching admin disputes', e);
       return left(const NetworkFailure());
     } on PostgrestException catch (e) {
-      AppLogger.error('Database failure fetching admin disputes: ${e.message}', e);
+      AppLogger.error(
+          'Database failure fetching admin disputes: ${e.message}', e);
       return left(DatabaseFailure(e.message, code: e.code));
     } catch (e, stack) {
       AppLogger.error('Unknown failure fetching admin disputes', e, stack);
@@ -302,7 +351,8 @@ class SupabaseTrustSafetyRepository implements TrustSafetyRepository {
   }
 
   @override
-  Future<AppResult<void>> adminResolveDispute(String disputeId, String status, {String? resolutionNote}) async {
+  Future<AppResult<void>> adminResolveDispute(String disputeId, String status,
+      {String? resolutionNote}) async {
     try {
       AppLogger.info('Admin resolving dispute $disputeId: $status');
       await _client.rpc('admin_resolve_dispute', params: {

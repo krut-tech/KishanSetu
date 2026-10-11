@@ -59,7 +59,9 @@ class _FarmerHomeScreenState extends ConsumerState<FarmerHomeScreen> {
   void _loadDashboard() {
     final profile = ref.read(authNotifierProvider).profile;
     if (profile != null) {
-      ref.read(farmerDashboardNotifierProvider.notifier).loadDashboardData(profile.id);
+      ref
+          .read(farmerDashboardNotifierProvider.notifier)
+          .loadDashboardData(profile.id);
     }
   }
 
@@ -122,7 +124,8 @@ class _FarmerHomeScreenState extends ConsumerState<FarmerHomeScreen> {
                 value: AppConstants.localeEnglish,
                 child: Row(
                   children: [
-                    if (currentLocale.languageCode == AppConstants.localeEnglish)
+                    if (currentLocale.languageCode ==
+                        AppConstants.localeEnglish)
                       Icon(Icons.check, size: 18, color: colorScheme.primary),
                     const SizedBox(width: 8),
                     Text(context.l10n.english),
@@ -144,7 +147,8 @@ class _FarmerHomeScreenState extends ConsumerState<FarmerHomeScreen> {
                 value: AppConstants.localeGujarati,
                 child: Row(
                   children: [
-                    if (currentLocale.languageCode == AppConstants.localeGujarati)
+                    if (currentLocale.languageCode ==
+                        AppConstants.localeGujarati)
                       Icon(Icons.check, size: 18, color: colorScheme.primary),
                     const SizedBox(width: 8),
                     Text(context.l10n.gujarati),
@@ -217,7 +221,8 @@ class _FarmerHomeScreenState extends ConsumerState<FarmerHomeScreen> {
       );
     }
 
-    if (dashboardState.errorMessage != null && dashboardState.recentProduce.isEmpty) {
+    if (dashboardState.errorMessage != null &&
+        dashboardState.recentProduce.isEmpty) {
       return ErrorStateWidget(
         title: context.l10n.unableToLoadDashboard,
         message: dashboardState.errorMessage!,
@@ -225,15 +230,19 @@ class _FarmerHomeScreenState extends ConsumerState<FarmerHomeScreen> {
       );
     }
 
-    final greetingText = '${_getGreeting()}, ${profile?.fullName ?? context.l10n.farmerLabel}!';
+    final greetingText =
+        '${_getGreeting()}, ${profile?.fullName ?? context.l10n.farmerLabel}!';
 
     return RefreshIndicator(
       onRefresh: () async {
-        await ref.read(farmerDashboardNotifierProvider.notifier).refreshDashboard();
+        await ref
+            .read(farmerDashboardNotifierProvider.notifier)
+            .refreshDashboard();
       },
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.md, AppSpacing.md, AppSpacing.xxxl + 24),
+        padding: const EdgeInsets.fromLTRB(
+            AppSpacing.md, AppSpacing.md, AppSpacing.md, AppSpacing.xxxl + 24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -248,7 +257,8 @@ class _FarmerHomeScreenState extends ConsumerState<FarmerHomeScreen> {
                   try {
                     context.pushNamed('notifications');
                   } catch (e, stackTrace) {
-                    AppLogger.error('Failed to navigate to Notification Center', e, stackTrace);
+                    AppLogger.error('Failed to navigate to Notification Center',
+                        e, stackTrace);
                   }
                 },
                 onProfilePressed: () {
@@ -312,7 +322,9 @@ class _FarmerHomeScreenState extends ConsumerState<FarmerHomeScreen> {
                       .read(offerControllerProvider.notifier)
                       .respondToOffer(offer.id, status);
                   if (ok) {
-                    ref.read(farmerDashboardNotifierProvider.notifier).refreshDashboard();
+                    ref
+                        .read(farmerDashboardNotifierProvider.notifier)
+                        .refreshDashboard();
                     if (context.mounted) {
                       final normalized = status.toLowerCase();
                       AppSnackBar.show(
@@ -353,34 +365,51 @@ class _FarmerHomeScreenState extends ConsumerState<FarmerHomeScreen> {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.xxxl + 24),
+      padding: const EdgeInsets.fromLTRB(
+          AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.xxxl + 24),
       child: AppCard(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               context.l10n.farmerProfileDetailsTitle,
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: colorScheme.onSurface),
+              style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: colorScheme.onSurface),
             ),
             const Divider(),
-            ListTile(title: Text(context.l10n.nameLabel), subtitle: Text(profile?.fullName ?? '-')),
-            ListTile(title: Text(context.l10n.phoneLabel), subtitle: Text(profile?.phone ?? '-')),
+            ListTile(
+                title: Text(context.l10n.nameLabel),
+                subtitle: Text(profile?.fullName ?? '-')),
+            ListTile(
+                title: Text(context.l10n.phoneLabel),
+                subtitle: Text(profile?.phone ?? '-')),
             ListTile(
               title: Text(context.l10n.locationLabel),
-              subtitle: Text('${profile?.village ?? ''}, ${profile?.district ?? ''}, ${profile?.state ?? ''}'),
+              subtitle: Text(
+                  '${profile?.village ?? ''}, ${profile?.district ?? ''}, ${profile?.state ?? ''}'),
             ),
-            ListTile(title: Text(context.l10n.primaryCropLabel), subtitle: Text(profile?.primaryCrop ?? '-')),
+            ListTile(
+                title: Text(context.l10n.primaryCropLabel),
+                subtitle: Text(profile?.primaryCrop ?? '-')),
             ListTile(
               title: Text(context.l10n.landSizeLabel),
-              subtitle: Text('${profile?.landSizeAcres ?? 0} ${context.l10n.acresLabel}'),
+              subtitle: Text(
+                  '${profile?.landSizeAcres ?? 0} ${context.l10n.acresLabel}'),
             ),
             ListTile(
               leading: Icon(
-                kycStatus == 'verified' ? Icons.verified_rounded : Icons.verified_user_outlined,
-                color: kycStatus == 'verified' ? Colors.green : colorScheme.onSurfaceVariant,
+                kycStatus == 'verified'
+                    ? Icons.verified_rounded
+                    : Icons.verified_user_outlined,
+                color: kycStatus == 'verified'
+                    ? Colors.green
+                    : colorScheme.onSurfaceVariant,
               ),
               title: const Text('Identity Verification'),
-              subtitle: Text(kycStatus[0].toUpperCase() + kycStatus.substring(1)),
+              subtitle:
+                  Text(kycStatus[0].toUpperCase() + kycStatus.substring(1)),
               trailing: const Icon(Icons.chevron_right_rounded),
               onTap: () => context.push(RouteNames.kycVerification),
             ),
@@ -397,8 +426,10 @@ class _FarmerHomeScreenState extends ConsumerState<FarmerHomeScreen> {
               ),
               trailing: const Icon(Icons.chevron_right_rounded),
               onTap: () async {
-                final updateNotifier = ref.read(updateNotifierProvider.notifier);
-                final info = await updateNotifier.checkForUpdate(isManual: true);
+                final updateNotifier =
+                    ref.read(updateNotifierProvider.notifier);
+                final info =
+                    await updateNotifier.checkForUpdate(isManual: true);
                 if (context.mounted) {
                   if (info != null) {
                     UpdateDialog.show(context);
@@ -413,18 +444,22 @@ class _FarmerHomeScreenState extends ConsumerState<FarmerHomeScreen> {
               },
             ),
             SwitchListTile(
-              secondary: Icon(isDarkMode ? Icons.dark_mode_rounded : Icons.light_mode_rounded),
+              secondary: Icon(isDarkMode
+                  ? Icons.dark_mode_rounded
+                  : Icons.light_mode_rounded),
               title: const Text('Dark Theme'),
               subtitle: Text(isDarkMode ? 'On' : 'Off'),
               value: isDarkMode,
-              onChanged: (_) => ref.read(themeControllerProvider.notifier).toggleTheme(),
+              onChanged: (_) =>
+                  ref.read(themeControllerProvider.notifier).toggleTheme(),
             ),
             const SizedBox(height: AppSpacing.md),
             AppButton(
               label: context.l10n.logout,
               style: AppButtonStyle.outlined,
               icon: Icons.logout,
-              onPressed: () => ref.read(authNotifierProvider.notifier).signOut(),
+              onPressed: () =>
+                  ref.read(authNotifierProvider.notifier).signOut(),
             ),
           ],
         ),

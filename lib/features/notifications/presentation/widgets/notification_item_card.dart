@@ -16,7 +16,7 @@ class NotificationItemCard extends StatelessWidget {
   String _formatTime(BuildContext context, DateTime time) {
     final now = DateTime.now();
     final difference = now.difference(time);
-    
+
     if (difference.inDays > 7) {
       return DateFormat('MMM d, y').format(time);
     } else if (difference.inDays > 0) {
@@ -70,17 +70,20 @@ class NotificationItemCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return InkWell(
       onTap: onTap,
       child: Container(
-        color: notification.isRead ? Colors.transparent : theme.colorScheme.primaryContainer.withValues(alpha: 0.3),
+        color: notification.isRead
+            ? Colors.transparent
+            : theme.colorScheme.primaryContainer.withValues(alpha: 0.3),
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             CircleAvatar(
-              backgroundColor: _getIconColor(theme.colorScheme).withValues(alpha: 0.1),
+              backgroundColor:
+                  _getIconColor(theme.colorScheme).withValues(alpha: 0.1),
               child: Icon(
                 _getIcon(),
                 color: _getIconColor(theme.colorScheme),
@@ -94,7 +97,9 @@ class NotificationItemCard extends StatelessWidget {
                   Text(
                     notification.title,
                     style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: notification.isRead ? FontWeight.normal : FontWeight.bold,
+                      fontWeight: notification.isRead
+                          ? FontWeight.normal
+                          : FontWeight.bold,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -108,7 +113,8 @@ class NotificationItemCard extends StatelessWidget {
                   Text(
                     _formatTime(context, notification.createdAt),
                     style: theme.textTheme.labelSmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.8),
+                      color: theme.colorScheme.onSurfaceVariant
+                          .withValues(alpha: 0.8),
                     ),
                   ),
                 ],

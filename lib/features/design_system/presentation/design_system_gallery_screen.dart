@@ -33,7 +33,8 @@ class DesignSystemGalleryScreen extends StatefulWidget {
   const DesignSystemGalleryScreen({super.key});
 
   @override
-  State<DesignSystemGalleryScreen> createState() => _DesignSystemGalleryScreenState();
+  State<DesignSystemGalleryScreen> createState() =>
+      _DesignSystemGalleryScreenState();
 }
 
 class _DesignSystemGalleryScreenState extends State<DesignSystemGalleryScreen> {
@@ -56,39 +57,30 @@ class _DesignSystemGalleryScreenState extends State<DesignSystemGalleryScreen> {
           children: [
             _buildSectionHeader('1. Colors & Design Tokens'),
             _buildColorPalette(),
-
             const SizedBox(height: AppSpacing.xxl),
             _buildSectionHeader('2. Status Badges & Chips'),
             _buildBadgesAndChips(),
-
             const SizedBox(height: AppSpacing.xxl),
             _buildSectionHeader('3. Typography & Price Displays'),
             _buildPriceDisplays(),
-
             const SizedBox(height: AppSpacing.xxl),
             _buildSectionHeader('4. Buttons & Interactive Controls'),
             _buildButtonsSection(),
-
             const SizedBox(height: AppSpacing.xxl),
             _buildSectionHeader('5. Input Fields & Dropdowns'),
             _buildInputsSection(),
-
             const SizedBox(height: AppSpacing.xxl),
             _buildSectionHeader('6. Reusable Card Suite'),
             _buildCardsSection(),
-
             const SizedBox(height: AppSpacing.xxl),
             _buildSectionHeader('7. Dialogs & Snackbars'),
             _buildDialogsSection(context),
-
             const SizedBox(height: AppSpacing.xxl),
             _buildSectionHeader('8. Animation System'),
             _buildAnimationsSection(),
-
             const SizedBox(height: AppSpacing.xxl),
             _buildSectionHeader('9. Loading, Empty & Error States'),
             _buildStatesSection(),
-
             const SizedBox(height: AppSpacing.huge),
           ],
         ),
@@ -116,7 +108,8 @@ class _DesignSystemGalleryScreenState extends State<DesignSystemGalleryScreen> {
       runSpacing: AppSpacing.md,
       children: [
         _colorSwatch('Primary', AppColors.primary),
-        _colorSwatch('Primary Light', AppColors.primaryLight, textColor: AppColors.primaryDark),
+        _colorSwatch('Primary Light', AppColors.primaryLight,
+            textColor: AppColors.primaryDark),
         _colorSwatch('Secondary', AppColors.secondary),
         _colorSwatch('Net Realization', AppColors.netRealizationBadge),
         _colorSwatch('Success', AppColors.success),
@@ -126,7 +119,8 @@ class _DesignSystemGalleryScreenState extends State<DesignSystemGalleryScreen> {
     );
   }
 
-  Widget _colorSwatch(String label, Color color, {Color textColor = Colors.white}) {
+  Widget _colorSwatch(String label, Color color,
+      {Color textColor = Colors.white}) {
     return Container(
       width: 100,
       padding: const EdgeInsets.all(AppSpacing.sm),
@@ -137,7 +131,8 @@ class _DesignSystemGalleryScreenState extends State<DesignSystemGalleryScreen> {
       child: Text(
         label,
         textAlign: TextAlign.center,
-        style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: textColor),
+        style: TextStyle(
+            fontSize: 12, fontWeight: FontWeight.bold, color: textColor),
       ),
     );
   }
@@ -193,10 +188,14 @@ class _DesignSystemGalleryScreenState extends State<DesignSystemGalleryScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Asking Price (Price Trend Up):', style: TextStyle(fontSize: 13, color: AppColors.textSecondaryLight)),
+          Text('Asking Price (Price Trend Up):',
+              style:
+                  TextStyle(fontSize: 13, color: AppColors.textSecondaryLight)),
           AppPriceText(price: 2650, trend: PriceTrend.up),
           SizedBox(height: AppSpacing.md),
-          Text('Net Realization Price:', style: TextStyle(fontSize: 13, color: AppColors.textSecondaryLight)),
+          Text('Net Realization Price:',
+              style:
+                  TextStyle(fontSize: 13, color: AppColors.textSecondaryLight)),
           AppPriceText(price: 2420, isNetRealization: true),
         ],
       ),
@@ -239,7 +238,9 @@ class _DesignSystemGalleryScreenState extends State<DesignSystemGalleryScreen> {
         SizedBox(height: AppSpacing.md),
         AppCurrencyField(label: 'Expected Price per Quintal'),
         SizedBox(height: AppSpacing.md),
-        AppTextField(label: 'Farm / Village Location', hint: 'Enter village or mandi district'),
+        AppTextField(
+            label: 'Farm / Village Location',
+            hint: 'Enter village or mandi district'),
         SizedBox(height: AppSpacing.md),
         AppDropdownFormField<String>(
           label: 'Crop Quality Grade',
@@ -306,7 +307,8 @@ class _DesignSystemGalleryScreenState extends State<DesignSystemGalleryScreen> {
               AppDialogs.showConfirmDialog(
                 context: context,
                 title: 'Confirm Deal Counter',
-                message: 'Are you sure you want to submit a counter-offer of ₹ 2,550 / quintal?',
+                message:
+                    'Are you sure you want to submit a counter-offer of ₹ 2,550 / quintal?',
               );
             },
           ),
@@ -336,13 +338,19 @@ class _DesignSystemGalleryScreenState extends State<DesignSystemGalleryScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('1. Interactive Micro Press:', style: TextStyle(fontWeight: FontWeight.w600)),
+              const Text('1. Interactive Micro Press:',
+                  style: TextStyle(fontWeight: FontWeight.w600)),
               AnimatedPressable(
                 onTap: () {},
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  decoration: BoxDecoration(color: AppColors.primary, borderRadius: AppRadius.borderMd),
-                  child: const Text('Tap Me', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
+                      color: AppColors.primary,
+                      borderRadius: AppRadius.borderMd),
+                  child: const Text('Tap Me',
+                      style: TextStyle(
+                          color: Colors.white, fontWeight: FontWeight.bold)),
                 ),
               ),
             ],
@@ -351,13 +359,18 @@ class _DesignSystemGalleryScreenState extends State<DesignSystemGalleryScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('2. Animated Price Counter:', style: TextStyle(fontWeight: FontWeight.w600)),
+              const Text('2. Animated Price Counter:',
+                  style: TextStyle(fontWeight: FontWeight.w600)),
               AnimatedPriceCounter(
                 value: _priceCounterValue,
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.priceHighlight),
+                style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.priceHighlight),
               ),
               IconButton(
-                icon: const Icon(Icons.add_circle_outline, color: AppColors.primary),
+                icon: const Icon(Icons.add_circle_outline,
+                    color: AppColors.primary),
                 onPressed: () {
                   setState(() {
                     _priceCounterValue += 100;
@@ -370,9 +383,11 @@ class _DesignSystemGalleryScreenState extends State<DesignSystemGalleryScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('3. Animated Status Switcher:', style: TextStyle(fontWeight: FontWeight.w600)),
+              const Text('3. Animated Status Switcher:',
+                  style: TextStyle(fontWeight: FontWeight.w600)),
               AnimatedStatusSwitcher(
-                child: AppStatusBadge(key: ValueKey(_toggleStatus), type: _toggleStatus),
+                child: AppStatusBadge(
+                    key: ValueKey(_toggleStatus), type: _toggleStatus),
               ),
               IconButton(
                 icon: const Icon(Icons.swap_horiz, color: AppColors.primary),
@@ -390,9 +405,11 @@ class _DesignSystemGalleryScreenState extends State<DesignSystemGalleryScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('4. Expandable Accordion:', style: TextStyle(fontWeight: FontWeight.w600)),
+              const Text('4. Expandable Accordion:',
+                  style: TextStyle(fontWeight: FontWeight.w600)),
               IconButton(
-                icon: Icon(_isExpanded ? Icons.expand_less : Icons.expand_more, color: AppColors.primary),
+                icon: Icon(_isExpanded ? Icons.expand_less : Icons.expand_more,
+                    color: AppColors.primary),
                 onPressed: () => setState(() => _isExpanded = !_isExpanded),
               ),
             ],
@@ -401,15 +418,19 @@ class _DesignSystemGalleryScreenState extends State<DesignSystemGalleryScreen> {
             isExpanded: _isExpanded,
             child: Container(
               padding: const EdgeInsets.all(AppSpacing.md),
-              decoration: BoxDecoration(color: AppColors.primaryLight, borderRadius: AppRadius.borderSm),
-              child: const Text('Accordion breakdown details: Mandi Cess: ₹20, Transport: ₹80, Net Payout: ₹2,400'),
+              decoration: BoxDecoration(
+                  color: AppColors.primaryLight,
+                  borderRadius: AppRadius.borderSm),
+              child: const Text(
+                  'Accordion breakdown details: Mandi Cess: ₹20, Transport: ₹80, Net Payout: ₹2,400'),
             ),
           ),
           const SizedBox(height: AppSpacing.md),
           const Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('5. Success Checkmark:', style: TextStyle(fontWeight: FontWeight.w600)),
+              Text('5. Success Checkmark:',
+                  style: TextStyle(fontWeight: FontWeight.w600)),
               SuccessCheckmarkAnimation(size: 32),
             ],
           ),
@@ -421,7 +442,8 @@ class _DesignSystemGalleryScreenState extends State<DesignSystemGalleryScreen> {
   Widget _buildStatesSection() {
     return Column(
       children: [
-        const Text('Shimmer Skeleton Loader:', style: TextStyle(fontWeight: FontWeight.w600)),
+        const Text('Shimmer Skeleton Loader:',
+            style: TextStyle(fontWeight: FontWeight.w600)),
         const SizedBox(height: AppSpacing.sm),
         ShimmerLoading.card(height: 100),
         const SizedBox(height: AppSpacing.md),

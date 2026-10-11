@@ -115,7 +115,8 @@ class _MyProduceScreenState extends ConsumerState<MyProduceScreen> {
               onRefresh: () async {
                 _fetchProduce();
               },
-              child: _buildContent(state, user?.fullName ?? context.l10n.farmerLabel),
+              child: _buildContent(
+                  state, user?.fullName ?? context.l10n.farmerLabel),
             ),
           ),
         ],
@@ -185,7 +186,8 @@ class _MyProduceScreenState extends ConsumerState<MyProduceScreen> {
       itemCount: state.produceList.length,
       itemBuilder: (context, index) {
         final item = state.produceList[index];
-        final netRealization = item.expectedPrice * 0.95; // 95% net after estimated charges
+        final netRealization =
+            item.expectedPrice * 0.95; // 95% net after estimated charges
 
         return Padding(
           padding: const EdgeInsets.only(bottom: AppSpacing.md),
@@ -201,7 +203,8 @@ class _MyProduceScreenState extends ConsumerState<MyProduceScreen> {
               final confirmed = await AppDialogs.showConfirmDialog(
                 context: context,
                 title: context.l10n.deleteProduceListingTitle,
-                message: '${context.l10n.deleteProduceConfirmMessage} ${item.name}?',
+                message:
+                    '${context.l10n.deleteProduceConfirmMessage} ${item.name}?',
                 confirmLabel: context.l10n.deleteLabel,
                 isDestructive: true,
               );
@@ -210,9 +213,13 @@ class _MyProduceScreenState extends ConsumerState<MyProduceScreen> {
                     .read(produceControllerProvider.notifier)
                     .deleteProduce(item.id);
                 if (success) {
-                  ref.read(farmerDashboardNotifierProvider.notifier).refreshDashboard();
+                  ref
+                      .read(farmerDashboardNotifierProvider.notifier)
+                      .refreshDashboard();
                   if (context.mounted) {
-                    AppSnackBar.show(context, message: context.l10n.produceDeleted, type: SnackBarType.info);
+                    AppSnackBar.show(context,
+                        message: context.l10n.produceDeleted,
+                        type: SnackBarType.info);
                   }
                 }
               }

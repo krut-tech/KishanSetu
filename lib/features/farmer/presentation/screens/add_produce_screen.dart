@@ -45,6 +45,7 @@ class _AddProduceScreenState extends ConsumerState<AddProduceScreen> {
         return cat;
     }
   }
+
   final _formKey = GlobalKey<FormState>();
 
   final _nameController = TextEditingController();
@@ -103,13 +104,17 @@ class _AddProduceScreenState extends ConsumerState<AddProduceScreen> {
   }
 
   Future<void> _submitProduce() async {
-    if (_isSubmitting || ref.read(produceControllerProvider).isSubmitting) return;
+    if (_isSubmitting || ref.read(produceControllerProvider).isSubmitting) {
+      return;
+    }
 
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
     final user = ref.read(authNotifierProvider).profile;
     if (user == null) {
-      AppSnackBar.show(context, message: context.l10n.authenticationRequired, type: SnackBarType.error);
+      AppSnackBar.show(context,
+          message: context.l10n.authenticationRequired,
+          type: SnackBarType.error);
       return;
     }
 
@@ -128,15 +133,16 @@ class _AddProduceScreenState extends ConsumerState<AddProduceScreen> {
       description: _descriptionController.text.trim(),
     );
 
-    final success = await ref
-        .read(produceControllerProvider.notifier)
-        .addProduce(produce);
+    final success =
+        await ref.read(produceControllerProvider.notifier).addProduce(produce);
 
     if (!mounted) return;
 
     if (success) {
       ref.read(farmerDashboardNotifierProvider.notifier).refreshDashboard();
-      AppSnackBar.show(context, message: context.l10n.produceListedSuccessfully, type: SnackBarType.success);
+      AppSnackBar.show(context,
+          message: context.l10n.produceListedSuccessfully,
+          type: SnackBarType.success);
       context.pop();
     } else {
       setState(() => _isSubmitting = false);
@@ -204,7 +210,8 @@ class _AddProduceScreenState extends ConsumerState<AddProduceScreen> {
                 label: context.l10n.produceCategoryLabel,
                 value: _selectedCategory,
                 items: _categories
-                    .map((c) => DropdownMenuItem(value: c, child: Text(_categoryLabel(c))))
+                    .map((c) => DropdownMenuItem(
+                        value: c, child: Text(_categoryLabel(c))))
                     .toList(),
                 onChanged: (val) {
                   if (val != null) setState(() => _selectedCategory = val);
@@ -222,8 +229,10 @@ class _AddProduceScreenState extends ConsumerState<AddProduceScreen> {
                       label: context.l10n.availableQuantityLabel,
                       hint: 'e.g. 50',
                       controller: _quantityController,
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                      prefixIcon: Icon(Icons.scale_rounded, color: colorScheme.primary),
+                      keyboardType:
+                          const TextInputType.numberWithOptions(decimal: true),
+                      prefixIcon:
+                          Icon(Icons.scale_rounded, color: colorScheme.primary),
                       validator: (val) {
                         if (val == null || val.trim().isEmpty) {
                           return context.l10n.enterQuantity;
@@ -243,7 +252,8 @@ class _AddProduceScreenState extends ConsumerState<AddProduceScreen> {
                       label: context.l10n.unitLabel,
                       value: _selectedUnit,
                       items: _units
-                          .map((u) => DropdownMenuItem(value: u, child: Text(u)))
+                          .map(
+                              (u) => DropdownMenuItem(value: u, child: Text(u)))
                           .toList(),
                       onChanged: (val) {
                         if (val != null) setState(() => _selectedUnit = val);
@@ -256,7 +266,8 @@ class _AddProduceScreenState extends ConsumerState<AddProduceScreen> {
 
               // Expected Price
               AppCurrencyField(
-                label: '${context.l10n.expectedPriceLabel} (₹ per $_selectedUnit)',
+                label:
+                    '${context.l10n.expectedPriceLabel} (₹ per $_selectedUnit)',
                 hint: '2450',
                 unitSuffix: '/ $_selectedUnit',
                 controller: _priceController,
@@ -278,7 +289,8 @@ class _AddProduceScreenState extends ConsumerState<AddProduceScreen> {
                 label: context.l10n.harvestPickupLocation,
                 hint: 'e.g. Vasad, Anand, Gujarat',
                 controller: _locationController,
-                prefixIcon: Icon(Icons.location_on_outlined, color: colorScheme.primary),
+                prefixIcon: Icon(Icons.location_on_outlined,
+                    color: colorScheme.primary),
                 validator: (val) {
                   if (val == null || val.trim().isEmpty) {
                     return context.l10n.pleaseEnterLocation;
@@ -291,10 +303,12 @@ class _AddProduceScreenState extends ConsumerState<AddProduceScreen> {
               // Description
               AppTextField(
                 label: context.l10n.additionalQualityDetailsOptional,
-                hint: 'e.g. Organic certified, Grade A quality, harvested last week',
+                hint:
+                    'e.g. Organic certified, Grade A quality, harvested last week',
                 controller: _descriptionController,
                 maxLines: 3,
-                prefixIcon: Icon(Icons.notes_rounded, color: colorScheme.primary),
+                prefixIcon:
+                    Icon(Icons.notes_rounded, color: colorScheme.primary),
               ),
               const SizedBox(height: AppSpacing.xl),
 

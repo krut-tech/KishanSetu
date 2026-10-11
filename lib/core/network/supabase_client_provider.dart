@@ -18,7 +18,8 @@ class SupabaseService {
     final anonKey = EnvConfig.supabaseAnonKey;
 
     if (url.isEmpty || anonKey.isEmpty) {
-      const msg = 'Supabase URL or Anon Key is missing in environment configuration.';
+      const msg =
+          'Supabase URL or Anon Key is missing in environment configuration.';
       AppLogger.warning(msg);
       throw Exception(msg);
     }
@@ -31,7 +32,8 @@ class SupabaseService {
       ).timeout(
         const Duration(seconds: 8),
         onTimeout: () {
-          throw TimeoutException('Supabase connection timed out after 8s. Please check network connection.');
+          throw TimeoutException(
+              'Supabase connection timed out after 8s. Please check network connection.');
         },
       );
       _initialized = true;

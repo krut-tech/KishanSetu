@@ -12,14 +12,17 @@ final trustSafetyRepositoryProvider = Provider<TrustSafetyRepository>((ref) {
   return SupabaseTrustSafetyRepository(client);
 });
 
-final kycControllerProvider = StateNotifierProvider<KycController, KycState>((ref) {
+final kycControllerProvider =
+    StateNotifierProvider<KycController, KycState>((ref) {
   return KycController(ref.watch(trustSafetyRepositoryProvider));
 });
 
-final disputeControllerProvider = StateNotifierProvider<DisputeController, DisputeState>((ref) {
+final disputeControllerProvider =
+    StateNotifierProvider<DisputeController, DisputeState>((ref) {
   return DisputeController(ref.watch(trustSafetyRepositoryProvider));
 });
 
-final adminControllerProvider = StateNotifierProvider<AdminController, AdminState>((ref) {
+final adminControllerProvider =
+    StateNotifierProvider<AdminController, AdminState>((ref) {
   return AdminController(ref.watch(trustSafetyRepositoryProvider));
 });

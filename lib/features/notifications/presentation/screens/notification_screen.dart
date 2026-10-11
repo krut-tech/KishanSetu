@@ -35,7 +35,8 @@ class NotificationScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildBody(BuildContext context, WidgetRef ref, NotificationState state) {
+  Widget _buildBody(
+      BuildContext context, WidgetRef ref, NotificationState state) {
     if (state.isLoading && state.notifications.isEmpty) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -45,7 +46,8 @@ class NotificationScreen extends ConsumerWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.error_outline, size: 48, color: Theme.of(context).colorScheme.error),
+            Icon(Icons.error_outline,
+                size: 48, color: Theme.of(context).colorScheme.error),
             const SizedBox(height: 16),
             Text(state.errorMessage!),
             const SizedBox(height: 16),
@@ -65,7 +67,12 @@ class NotificationScreen extends ConsumerWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.notifications_none, size: 64, color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.5)),
+            Icon(Icons.notifications_none,
+                size: 64,
+                color: Theme.of(context)
+                    .colorScheme
+                    .onSurfaceVariant
+                    .withValues(alpha: 0.5)),
             const SizedBox(height: 16),
             Text(
               context.l10n.noNotificationsYet,
@@ -91,7 +98,9 @@ class NotificationScreen extends ConsumerWidget {
             notification: notification,
             onTap: () {
               if (!notification.isRead) {
-                ref.read(notificationNotifierProvider.notifier).markAsRead(notification.id);
+                ref
+                    .read(notificationNotifierProvider.notifier)
+                    .markAsRead(notification.id);
               }
               // Navigate back or to home tab based on relatedType
               if (Navigator.of(context).canPop()) {

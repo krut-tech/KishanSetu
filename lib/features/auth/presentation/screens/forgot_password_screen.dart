@@ -16,7 +16,8 @@ class ForgotPasswordScreen extends ConsumerStatefulWidget {
   const ForgotPasswordScreen({super.key});
 
   @override
-  ConsumerState<ForgotPasswordScreen> createState() => _ForgotPasswordScreenState();
+  ConsumerState<ForgotPasswordScreen> createState() =>
+      _ForgotPasswordScreenState();
 }
 
 class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
@@ -46,7 +47,8 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
         );
         context.go(RouteNames.login);
       } else {
-        final error = ref.read(authNotifierProvider).errorMessage ?? context.l10n.failedToSendResetLink;
+        final error = ref.read(authNotifierProvider).errorMessage ??
+            context.l10n.failedToSendResetLink;
         AppSnackBar.show(context, message: error, type: SnackBarType.error);
       }
     }
@@ -85,7 +87,8 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                       const SizedBox(height: AppSpacing.sm),
                       Text(
                         context.l10n.enterRegisteredEmailForReset,
-                        style: TextStyle(fontSize: 13, color: colorScheme.onSurfaceVariant),
+                        style: TextStyle(
+                            fontSize: 13, color: colorScheme.onSurfaceVariant),
                       ),
                       const SizedBox(height: AppSpacing.xl),
                       AppTextField(
@@ -93,7 +96,9 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                         controller: _emailController,
                         keyboardType: TextInputType.emailAddress,
                         prefixIcon: const Icon(Icons.email_outlined),
-                        validator: (v) => v == null || !v.contains('@') ? context.l10n.enterAValidEmail : null,
+                        validator: (v) => v == null || !v.contains('@')
+                            ? context.l10n.enterAValidEmail
+                            : null,
                       ),
                       const SizedBox(height: AppSpacing.xl),
                       AppButton(

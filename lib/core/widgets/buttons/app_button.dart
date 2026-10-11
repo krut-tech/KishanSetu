@@ -33,7 +33,9 @@ class AppButton extends StatelessWidget {
             child: CircularProgressIndicator(
               strokeWidth: 2.5,
               valueColor: AlwaysStoppedAnimation<Color>(
-                style == AppButtonStyle.outlined ? colorScheme.primary : colorScheme.onPrimary,
+                style == AppButtonStyle.outlined
+                    ? colorScheme.primary
+                    : colorScheme.onPrimary,
               ),
             ),
           )
@@ -63,9 +65,11 @@ class AppButton extends StatelessWidget {
           style: ElevatedButton.styleFrom(
             backgroundColor: colorScheme.primary,
             foregroundColor: colorScheme.onPrimary,
-            minimumSize: Size(width ?? double.infinity, AppConstants.minTouchTargetSize),
+            minimumSize:
+                Size(width ?? double.infinity, AppConstants.minTouchTargetSize),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(AppConstants.borderRadiusMedium),
+              borderRadius:
+                  BorderRadius.circular(AppConstants.borderRadiusMedium),
             ),
           ),
           child: childContent,
@@ -77,9 +81,11 @@ class AppButton extends StatelessWidget {
           style: ElevatedButton.styleFrom(
             backgroundColor: colorScheme.secondary,
             foregroundColor: colorScheme.onSecondary,
-            minimumSize: Size(width ?? double.infinity, AppConstants.minTouchTargetSize),
+            minimumSize:
+                Size(width ?? double.infinity, AppConstants.minTouchTargetSize),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(AppConstants.borderRadiusMedium),
+              borderRadius:
+                  BorderRadius.circular(AppConstants.borderRadiusMedium),
             ),
           ),
           child: childContent,
@@ -90,10 +96,12 @@ class AppButton extends StatelessWidget {
           onPressed: isLoading ? null : onPressed,
           style: OutlinedButton.styleFrom(
             foregroundColor: colorScheme.primary,
-            minimumSize: Size(width ?? double.infinity, AppConstants.minTouchTargetSize),
+            minimumSize:
+                Size(width ?? double.infinity, AppConstants.minTouchTargetSize),
             side: BorderSide(color: colorScheme.primary, width: 1.5),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(AppConstants.borderRadiusMedium),
+              borderRadius:
+                  BorderRadius.circular(AppConstants.borderRadiusMedium),
             ),
           ),
           child: childContent,

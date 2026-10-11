@@ -40,12 +40,16 @@ class AppPriceText extends StatelessWidget {
     if (trend == PriceTrend.up) {
       trendIcon = Padding(
         padding: const EdgeInsets.only(left: 4.0),
-        child: Icon(Icons.arrow_upward_rounded, size: 16, color: isDark ? const Color(0xFF4ADE80) : AppColors.success),
+        child: Icon(Icons.arrow_upward_rounded,
+            size: 16,
+            color: isDark ? const Color(0xFF4ADE80) : AppColors.success),
       );
     } else if (trend == PriceTrend.down) {
       trendIcon = Padding(
         padding: const EdgeInsets.only(left: 4.0),
-        child: Icon(Icons.arrow_downward_rounded, size: 16, color: isDark ? const Color(0xFFF87171) : AppColors.error),
+        child: Icon(Icons.arrow_downward_rounded,
+            size: 16,
+            color: isDark ? const Color(0xFFF87171) : AppColors.error),
       );
     }
 

@@ -21,9 +21,12 @@ class AppChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final unselectedBg = isDark ? AppColors.surfaceDark : AppColors.surfaceLight;
-    final unselectedBorder = isDark ? AppColors.borderDark : AppColors.borderLight;
-    final unselectedText = isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight;
+    final unselectedBg =
+        isDark ? AppColors.surfaceDark : AppColors.surfaceLight;
+    final unselectedBorder =
+        isDark ? AppColors.borderDark : AppColors.borderLight;
+    final unselectedText =
+        isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight;
 
     return GestureDetector(
       onTap: onTap,
@@ -48,7 +51,11 @@ class AppChip extends StatelessWidget {
               Icon(
                 icon,
                 size: 16,
-                color: isSelected ? Colors.white : (isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight),
+                color: isSelected
+                    ? Colors.white
+                    : (isDark
+                        ? AppColors.textSecondaryDark
+                        : AppColors.textSecondaryLight),
               ),
               const SizedBox(width: AppSpacing.xs),
             ],

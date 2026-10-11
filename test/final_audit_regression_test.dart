@@ -24,34 +24,51 @@ class StubAuthRepo implements AuthRepository {
   @override
   User? get currentUser => null;
   @override
-  Future<AppResult<UserProfile>> getUserProfile(String userId) async => left(const ServerFailure('stub'));
+  Future<AppResult<UserProfile>> getUserProfile(String userId) async =>
+      left(const ServerFailure('stub'));
   @override
-  Future<AppResult<void>> resetPassword(String newPassword) async => right(null);
+  Future<AppResult<void>> resetPassword(String newPassword) async =>
+      right(null);
   @override
-  Future<AppResult<void>> sendPasswordResetEmail(String email) async => right(null);
+  Future<AppResult<void>> sendPasswordResetEmail(String email) async =>
+      right(null);
   @override
-  Future<AppResult<AuthResponse>> signIn({required String email, required String password}) async => left(const ServerFailure('stub'));
+  Future<AppResult<AuthResponse>> signIn(
+          {required String email, required String password}) async =>
+      left(const ServerFailure('stub'));
   @override
   Future<AppResult<bool>> signInWithGoogle() async => right(true);
   @override
   Future<AppResult<void>> signOut() async => right(null);
   @override
-  Future<AppResult<AuthResponse>> signUp({required String email, required String password, required String fullName, required UserRole role, String? phone}) async => left(const ServerFailure('stub'));
+  Future<AppResult<AuthResponse>> signUp(
+          {required String email,
+          required String password,
+          required String fullName,
+          required UserRole role,
+          String? phone}) async =>
+      left(const ServerFailure('stub'));
   @override
-  RealtimeChannel subscribeToProfile(String userId, void Function(UserProfile? profile) onProfileChange) => throw UnimplementedError();
+  RealtimeChannel subscribeToProfile(
+          String userId, void Function(UserProfile? profile) onProfileChange) =>
+      throw UnimplementedError();
   @override
-  Future<AppResult<UserProfile>> updateUserProfile(UserProfile profile) async => left(const ServerFailure('stub'));
+  Future<AppResult<UserProfile>> updateUserProfile(UserProfile profile) async =>
+      left(const ServerFailure('stub'));
 }
 
 class StubNotificationRepo implements NotificationRepository {
   @override
-  Stream<List<Map<String, dynamic>>> getNotificationStream(String userId) => const Stream.empty();
+  Stream<List<Map<String, dynamic>>> getNotificationStream(String userId) =>
+      const Stream.empty();
   @override
-  Future<AppResult<List<NotificationModel>>> getNotifications() async => right([]);
+  Future<AppResult<List<NotificationModel>>> getNotifications() async =>
+      right([]);
   @override
   Future<AppResult<void>> markAllAsRead() async => right(null);
   @override
-  Future<AppResult<void>> markAsRead(String notificationId) async => right(null);
+  Future<AppResult<void>> markAsRead(String notificationId) async =>
+      right(null);
 }
 
 class StubFarmerRepo implements FarmerRepository {
@@ -60,33 +77,56 @@ class StubFarmerRepo implements FarmerRepository {
     await Future.delayed(const Duration(milliseconds: 50));
     return right(produce);
   }
+
   @override
   Future<AppResult<void>> deleteProduce(String produceId) async => right(null);
   @override
-  Future<AppResult<DashboardStats>> getFarmerDashboardStats(String farmerId) async => right(const DashboardStats());
+  Future<AppResult<DashboardStats>> getFarmerDashboardStats(
+          String farmerId) async =>
+      right(const DashboardStats());
   @override
-  Future<AppResult<List<ProduceModel>>> getFarmerProduce(String farmerId, {String? status, String? searchQuery}) async => right([]);
+  Future<AppResult<List<ProduceModel>>> getFarmerProduce(String farmerId,
+          {String? status, String? searchQuery}) async =>
+      right([]);
   @override
-  Future<AppResult<List<MarketPriceModel>>> getMarketPrices({String? produceName, String? category, String? marketName, String? sortBy}) async => right([]);
+  Future<AppResult<List<MarketPriceModel>>> getMarketPrices(
+          {String? produceName,
+          String? category,
+          String? marketName,
+          String? sortBy}) async =>
+      right([]);
   @override
-  Future<AppResult<List<OfferHistoryModel>>> getOfferHistory(String offerId) async => right([]);
+  Future<AppResult<List<OfferHistoryModel>>> getOfferHistory(
+          String offerId) async =>
+      right([]);
   @override
-  Future<AppResult<List<OfferModel>>> getOffersForFarmer(String farmerId, {String? status}) async => right([]);
+  Future<AppResult<List<OfferModel>>> getOffersForFarmer(String farmerId,
+          {String? status}) async =>
+      right([]);
   @override
-  RealtimeChannel subscribeToFarmerOffers(String farmerId, void Function(OfferModel offer) onNewOffer) => throw UnimplementedError();
+  RealtimeChannel subscribeToFarmerOffers(
+          String farmerId, void Function(OfferModel offer) onNewOffer) =>
+      throw UnimplementedError();
   @override
-  RealtimeChannel subscribeToMarketPrices(void Function() onChange) => throw UnimplementedError();
+  RealtimeChannel subscribeToMarketPrices(void Function() onChange) =>
+      throw UnimplementedError();
   @override
-  RealtimeChannel subscribeToProduceChanges(String farmerId, void Function() onChange) => throw UnimplementedError();
+  RealtimeChannel subscribeToProduceChanges(
+          String farmerId, void Function() onChange) =>
+      throw UnimplementedError();
   @override
-  Future<AppResult<OfferModel>> updateOfferStatus(String offerId, String status) async => left(const ServerFailure('stub'));
+  Future<AppResult<OfferModel>> updateOfferStatus(
+          String offerId, String status) async =>
+      left(const ServerFailure('stub'));
   @override
-  Future<AppResult<ProduceModel>> updateProduce(ProduceModel produce) async => right(produce);
+  Future<AppResult<ProduceModel>> updateProduce(ProduceModel produce) async =>
+      right(produce);
 }
 
 void main() {
   group('Final Audit Regression Tests', () {
-    test('AuthNotifier triggers onSignOutCallback when unauthenticated', () async {
+    test('AuthNotifier triggers onSignOutCallback when unauthenticated',
+        () async {
       bool callbackFired = false;
       final notifier = AuthNotifier(
         StubAuthRepo(),
@@ -94,20 +134,24 @@ void main() {
           callbackFired = true;
         },
       );
-      
+
       await notifier.signOut();
 
-      expect(callbackFired, isTrue, reason: 'Sign-out callback must fire to invalidate providers');
+      expect(callbackFired, isTrue,
+          reason: 'Sign-out callback must fire to invalidate providers');
     });
 
-    test('NotificationNotifier disposes cleanly without leaking AuthSubscription', () {
+    test(
+        'NotificationNotifier disposes cleanly without leaking AuthSubscription',
+        () {
       final notifier = NotificationNotifier(StubNotificationRepo(), null);
       expect(() => notifier.dispose(), returnsNormally);
     });
 
-    test('ProduceController ignores state updates if disposed (unmounted)', () async {
+    test('ProduceController ignores state updates if disposed (unmounted)',
+        () async {
       final notifier = ProduceController(StubFarmerRepo());
-      
+
       final mockProduce = ProduceModel(
         id: '1',
         farmerId: 'f1',
@@ -122,7 +166,7 @@ void main() {
 
       // Fire and forget
       final future = notifier.addProduce(mockProduce);
-      
+
       // Dispose immediately (simulating navigation away)
       notifier.dispose();
 

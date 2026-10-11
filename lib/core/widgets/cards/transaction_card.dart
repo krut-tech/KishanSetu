@@ -72,7 +72,8 @@ class TransactionCard extends StatelessWidget {
                   children: [
                     Text(
                       'Gross Trade Value',
-                      style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant),
+                      style: TextStyle(
+                          fontSize: 12, color: colorScheme.onSurfaceVariant),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -87,7 +88,8 @@ class TransactionCard extends StatelessWidget {
                   children: [
                     Text(
                       'Net Farmer Payout',
-                      style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant),
+                      style: TextStyle(
+                          fontSize: 12, color: colorScheme.onSurfaceVariant),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -98,7 +100,9 @@ class TransactionCard extends StatelessWidget {
                       priceStyle: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: isDark ? const Color(0xFF34D399) : AppColors.netRealizationBadge,
+                        color: isDark
+                            ? const Color(0xFF34D399)
+                            : AppColors.netRealizationBadge,
                       ),
                     ),
                   ],

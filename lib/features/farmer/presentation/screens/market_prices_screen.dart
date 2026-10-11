@@ -117,7 +117,9 @@ class _MarketPricesScreenState extends ConsumerState<MarketPricesScreen> {
                     PopupMenuButton<String>(
                       icon: Icon(
                         Icons.sort_rounded,
-                        color: isDark ? const Color(0xFF4ADE80) : AppColors.primary,
+                        color: isDark
+                            ? const Color(0xFF4ADE80)
+                            : AppColors.primary,
                       ),
                       tooltip: context.l10n.sortPrices,
                       onSelected: (sortVal) {
@@ -237,8 +239,10 @@ class _MarketPricesScreenState extends ConsumerState<MarketPricesScreen> {
     }
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final primaryText = isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight;
-    final secondaryText = isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight;
+    final primaryText =
+        isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight;
+    final secondaryText =
+        isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight;
 
     return ListView.builder(
       physics: const AlwaysScrollableScrollPhysics(),
@@ -298,9 +302,12 @@ class _MarketPricesScreenState extends ConsumerState<MarketPricesScreen> {
                             const SizedBox(width: 4),
                             Flexible(
                               child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 6, vertical: 2),
                                 decoration: BoxDecoration(
-                                  color: isDark ? AppColors.primaryDark : AppColors.primaryLight,
+                                  color: isDark
+                                      ? AppColors.primaryDark
+                                      : AppColors.primaryLight,
                                   borderRadius: BorderRadius.circular(4),
                                 ),
                                 child: Text(
@@ -308,7 +315,9 @@ class _MarketPricesScreenState extends ConsumerState<MarketPricesScreen> {
                                   style: TextStyle(
                                     fontSize: 11,
                                     fontWeight: FontWeight.bold,
-                                    color: isDark ? const Color(0xFFDCFCE7) : AppColors.primaryDark,
+                                    color: isDark
+                                        ? const Color(0xFFDCFCE7)
+                                        : AppColors.primaryDark,
                                   ),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,

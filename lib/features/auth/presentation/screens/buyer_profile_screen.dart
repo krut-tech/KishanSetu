@@ -58,7 +58,8 @@ class _BuyerProfileScreenState extends ConsumerState<BuyerProfileScreen> {
         _phoneController.text = profile.phone ?? '';
         _companyNameController.text = profile.companyName ?? '';
         _gstController.text = profile.gstNumber ?? '';
-        _capacityController.text = profile.buyingCapacityQuintals?.toString() ?? '';
+        _capacityController.text =
+            profile.buyingCapacityQuintals?.toString() ?? '';
         if (profile.state != null && profile.state!.isNotEmpty) {
           _stateController.text = profile.state!;
         }
@@ -68,7 +69,8 @@ class _BuyerProfileScreenState extends ConsumerState<BuyerProfileScreen> {
         if (profile.businessType != null && profile.businessType!.isNotEmpty) {
           _businessType = profile.businessType!;
         }
-        _selectedLanguage = profile.language.isNotEmpty ? profile.language : 'en';
+        _selectedLanguage =
+            profile.language.isNotEmpty ? profile.language : 'en';
       }
       _isInitialized = true;
     }
@@ -101,9 +103,14 @@ class _BuyerProfileScreenState extends ConsumerState<BuyerProfileScreen> {
     if ((latText.isEmpty) != (lngText.isEmpty) ||
         (latText.isNotEmpty && latitude == null) ||
         (lngText.isNotEmpty && longitude == null) ||
-        (latitude != null && (!latitude.isFinite || latitude < -90 || latitude > 90)) ||
-        (longitude != null && (!longitude.isFinite || longitude < -180 || longitude > 180))) {
-      AppSnackBar.show(context, message: 'Enter valid latitude and longitude together, or leave both empty.', type: SnackBarType.error);
+        (latitude != null &&
+            (!latitude.isFinite || latitude < -90 || latitude > 90)) ||
+        (longitude != null &&
+            (!longitude.isFinite || longitude < -180 || longitude > 180))) {
+      AppSnackBar.show(context,
+          message:
+              'Enter valid latitude and longitude together, or leave both empty.',
+          type: SnackBarType.error);
       return;
     }
 
@@ -130,7 +137,8 @@ class _BuyerProfileScreenState extends ConsumerState<BuyerProfileScreen> {
         .updateProfile(updatedProfile);
 
     if (!success && mounted) {
-      final error = ref.read(authNotifierProvider).errorMessage ?? context.l10n.failedToSaveProfile;
+      final error = ref.read(authNotifierProvider).errorMessage ??
+          context.l10n.failedToSaveProfile;
       AppSnackBar.show(context, message: error, type: SnackBarType.error);
     }
   }
@@ -166,7 +174,9 @@ class _BuyerProfileScreenState extends ConsumerState<BuyerProfileScreen> {
                         CircleAvatar(
                           radius: 28,
                           backgroundColor: colorScheme.secondaryContainer,
-                          child: Icon(Icons.storefront_rounded, color: colorScheme.onSecondaryContainer, size: 32),
+                          child: Icon(Icons.storefront_rounded,
+                              color: colorScheme.onSecondaryContainer,
+                              size: 32),
                         ),
                         const SizedBox(width: AppSpacing.md),
                         Expanded(
@@ -183,7 +193,9 @@ class _BuyerProfileScreenState extends ConsumerState<BuyerProfileScreen> {
                               ),
                               Text(
                                 context.l10n.provideBusinessContactDetails,
-                                style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant),
+                                style: TextStyle(
+                                    fontSize: 12,
+                                    color: colorScheme.onSurfaceVariant),
                               ),
                             ],
                           ),
@@ -195,7 +207,9 @@ class _BuyerProfileScreenState extends ConsumerState<BuyerProfileScreen> {
                       label: context.l10n.contactNameFullName,
                       controller: _nameController,
                       prefixIcon: const Icon(Icons.person_outline),
-                      validator: (v) => v == null || v.trim().isEmpty ? context.l10n.contactNameRequired : null,
+                      validator: (v) => v == null || v.trim().isEmpty
+                          ? context.l10n.contactNameRequired
+                          : null,
                     ),
                     const SizedBox(height: AppSpacing.md),
                     AppTextField(
@@ -204,8 +218,12 @@ class _BuyerProfileScreenState extends ConsumerState<BuyerProfileScreen> {
                       keyboardType: TextInputType.phone,
                       prefixIcon: const Icon(Icons.phone_outlined),
                       validator: (v) {
-                        if (v == null || v.trim().isEmpty) return context.l10n.phoneNumberRequired;
-                        if (!RegExp(r'^[6-9]\d{9}$').hasMatch(v.trim())) return context.l10n.enterValid10DigitMobile;
+                        if (v == null || v.trim().isEmpty) {
+                          return context.l10n.phoneNumberRequired;
+                        }
+                        if (!RegExp(r'^[6-9]\d{9}$').hasMatch(v.trim())) {
+                          return context.l10n.enterValid10DigitMobile;
+                        }
                         return null;
                       },
                     ),
@@ -214,12 +232,17 @@ class _BuyerProfileScreenState extends ConsumerState<BuyerProfileScreen> {
                       label: context.l10n.preferredLanguage,
                       value: _selectedLanguage,
                       items: [
-                        DropdownMenuItem(value: 'en', child: Text(context.l10n.english)),
-                        DropdownMenuItem(value: 'hi', child: Text(context.l10n.hindi)),
-                        DropdownMenuItem(value: 'gu', child: Text(context.l10n.gujarati)),
+                        DropdownMenuItem(
+                            value: 'en', child: Text(context.l10n.english)),
+                        DropdownMenuItem(
+                            value: 'hi', child: Text(context.l10n.hindi)),
+                        DropdownMenuItem(
+                            value: 'gu', child: Text(context.l10n.gujarati)),
                       ],
                       onChanged: (val) {
-                        if (val != null) setState(() => _selectedLanguage = val);
+                        if (val != null) {
+                          setState(() => _selectedLanguage = val);
+                        }
                       },
                     ),
                     const SizedBox(height: AppSpacing.md),
@@ -227,17 +250,27 @@ class _BuyerProfileScreenState extends ConsumerState<BuyerProfileScreen> {
                       label: context.l10n.companyName,
                       controller: _companyNameController,
                       hint: 'e.g. Patel Agro Traders',
-                      validator: (v) => v == null || v.trim().isEmpty ? context.l10n.companyNameRequired : null,
+                      validator: (v) => v == null || v.trim().isEmpty
+                          ? context.l10n.companyNameRequired
+                          : null,
                     ),
                     const SizedBox(height: AppSpacing.md),
                     AppDropdownFormField<String>(
                       label: context.l10n.businessType,
                       value: _businessType,
                       items: [
-                        DropdownMenuItem(value: 'Wholesaler / Trader', child: Text(context.l10n.wholesalerTrader)),
-                        DropdownMenuItem(value: 'Processor / Mill Owner', child: Text(context.l10n.processorMillOwner)),
-                        DropdownMenuItem(value: 'Exporter', child: Text(context.l10n.exporter)),
-                        DropdownMenuItem(value: 'Retailer', child: Text(context.l10n.retailer)),
+                        DropdownMenuItem(
+                            value: 'Wholesaler / Trader',
+                            child: Text(context.l10n.wholesalerTrader)),
+                        DropdownMenuItem(
+                            value: 'Processor / Mill Owner',
+                            child: Text(context.l10n.processorMillOwner)),
+                        DropdownMenuItem(
+                            value: 'Exporter',
+                            child: Text(context.l10n.exporter)),
+                        DropdownMenuItem(
+                            value: 'Retailer',
+                            child: Text(context.l10n.retailer)),
                       ],
                       onChanged: (val) {
                         if (val != null) setState(() => _businessType = val);
@@ -247,27 +280,33 @@ class _BuyerProfileScreenState extends ConsumerState<BuyerProfileScreen> {
                     AppTextField(
                       label: context.l10n.state,
                       controller: _stateController,
-                      validator: (v) => v == null || v.trim().isEmpty ? context.l10n.stateRequired : null,
+                      validator: (v) => v == null || v.trim().isEmpty
+                          ? context.l10n.stateRequired
+                          : null,
                     ),
                     const SizedBox(height: AppSpacing.md),
                     AppTextField(
                       label: context.l10n.district,
                       controller: _districtController,
                       hint: context.l10n.primaryMandiDistrictCity,
-                      validator: (v) => v == null || v.trim().isEmpty ? context.l10n.districtCityRequired : null,
+                      validator: (v) => v == null || v.trim().isEmpty
+                          ? context.l10n.districtCityRequired
+                          : null,
                     ),
                     const SizedBox(height: AppSpacing.md),
                     AppTextField(
                       label: context.l10n.mapLatitudeOptional,
                       controller: _latitudeController,
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
+                      keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true, signed: true),
                       hint: 'e.g. 22.123456',
                     ),
                     const SizedBox(height: AppSpacing.md),
                     AppTextField(
                       label: context.l10n.mapLongitudeOptional,
                       controller: _longitudeController,
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
+                      keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true, signed: true),
                       hint: 'e.g. 70.123456',
                     ),
                     const SizedBox(height: AppSpacing.md),

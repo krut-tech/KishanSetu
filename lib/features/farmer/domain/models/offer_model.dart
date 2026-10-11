@@ -58,7 +58,8 @@ class OfferModel extends Equatable {
   final String buyerId;
   final double offeredPrice;
   final double quantity;
-  final String status; // 'pending', 'accepted', 'rejected', 'countered', 'cancelled'
+  final String
+      status; // 'pending', 'accepted', 'rejected', 'countered', 'cancelled'
   final String? message;
   final DateTime? createdAt;
   final DateTime? updatedAt;
@@ -148,11 +149,13 @@ class OfferModel extends Equatable {
     List<OfferHistoryModel>? historyList;
     if (map['offer_history'] is List) {
       historyList = (map['offer_history'] as List)
-          .map((item) => OfferHistoryModel.fromMap(item as Map<String, dynamic>))
+          .map(
+              (item) => OfferHistoryModel.fromMap(item as Map<String, dynamic>))
           .toList();
     } else if (map['history'] is List) {
       historyList = (map['history'] as List)
-          .map((item) => OfferHistoryModel.fromMap(item as Map<String, dynamic>))
+          .map(
+              (item) => OfferHistoryModel.fromMap(item as Map<String, dynamic>))
           .toList();
     }
 
@@ -178,7 +181,8 @@ class OfferModel extends Equatable {
       produceName: pName ?? map['produce_name'] as String?,
       produceUnit: pUnit ?? map['produce_unit'] as String?,
       produceCategory: pCategory ?? map['produce_category'] as String?,
-      produceExpectedPrice: pExpectedPrice ?? (map['produce_expected_price'] as num?)?.toDouble(),
+      produceExpectedPrice:
+          pExpectedPrice ?? (map['produce_expected_price'] as num?)?.toDouble(),
       produceLocation: pLocation ?? map['produce_location'] as String?,
       history: historyList,
     );

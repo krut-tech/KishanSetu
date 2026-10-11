@@ -142,15 +142,16 @@ class UpdateService {
       final parts = clean.split('-');
       mainPart = parts[0];
       if (parts.length > 1) {
-        buildPart =
-            int.tryParse(RegExp(r'^\d+').firstMatch(parts[1])?.group(0) ?? '') ??
-                0;
+        buildPart = int.tryParse(
+                RegExp(r'^\d+').firstMatch(parts[1])?.group(0) ?? '') ??
+            0;
       }
     }
 
     final semverNums = mainPart
         .split('.')
-        .map((s) => int.tryParse(RegExp(r'\d+').firstMatch(s)?.group(0) ?? '') ?? 0)
+        .map((s) =>
+            int.tryParse(RegExp(r'\d+').firstMatch(s)?.group(0) ?? '') ?? 0)
         .toList();
 
     int major = semverNums.isNotEmpty ? semverNums[0] : 0;

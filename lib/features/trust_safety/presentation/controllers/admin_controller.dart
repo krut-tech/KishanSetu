@@ -43,13 +43,21 @@ class AdminState extends Equatable {
       disputes: disputes ?? this.disputes,
       isLoading: isLoading ?? this.isLoading,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
-      successMessage: clearSuccess ? null : (successMessage ?? this.successMessage),
+      successMessage:
+          clearSuccess ? null : (successMessage ?? this.successMessage),
     );
   }
 
   @override
-  List<Object?> get props =>
-      [users, kycQueue, listings, disputes, isLoading, errorMessage, successMessage];
+  List<Object?> get props => [
+        users,
+        kycQueue,
+        listings,
+        disputes,
+        isLoading,
+        errorMessage,
+        successMessage
+      ];
 }
 
 /// Drives the Admin Panel: user management, KYC review, listing moderation, disputes.
@@ -63,13 +71,16 @@ class AdminController extends StateNotifier<AdminState> {
     final result = await _repository.adminGetUsers(role: role, search: search);
     if (!mounted) return;
     result.fold(
-      (failure) => state = state.copyWith(isLoading: false, errorMessage: failure.message),
+      (failure) => state =
+          state.copyWith(isLoading: false, errorMessage: failure.message),
       (users) => state = state.copyWith(isLoading: false, users: users),
     );
   }
 
-  Future<bool> setAccountStatus(String userId, String status, {String? reason}) async {
-    final result = await _repository.adminSetAccountStatus(userId, status, reason: reason);
+  Future<bool> setAccountStatus(String userId, String status,
+      {String? reason}) async {
+    final result =
+        await _repository.adminSetAccountStatus(userId, status, reason: reason);
     if (!mounted) return false;
     return result.fold(
       (failure) {
@@ -79,7 +90,8 @@ class AdminController extends StateNotifier<AdminState> {
       (_) {
         state = state.copyWith(
           users: state.users
-              .map((u) => u.id == userId ? u.copyWith(accountStatus: status) : u)
+              .map(
+                  (u) => u.id == userId ? u.copyWith(accountStatus: status) : u)
               .toList(),
           successMessage: 'Account status updated.',
         );
@@ -93,13 +105,16 @@ class AdminController extends StateNotifier<AdminState> {
     final result = await _repository.adminGetKycQueue(status: status);
     if (!mounted) return;
     result.fold(
-      (failure) => state = state.copyWith(isLoading: false, errorMessage: failure.message),
+      (failure) => state =
+          state.copyWith(isLoading: false, errorMessage: failure.message),
       (queue) => state = state.copyWith(isLoading: false, kycQueue: queue),
     );
   }
 
-  Future<bool> reviewKyc(String documentId, String status, {String? rejectionReason}) async {
-    final result = await _repository.adminReviewKyc(documentId, status, rejectionReason: rejectionReason);
+  Future<bool> reviewKyc(String documentId, String status,
+      {String? rejectionReason}) async {
+    final result = await _repository.adminReviewKyc(documentId, status,
+        rejectionReason: rejectionReason);
     if (!mounted) return false;
     return result.fold(
       (failure) {
@@ -118,16 +133,21 @@ class AdminController extends StateNotifier<AdminState> {
 
   Future<void> fetchListings({String? moderationStatus}) async {
     state = state.copyWith(isLoading: true, clearError: true);
-    final result = await _repository.adminGetProduceForModeration(moderationStatus: moderationStatus);
+    final result = await _repository.adminGetProduceForModeration(
+        moderationStatus: moderationStatus);
     if (!mounted) return;
     result.fold(
-      (failure) => state = state.copyWith(isLoading: false, errorMessage: failure.message),
-      (listings) => state = state.copyWith(isLoading: false, listings: listings),
+      (failure) => state =
+          state.copyWith(isLoading: false, errorMessage: failure.message),
+      (listings) =>
+          state = state.copyWith(isLoading: false, listings: listings),
     );
   }
 
-  Future<bool> moderateProduce(String produceId, String status, {String? note}) async {
-    final result = await _repository.adminModerateProduce(produceId, status, note: note);
+  Future<bool> moderateProduce(String produceId, String status,
+      {String? note}) async {
+    final result =
+        await _repository.adminModerateProduce(produceId, status, note: note);
     if (!mounted) return false;
     return result.fold(
       (failure) {
@@ -153,13 +173,17 @@ class AdminController extends StateNotifier<AdminState> {
     final result = await _repository.adminGetDisputes(status: status);
     if (!mounted) return;
     result.fold(
-      (failure) => state = state.copyWith(isLoading: false, errorMessage: failure.message),
-      (disputes) => state = state.copyWith(isLoading: false, disputes: disputes),
+      (failure) => state =
+          state.copyWith(isLoading: false, errorMessage: failure.message),
+      (disputes) =>
+          state = state.copyWith(isLoading: false, disputes: disputes),
     );
   }
 
-  Future<bool> resolveDispute(String disputeId, String status, {String? resolutionNote}) async {
-    final result = await _repository.adminResolveDispute(disputeId, status, resolutionNote: resolutionNote);
+  Future<bool> resolveDispute(String disputeId, String status,
+      {String? resolutionNote}) async {
+    final result = await _repository.adminResolveDispute(disputeId, status,
+        resolutionNote: resolutionNote);
     if (!mounted) return false;
     return result.fold(
       (failure) {

@@ -31,7 +31,8 @@ class ProduceDetailsScreen extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<ProduceDetailsScreen> createState() => _ProduceDetailsScreenState();
+  ConsumerState<ProduceDetailsScreen> createState() =>
+      _ProduceDetailsScreenState();
 }
 
 class _ProduceDetailsScreenState extends ConsumerState<ProduceDetailsScreen> {
@@ -87,7 +88,8 @@ class _ProduceDetailsScreenState extends ConsumerState<ProduceDetailsScreen> {
     final colorScheme = Theme.of(context).colorScheme;
     final produce = _produce;
     final farmerName = produce.farmerName ?? context.l10n.farmerLabel;
-    final locationText = produce.location ?? produce.farmerDistrict ?? 'Gujarat';
+    final locationText =
+        produce.location ?? produce.farmerDistrict ?? 'Gujarat';
     final listingDateText = produce.createdAt != null
         ? '${produce.createdAt!.day}/${produce.createdAt!.month}/${produce.createdAt!.year}'
         : context.l10n.recentlyLabel;
@@ -97,7 +99,9 @@ class _ProduceDetailsScreenState extends ConsumerState<ProduceDetailsScreen> {
     final buyerOffers = ref.watch(buyerOfferControllerProvider).offers;
     OfferModel? existingOffer;
     for (final o in buyerOffers) {
-      if (o.produceId == produce.id && (o.status.toLowerCase() == 'pending' || o.status.toLowerCase() == 'countered')) {
+      if (o.produceId == produce.id &&
+          (o.status.toLowerCase() == 'pending' ||
+              o.status.toLowerCase() == 'countered')) {
         existingOffer = o;
         break;
       }
@@ -150,7 +154,8 @@ class _ProduceDetailsScreenState extends ConsumerState<ProduceDetailsScreen> {
                               children: [
                                 Row(
                                   children: [
-                                    Icon(Icons.info_outline, size: 18, color: colorScheme.primary),
+                                    Icon(Icons.info_outline,
+                                        size: 18, color: colorScheme.primary),
                                     const SizedBox(width: 8),
                                     Text(
                                       context.l10n.youHaveActiveOffer,
@@ -162,16 +167,20 @@ class _ProduceDetailsScreenState extends ConsumerState<ProduceDetailsScreen> {
                                     ),
                                   ],
                                 ),
-                                const AppStatusBadge(type: AppStatusType.pending),
+                                const AppStatusBadge(
+                                    type: AppStatusType.pending),
                               ],
                             ),
                             const Divider(),
                             Text(
                               '${context.l10n.offeredPriceLabel}: ₹${existingOffer.offeredPrice.toStringAsFixed(2)} / ${produce.unit}',
-                              style: const TextStyle(fontWeight: FontWeight.w600),
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.w600),
                             ),
-                            Text('${context.l10n.offerQuantity}: ${existingOffer.quantity} ${produce.unit}'),
-                            if (existingOffer.message != null && existingOffer.message!.trim().isNotEmpty)
+                            Text(
+                                '${context.l10n.offerQuantity}: ${existingOffer.quantity} ${produce.unit}'),
+                            if (existingOffer.message != null &&
+                                existingOffer.message!.trim().isNotEmpty)
                               Padding(
                                 padding: const EdgeInsets.only(top: 4),
                                 child: Text(
@@ -198,7 +207,8 @@ class _ProduceDetailsScreenState extends ConsumerState<ProduceDetailsScreen> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 10, vertical: 4),
                                 decoration: BoxDecoration(
                                   color: colorScheme.primaryContainer,
                                   borderRadius: BorderRadius.circular(6),
@@ -212,7 +222,8 @@ class _ProduceDetailsScreenState extends ConsumerState<ProduceDetailsScreen> {
                                   ),
                                 ),
                               ),
-                              AppStatusBadge(type: _getStatusType(produce.status)),
+                              AppStatusBadge(
+                                  type: _getStatusType(produce.status)),
                             ],
                           ),
                           const SizedBox(height: AppSpacing.sm),
@@ -230,16 +241,26 @@ class _ProduceDetailsScreenState extends ConsumerState<ProduceDetailsScreen> {
                             spacing: 4,
                             runSpacing: 4,
                             children: [
-                              Icon(Icons.location_on_outlined, size: 16, color: colorScheme.onSurfaceVariant),
+                              Icon(Icons.location_on_outlined,
+                                  size: 16,
+                                  color: colorScheme.onSurfaceVariant),
                               Text(
                                 locationText,
-                                style: TextStyle(fontSize: 14, color: colorScheme.onSurfaceVariant),
+                                style: TextStyle(
+                                    fontSize: 14,
+                                    color: colorScheme.onSurfaceVariant),
                               ),
-                              Text(' • ', style: TextStyle(color: colorScheme.onSurfaceVariant)),
-                              Icon(Icons.calendar_today_outlined, size: 14, color: colorScheme.onSurfaceVariant),
+                              Text(' • ',
+                                  style: TextStyle(
+                                      color: colorScheme.onSurfaceVariant)),
+                              Icon(Icons.calendar_today_outlined,
+                                  size: 14,
+                                  color: colorScheme.onSurfaceVariant),
                               Text(
                                 '${context.l10n.listedLabel} $listingDateText',
-                                style: TextStyle(fontSize: 14, color: colorScheme.onSurfaceVariant),
+                                style: TextStyle(
+                                    fontSize: 14,
+                                    color: colorScheme.onSurfaceVariant),
                               ),
                             ],
                           ),
@@ -255,7 +276,10 @@ class _ProduceDetailsScreenState extends ConsumerState<ProduceDetailsScreen> {
                         children: [
                           Text(
                             context.l10n.quantityAndPricing,
-                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: colorScheme.onSurface),
+                            style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: colorScheme.onSurface),
                           ),
                           const Divider(),
                           const SizedBox(height: AppSpacing.xs),
@@ -268,13 +292,18 @@ class _ProduceDetailsScreenState extends ConsumerState<ProduceDetailsScreen> {
                                   children: [
                                     Text(
                                       context.l10n.availableQuantityLabel,
-                                      style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant),
+                                      style: TextStyle(
+                                          fontSize: 12,
+                                          color: colorScheme.onSurfaceVariant),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                     Text(
                                       '${produce.quantity} ${produce.unit}',
-                                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: colorScheme.onSurface),
+                                      style: TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                          color: colorScheme.onSurface),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                     ),
@@ -288,13 +317,18 @@ class _ProduceDetailsScreenState extends ConsumerState<ProduceDetailsScreen> {
                                   children: [
                                     Text(
                                       context.l10n.expectedPriceLabel,
-                                      style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant),
+                                      style: TextStyle(
+                                          fontSize: 12,
+                                          color: colorScheme.onSurfaceVariant),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                     AppPriceText(
                                       price: produce.expectedPrice,
-                                      priceStyle: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: colorScheme.primary),
+                                      priceStyle: TextStyle(
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.bold,
+                                          color: colorScheme.primary),
                                     ),
                                   ],
                                 ),
@@ -313,17 +347,27 @@ class _ProduceDetailsScreenState extends ConsumerState<ProduceDetailsScreen> {
                         children: [
                           Text(
                             context.l10n.farmerLocationDetails,
-                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: colorScheme.onSurface),
+                            style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: colorScheme.onSurface),
                           ),
                           const Divider(),
                           ListTile(
                             contentPadding: EdgeInsets.zero,
                             leading: CircleAvatar(
                               backgroundColor: colorScheme.primaryContainer,
-                              child: Icon(Icons.person, color: colorScheme.primary),
+                              child: Icon(Icons.person,
+                                  color: colorScheme.primary),
                             ),
-                            title: Text(farmerName, style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.onSurface)),
-                            subtitle: Text('Verified Seller • ${context.l10n.locationLabel}: $locationText', style: TextStyle(color: colorScheme.onSurfaceVariant)),
+                            title: Text(farmerName,
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: colorScheme.onSurface)),
+                            subtitle: Text(
+                                'Verified Seller • ${context.l10n.locationLabel}: $locationText',
+                                style: TextStyle(
+                                    color: colorScheme.onSurfaceVariant)),
                           ),
                           const SizedBox(height: AppSpacing.sm),
                           Wrap(
@@ -341,14 +385,23 @@ class _ProduceDetailsScreenState extends ConsumerState<ProduceDetailsScreen> {
                                   return CoordinateMapButton(
                                     label: MapStrings.viewOnMap(context),
                                     address: locationText,
-                                    latitude: row?['latitude'] == null ? null : (row!['latitude'] as num).toDouble(),
-                                    longitude: row?['longitude'] == null ? null : (row!['longitude'] as num).toDouble(),
+                                    latitude: row?['latitude'] == null
+                                        ? null
+                                        : (row!['latitude'] as num).toDouble(),
+                                    longitude: row?['longitude'] == null
+                                        ? null
+                                        : (row!['longitude'] as num).toDouble(),
                                   );
                                 },
                               ),
                               ChatEntryButton(
                                 farmerId: produce.farmerId,
-                                buyerId: ref.read(authNotifierProvider).state.user?.id ?? '',
+                                buyerId: ref
+                                        .read(authNotifierProvider)
+                                        .state
+                                        .user
+                                        ?.id ??
+                                    '',
                                 otherUserName: farmerName,
                                 produceId: produce.id,
                               ),
@@ -360,19 +413,26 @@ class _ProduceDetailsScreenState extends ConsumerState<ProduceDetailsScreen> {
                     const SizedBox(height: AppSpacing.md),
 
                     // Crop Description
-                    if (produce.description != null && produce.description!.trim().isNotEmpty)
+                    if (produce.description != null &&
+                        produce.description!.trim().isNotEmpty)
                       AppCard(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
                               context.l10n.cropDescription,
-                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: colorScheme.onSurface),
+                              style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: colorScheme.onSurface),
                             ),
                             const Divider(),
                             Text(
                               produce.description!,
-                              style: TextStyle(fontSize: 14, height: 1.4, color: colorScheme.onSurface),
+                              style: TextStyle(
+                                  fontSize: 14,
+                                  height: 1.4,
+                                  color: colorScheme.onSurface),
                             ),
                           ],
                         ),
@@ -398,9 +458,13 @@ class _ProduceDetailsScreenState extends ConsumerState<ProduceDetailsScreen> {
               child: AppButton(
                 label: hasActiveOffer
                     ? context.l10n.editOfferLabel
-                    : (isActive ? context.l10n.makeOffer : context.l10n.produceListingInactive),
+                    : (isActive
+                        ? context.l10n.makeOffer
+                        : context.l10n.produceListingInactive),
                 style: AppButtonStyle.secondary,
-                icon: hasActiveOffer ? Icons.edit_outlined : Icons.local_offer_rounded,
+                icon: hasActiveOffer
+                    ? Icons.edit_outlined
+                    : Icons.local_offer_rounded,
                 onPressed: isActive
                     ? () async {
                         final submitted = await MakeOfferDialog.show(
@@ -409,9 +473,12 @@ class _ProduceDetailsScreenState extends ConsumerState<ProduceDetailsScreen> {
                           existingOffer: existingOffer,
                         );
                         if (submitted == true && context.mounted) {
-                          final user = ref.read(authNotifierProvider).state.user;
+                          final user =
+                              ref.read(authNotifierProvider).state.user;
                           if (user != null) {
-                            ref.read(buyerOfferControllerProvider.notifier).fetchOffers(user.id);
+                            ref
+                                .read(buyerOfferControllerProvider.notifier)
+                                .fetchOffers(user.id);
                           }
                         }
                       }

@@ -182,7 +182,9 @@ class _OffersScreenState extends ConsumerState<OffersScreen> {
           padding: const EdgeInsets.only(bottom: AppSpacing.md),
           child: OfferCard(
             cropName: offer.produceName ?? context.l10n.cropProduceListing,
-            buyerName: offer.buyerName ?? offer.buyerCompany ?? context.l10n.interestedBuyer,
+            buyerName: offer.buyerName ??
+                offer.buyerCompany ??
+                context.l10n.interestedBuyer,
             offerPrice: offer.offeredPrice,
             quantity: '${offer.quantity} ${offer.produceUnit ?? "units"}',
             status: statusBadgeType,
@@ -195,9 +197,13 @@ class _OffersScreenState extends ConsumerState<OffersScreen> {
                         .read(offerControllerProvider.notifier)
                         .respondToOffer(offer.id, 'accepted');
                     if (ok) {
-                      ref.read(farmerDashboardNotifierProvider.notifier).refreshDashboard();
+                      ref
+                          .read(farmerDashboardNotifierProvider.notifier)
+                          .refreshDashboard();
                       if (context.mounted) {
-                        AppSnackBar.show(context, message: context.l10n.offerAcceptedStatus, type: SnackBarType.success);
+                        AppSnackBar.show(context,
+                            message: context.l10n.offerAcceptedStatus,
+                            type: SnackBarType.success);
                       }
                     }
                   }
@@ -208,9 +214,13 @@ class _OffersScreenState extends ConsumerState<OffersScreen> {
                         .read(offerControllerProvider.notifier)
                         .respondToOffer(offer.id, 'rejected');
                     if (ok) {
-                      ref.read(farmerDashboardNotifierProvider.notifier).refreshDashboard();
+                      ref
+                          .read(farmerDashboardNotifierProvider.notifier)
+                          .refreshDashboard();
                       if (context.mounted) {
-                        AppSnackBar.show(context, message: context.l10n.offerRejectedStatus, type: SnackBarType.info);
+                        AppSnackBar.show(context,
+                            message: context.l10n.offerRejectedStatus,
+                            type: SnackBarType.info);
                       }
                     }
                   }
@@ -221,16 +231,22 @@ class _OffersScreenState extends ConsumerState<OffersScreen> {
                         .read(offerControllerProvider.notifier)
                         .respondToOffer(offer.id, 'cancelled');
                     if (ok) {
-                      ref.read(farmerDashboardNotifierProvider.notifier).refreshDashboard();
+                      ref
+                          .read(farmerDashboardNotifierProvider.notifier)
+                          .refreshDashboard();
                       if (context.mounted) {
-                        AppSnackBar.show(context, message: context.l10n.cancelledStatus, type: SnackBarType.info);
+                        AppSnackBar.show(context,
+                            message: context.l10n.cancelledStatus,
+                            type: SnackBarType.info);
                       }
                     }
                   }
                 : null,
             onCounter: isPending
                 ? () async {
-                    AppSnackBar.show(context, message: context.l10n.counterOfferComingSoon, type: SnackBarType.info);
+                    AppSnackBar.show(context,
+                        message: context.l10n.counterOfferComingSoon,
+                        type: SnackBarType.info);
                   }
                 : null,
           ),

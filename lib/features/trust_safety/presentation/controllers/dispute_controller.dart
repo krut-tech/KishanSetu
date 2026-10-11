@@ -32,12 +32,14 @@ class DisputeState extends Equatable {
       isLoading: isLoading ?? this.isLoading,
       isSubmitting: isSubmitting ?? this.isSubmitting,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
-      successMessage: clearSuccess ? null : (successMessage ?? this.successMessage),
+      successMessage:
+          clearSuccess ? null : (successMessage ?? this.successMessage),
     );
   }
 
   @override
-  List<Object?> get props => [myDisputes, isLoading, isSubmitting, errorMessage, successMessage];
+  List<Object?> get props =>
+      [myDisputes, isLoading, isSubmitting, errorMessage, successMessage];
 }
 
 class DisputeController extends StateNotifier<DisputeState> {
@@ -50,18 +52,22 @@ class DisputeController extends StateNotifier<DisputeState> {
     final result = await _repository.getMyDisputes(userId);
     if (!mounted) return;
     result.fold(
-      (failure) => state = state.copyWith(isLoading: false, errorMessage: failure.message),
-      (disputes) => state = state.copyWith(isLoading: false, myDisputes: disputes),
+      (failure) => state =
+          state.copyWith(isLoading: false, errorMessage: failure.message),
+      (disputes) =>
+          state = state.copyWith(isLoading: false, myDisputes: disputes),
     );
   }
 
   Future<bool> file(DisputeModel dispute) async {
-    state = state.copyWith(isSubmitting: true, clearError: true, clearSuccess: true);
+    state = state.copyWith(
+        isSubmitting: true, clearError: true, clearSuccess: true);
     final result = await _repository.fileDispute(dispute);
     if (!mounted) return false;
     return result.fold(
       (failure) {
-        state = state.copyWith(isSubmitting: false, errorMessage: failure.message);
+        state =
+            state.copyWith(isSubmitting: false, errorMessage: failure.message);
         return false;
       },
       (created) {

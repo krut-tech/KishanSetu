@@ -47,7 +47,10 @@ class AppSnackBar {
             Expanded(
               child: Text(
                 message,
-                style: const TextStyle(fontSize: 14, color: Colors.white, fontWeight: FontWeight.w500),
+                style: const TextStyle(
+                    fontSize: 14,
+                    color: Colors.white,
+                    fontWeight: FontWeight.w500),
               ),
             ),
           ],
