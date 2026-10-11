@@ -6,6 +6,7 @@ import 'package:farmer_market_app/core/localization/locale_controller.dart';
 import 'package:farmer_market_app/core/logging/app_logger.dart';
 import 'package:farmer_market_app/core/routing/app_router.dart';
 import 'package:farmer_market_app/core/theme/app_theme.dart';
+import 'package:farmer_market_app/core/theme/smooth_scroll_behavior.dart';
 import 'package:farmer_market_app/core/theme/theme_controller.dart';
 import 'package:farmer_market_app/core/widgets/app_backdrop.dart';
 import 'package:farmer_market_app/features/update/presentation/widgets/update_dialog_listener.dart';
@@ -29,6 +30,7 @@ class FarmerMarketApp extends ConsumerWidget {
       darkTheme: AppTheme.darkTheme,
       themeMode: themeMode,
       locale: locale,
+      scrollBehavior: const SmoothScrollBehavior(),
       builder: (context, child) => UpdateDialogListener(
         child: AppBackdrop(child: child ?? const SizedBox.shrink()),
       ),

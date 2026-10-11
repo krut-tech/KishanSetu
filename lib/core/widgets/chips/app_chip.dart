@@ -27,47 +27,61 @@ class AppChip extends StatelessWidget {
         isDark ? AppColors.borderDark : AppColors.borderLight;
     final unselectedText =
         isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight;
+    final unselectedIcon =
+        isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight;
 
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.md,
-          vertical: AppSpacing.sm,
-        ),
-        decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary : unselectedBg,
-          borderRadius: AppRadius.borderPill,
-          border: Border.all(
-            color: isSelected ? AppColors.primary : unselectedBorder,
-            width: 1.2,
+    // Selected state follows the theme: gold on dark, green on light.
+    final selectedBg = isDark ? AppColors.accent : AppColors.primary;
+    final selectedFg = isDark ? AppColors.forest : Colors.white;
+
+    return Semantics(
+      button: true,
+      selected: isSelected,
+      label: label,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 220),
+          curve: Curves.easeOutCubic,
+          // ~40px tall so chips are comfortable to tap
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.md,
+            vertical: 11,
           ),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (icon != null) ...[
-              Icon(
-                icon,
-                size: 16,
-                color: isSelected
-                    ? Colors.white
-                    : (isDark
-                        ? AppColors.textSecondaryDark
-                        : AppColors.textSecondaryLight),
-              ),
-              const SizedBox(width: AppSpacing.xs),
-            ],
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                color: isSelected ? Colors.white : unselectedText,
-              ),
+          decoration: BoxDecoration(
+            color: isSelected ? selectedBg : unselectedBg,
+            borderRadius: AppRadius.borderPill,
+            border: Border.all(
+              color: isSelected ? selectedBg : unselectedBorder,
+              width: 1.2,
             ),
-          ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (icon != null) ...[
+                Icon(
+                  icon,
+                  size: 16,
+                  color: isSelected ? selectedFg : unselectedIcon,
+                ),
+                const SizedBox(width: AppSpacing.xs),
+              ],
+              Flexible(
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                    color: isSelected ? selectedFg : unselectedText,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

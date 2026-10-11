@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:farmer_market_app/core/constants/app_constants.dart';
 
-enum AppButtonStyle { primary, secondary, outlined }
+/// `destructive` is a red button for irreversible actions (delete, cancel offer).
+enum AppButtonStyle { primary, secondary, outlined, destructive }
 
 /// Reusable button widget with touch-friendly sizes and loading states.
 class AppButton extends StatelessWidget {
@@ -25,6 +26,11 @@ class AppButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final minSize =
+        Size(width ?? double.infinity, AppConstants.minTouchTargetSize);
+    final shape = RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(AppConstants.borderRadiusMedium),
+    );
 
     Widget childContent = isLoading
         ? SizedBox(
@@ -35,7 +41,9 @@ class AppButton extends StatelessWidget {
               valueColor: AlwaysStoppedAnimation<Color>(
                 style == AppButtonStyle.outlined
                     ? colorScheme.primary
-                    : colorScheme.onPrimary,
+                    : (style == AppButtonStyle.destructive
+                        ? colorScheme.onError
+                        : colorScheme.onPrimary),
               ),
             ),
           )
@@ -47,62 +55,52 @@ class AppButton extends StatelessWidget {
                 Icon(icon, size: 20),
                 const SizedBox(width: AppConstants.paddingSmall),
               ],
-              Text(
-                label,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
+              // Flexible + ellipsis: long Hindi/Gujarati labels no longer overflow
+              Flexible(
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               ),
             ],
           );
 
+    Widget filled(Color bg, Color fg) => ElevatedButton(
+          onPressed: isLoading ? null : onPressed,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: bg,
+            foregroundColor: fg,
+            elevation: 0,
+            minimumSize: minSize,
+            shape: shape,
+          ),
+          child: childContent,
+        );
+
     Widget button;
     switch (style) {
       case AppButtonStyle.primary:
-        button = ElevatedButton(
-          onPressed: isLoading ? null : onPressed,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: colorScheme.primary,
-            foregroundColor: colorScheme.onPrimary,
-            minimumSize:
-                Size(width ?? double.infinity, AppConstants.minTouchTargetSize),
-            shape: RoundedRectangleBorder(
-              borderRadius:
-                  BorderRadius.circular(AppConstants.borderRadiusMedium),
-            ),
-          ),
-          child: childContent,
-        );
+        button = filled(colorScheme.primary, colorScheme.onPrimary);
         break;
       case AppButtonStyle.secondary:
-        button = ElevatedButton(
-          onPressed: isLoading ? null : onPressed,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: colorScheme.secondary,
-            foregroundColor: colorScheme.onSecondary,
-            minimumSize:
-                Size(width ?? double.infinity, AppConstants.minTouchTargetSize),
-            shape: RoundedRectangleBorder(
-              borderRadius:
-                  BorderRadius.circular(AppConstants.borderRadiusMedium),
-            ),
-          ),
-          child: childContent,
-        );
+        button = filled(colorScheme.secondary, colorScheme.onSecondary);
+        break;
+      case AppButtonStyle.destructive:
+        button = filled(colorScheme.error, colorScheme.onError);
         break;
       case AppButtonStyle.outlined:
         button = OutlinedButton(
           onPressed: isLoading ? null : onPressed,
           style: OutlinedButton.styleFrom(
             foregroundColor: colorScheme.primary,
-            minimumSize:
-                Size(width ?? double.infinity, AppConstants.minTouchTargetSize),
+            minimumSize: minSize,
             side: BorderSide(color: colorScheme.primary, width: 1.5),
-            shape: RoundedRectangleBorder(
-              borderRadius:
-                  BorderRadius.circular(AppConstants.borderRadiusMedium),
-            ),
+            shape: shape,
           ),
           child: childContent,
         );
