@@ -38,7 +38,7 @@ class PushNotificationService {
   static String? pendingInitialRoute;
 
   /// Android notification channel configuration.
-  static const String channelId = 'kisansetu_notifications';
+  static const String channelId = 'kisansetu_notifications_v2';
   static const String channelName = 'KisanSetu Notifications';
   static const String channelDescription =
       'Notifications for offers, produce listings, and market price updates.';
@@ -168,6 +168,8 @@ class PushNotificationService {
       channelDescription: channelDescription,
       importance: Importance.high,
       priority: Priority.high,
+      playSound: true,
+      enableVibration: true,
       icon: '@mipmap/ic_launcher',
     );
     const notificationDetails = NotificationDetails(android: androidDetails);
