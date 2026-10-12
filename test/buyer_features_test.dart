@@ -315,6 +315,26 @@ void main() {
       farmerRepo = MockFarmerRepoForBuyer();
     });
 
+    test('buyer can accept a farmer counter-offer', () async {
+      final counterOffer = OfferModel(
+        id: 'counter-1',
+        produceId: 'p-1',
+        farmerId: 'farmer-100',
+        buyerId: 'buyer-1',
+        offeredPrice: 2500,
+        quantity: 20,
+        status: 'countered',
+      );
+      buyerRepo.offersList = [counterOffer];
+      final controller = BuyerOfferController(buyerRepo);
+
+      final accepted =
+          await controller.respondToCounterOffer('counter-1', 'buyer-1', 'accepted');
+
+      expect(accepted, isTrue);
+      expect(controller.state.offers.single.status, equals('accepted'));
+    });
+
     test('1-4. Buyer Dashboard loads statistics and marketplace data',
         () async {
       final notifier = BuyerDashboardNotifier(buyerRepo, farmerRepo);
