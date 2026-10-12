@@ -73,6 +73,7 @@ class OfferModel extends Equatable {
   final String? produceUnit;
   final String? produceCategory;
   final double? produceExpectedPrice;
+  final double? produceAvailableQuantity;
   final String? produceLocation;
   final List<OfferHistoryModel>? history;
 
@@ -95,6 +96,7 @@ class OfferModel extends Equatable {
     this.produceUnit,
     this.produceCategory,
     this.produceExpectedPrice,
+    this.produceAvailableQuantity,
     this.produceLocation,
     this.history,
   });
@@ -136,6 +138,7 @@ class OfferModel extends Equatable {
     String? pUnit;
     String? pCategory;
     double? pExpectedPrice;
+    double? pAvailableQuantity;
     String? pLocation;
     if (map['produce'] is Map) {
       final produceMap = map['produce'] as Map<String, dynamic>;
@@ -143,6 +146,7 @@ class OfferModel extends Equatable {
       pUnit = produceMap['unit'] as String?;
       pCategory = produceMap['category'] as String?;
       pExpectedPrice = (produceMap['expected_price'] as num?)?.toDouble();
+      pAvailableQuantity = (produceMap['quantity'] as num?)?.toDouble();
       pLocation = produceMap['location'] as String?;
     }
 
@@ -169,10 +173,10 @@ class OfferModel extends Equatable {
       status: (map['status'] as String?) ?? 'pending',
       message: map['message'] as String?,
       createdAt: map['created_at'] != null
-          ? DateTime.tryParse(map['created_at'] as String)
+          ? DateTime.tryParse(map['created_at'] as String)?.toLocal()
           : null,
       updatedAt: map['updated_at'] != null
-          ? DateTime.tryParse(map['updated_at'] as String)
+          ? DateTime.tryParse(map['updated_at'] as String)?.toLocal()
           : null,
       buyerName: bName ?? map['buyer_name'] as String?,
       buyerCompany: bCompany ?? map['buyer_company'] as String?,
@@ -183,6 +187,8 @@ class OfferModel extends Equatable {
       produceCategory: pCategory ?? map['produce_category'] as String?,
       produceExpectedPrice:
           pExpectedPrice ?? (map['produce_expected_price'] as num?)?.toDouble(),
+      produceAvailableQuantity: pAvailableQuantity ??
+          (map['produce_available_quantity'] as num?)?.toDouble(),
       produceLocation: pLocation ?? map['produce_location'] as String?,
       history: historyList,
     );
@@ -220,6 +226,7 @@ class OfferModel extends Equatable {
     String? produceUnit,
     String? produceCategory,
     double? produceExpectedPrice,
+    double? produceAvailableQuantity,
     String? produceLocation,
     List<OfferHistoryModel>? history,
   }) {
@@ -242,6 +249,8 @@ class OfferModel extends Equatable {
       produceUnit: produceUnit ?? this.produceUnit,
       produceCategory: produceCategory ?? this.produceCategory,
       produceExpectedPrice: produceExpectedPrice ?? this.produceExpectedPrice,
+      produceAvailableQuantity:
+          produceAvailableQuantity ?? this.produceAvailableQuantity,
       produceLocation: produceLocation ?? this.produceLocation,
       history: history ?? this.history,
     );
@@ -267,6 +276,7 @@ class OfferModel extends Equatable {
         produceUnit,
         produceCategory,
         produceExpectedPrice,
+        produceAvailableQuantity,
         produceLocation,
         history,
       ];
