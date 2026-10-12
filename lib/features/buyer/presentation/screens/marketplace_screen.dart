@@ -73,7 +73,7 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
       if (ref.read(marketplaceControllerProvider).produceList.isEmpty) {
         ref.read(marketplaceControllerProvider.notifier).fetchProduce();
       }
-      final buyer = ref.read(authNotifierProvider).profile;
+      final buyer = ref.read(authNotifierProvider).state.user;
       if (buyer != null) _watchAcceptedOffers(buyer.id);
     });
   }
