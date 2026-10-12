@@ -16,6 +16,7 @@ class OfferCard extends StatefulWidget {
   final double offerPrice;
   final String quantity;
   final AppStatusType status;
+  final String? statusLabel;
   final String expiresText;
   final String? message;
   final List<OfferHistoryModel>? history;
@@ -39,6 +40,7 @@ class OfferCard extends StatefulWidget {
     required this.offerPrice,
     required this.quantity,
     required this.status,
+    this.statusLabel,
     required this.expiresText,
     this.message,
     this.history,
@@ -115,7 +117,7 @@ class _OfferCardState extends State<OfferCard> {
                 ),
               ),
               const SizedBox(width: AppSpacing.xs),
-              AppStatusBadge(type: widget.status),
+              AppStatusBadge(type: widget.status, customLabel: widget.statusLabel),
             ],
           ),
           const SizedBox(height: AppSpacing.xs),
