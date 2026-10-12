@@ -16,12 +16,16 @@ class OfferCard extends StatefulWidget {
   final double offerPrice;
   final String quantity;
   final AppStatusType status;
+  final String? statusLabel;
   final String expiresText;
   final String? message;
   final List<OfferHistoryModel>? history;
   final VoidCallback? onAccept;
   final VoidCallback? onReject;
   final VoidCallback? onCounter;
+  final String? acceptLabel;
+  final String? rejectLabel;
+  final String? counterLabel;
   final VoidCallback? onCancel;
   final VoidCallback? onEdit;
   final String? cancelLabel;
@@ -36,12 +40,16 @@ class OfferCard extends StatefulWidget {
     required this.offerPrice,
     required this.quantity,
     required this.status,
+    this.statusLabel,
     required this.expiresText,
     this.message,
     this.history,
     this.onAccept,
     this.onReject,
     this.onCounter,
+    this.acceptLabel,
+    this.rejectLabel,
+    this.counterLabel,
     this.onCancel,
     this.onEdit,
     this.cancelLabel,
@@ -109,7 +117,7 @@ class _OfferCardState extends State<OfferCard> {
                 ),
               ),
               const SizedBox(width: AppSpacing.xs),
-              AppStatusBadge(type: widget.status),
+              AppStatusBadge(type: widget.status, customLabel: widget.statusLabel),
             ],
           ),
           const SizedBox(height: AppSpacing.xs),
@@ -304,13 +312,36 @@ class _OfferCardState extends State<OfferCard> {
                   ),
                 ],
               ),
+            ] else if (widget.onAccept != null &&
+                widget.onReject != null &&
+                widget.onCounter == null &&
+                widget.onCancel == null) ...[
+              Row(
+                children: [
+                  Expanded(
+                    child: AppButton(
+                      label: widget.rejectLabel ?? 'Reject',
+                      style: AppButtonStyle.outlined,
+                      onPressed: widget.onReject,
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(
+                    child: AppButton(
+                      label: widget.acceptLabel ?? 'Accept',
+                      style: AppButtonStyle.primary,
+                      onPressed: widget.onAccept,
+                    ),
+                  ),
+                ],
+              ),
             ] else if (widget.onAccept != null || widget.onReject != null || widget.onCounter != null) ...[
               if (widget.onCancel != null) ...[
                 Row(
                   children: [
                     Expanded(
                       child: AppButton(
-                        label: 'Reject',
+                        label: widget.rejectLabel ?? 'Reject',
                         style: AppButtonStyle.outlined,
                         onPressed: widget.onReject,
                       ),
@@ -330,7 +361,7 @@ class _OfferCardState extends State<OfferCard> {
                   children: [
                     Expanded(
                       child: AppButton(
-                        label: 'Counter',
+                        label: widget.counterLabel ?? 'Counter',
                         style: AppButtonStyle.secondary,
                         onPressed: widget.onCounter,
                       ),
@@ -338,7 +369,7 @@ class _OfferCardState extends State<OfferCard> {
                     const SizedBox(width: AppSpacing.sm),
                     Expanded(
                       child: AppButton(
-                        label: 'Accept',
+                        label: widget.acceptLabel ?? 'Accept',
                         style: AppButtonStyle.primary,
                         onPressed: widget.onAccept,
                       ),
@@ -350,7 +381,7 @@ class _OfferCardState extends State<OfferCard> {
                   children: [
                     Expanded(
                       child: AppButton(
-                        label: 'Reject',
+                        label: widget.rejectLabel ?? 'Reject',
                         style: AppButtonStyle.outlined,
                         onPressed: widget.onReject,
                       ),
@@ -358,7 +389,7 @@ class _OfferCardState extends State<OfferCard> {
                     const SizedBox(width: AppSpacing.sm),
                     Expanded(
                       child: AppButton(
-                        label: 'Counter',
+                        label: widget.counterLabel ?? 'Counter',
                         style: AppButtonStyle.secondary,
                         onPressed: widget.onCounter,
                       ),
@@ -366,7 +397,7 @@ class _OfferCardState extends State<OfferCard> {
                     const SizedBox(width: AppSpacing.sm),
                     Expanded(
                       child: AppButton(
-                        label: 'Accept',
+                        label: widget.acceptLabel ?? 'Accept',
                         style: AppButtonStyle.primary,
                         onPressed: widget.onAccept,
                       ),

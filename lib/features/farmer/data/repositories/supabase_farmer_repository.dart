@@ -208,7 +208,7 @@ class SupabaseFarmerRepository implements FarmerRepository {
       var query = _client
           .from('offers')
           .select(
-              '*, offer_history(*), produce:produce_id(name, unit), buyer_profile:buyer_id(full_name, company_name, district, state)')
+              '*, offer_history(*), produce:produce_id(name, unit, quantity), buyer_profile:buyer_id(full_name, company_name, district, state)')
           .eq('farmer_id', farmerId);
 
       if (status != null &&
@@ -266,7 +266,12 @@ class SupabaseFarmerRepository implements FarmerRepository {
 
   @override
   Future<AppResult<OfferModel>> updateOfferStatus(
-      String offerId, String status) async {
+    String offerId,
+    String status, {
+    double? counteredPrice,
+    double? counteredQuantity,
+    String? counteredMessage,
+  }) async {
     try {
       AppLogger.info('Updating offer status id: $offerId to $status');
       final currentUser = _client.auth.currentUser;
@@ -281,33 +286,23 @@ class SupabaseFarmerRepository implements FarmerRepository {
       }
 
       // Accept/reject/counter is delegated to the respond_to_offer()
-      // Postgres RPC (see
-      // supabase/migrations/20260922235959_create_core_schema_and_rls.sql).
-      // Previously this method updated offers.status directly with no
-      // awareness of produce inventory, so two different offers on the same
-      // listing could each be accepted for more quantity than actually
-      // existed. The RPC locks the produce row and re-validates/decrements
-      // remaining quantity atomically when accepting. Direct updates to
-      // offers by the farmer are no longer permitted by RLS -- this RPC is
-      // the only way to accept/reject/counter.
-      //
-      // NOTE: this method's signature only carries a status change, so a
-      // 'countered' transition here still can't send a revised price or
-      // quantity to the RPC (p_countered_price/p_countered_quantity are
-      // passed as null, i.e. the counter keeps the original terms). If
-      // countering with new terms is meant to be supported, this interface
-      // and its screen/controller callers need to be extended to collect
-      // and pass those values -- that's outside what a repository-only
-      // change can safely do without touching the UI layer.
+      // Postgres RPC in
+      // supabase/migrations/20261012000000_fix_offer_negotiation_and_sold_quantity.sql.
+      // The RPC locks the produce row and validates/decrements available
+      // inventory atomically when an offer is accepted. Counter transitions
+      // include the revised price, quantity, and message in the same request.
       final created = await _client.rpc('respond_to_offer', params: {
         'p_offer_id': offerId,
         'p_status': normalizedStatus,
+        'p_countered_price': counteredPrice,
+        'p_countered_quantity': counteredQuantity,
+        'p_countered_message': counteredMessage,
       }) as Map<String, dynamic>;
 
       final response = await _client
           .from('offers')
           .select(
-              '*, produce:produce_id(name, unit), buyer_profile:buyer_id(full_name, company_name, district, state)')
+              '*, produce:produce_id(name, unit, quantity), buyer_profile:buyer_id(full_name, company_name, district, state)')
           .eq('id', created['id'] as String)
           .single();
 

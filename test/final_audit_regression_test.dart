@@ -116,7 +116,12 @@ class StubFarmerRepo implements FarmerRepository {
       throw UnimplementedError();
   @override
   Future<AppResult<OfferModel>> updateOfferStatus(
-          String offerId, String status) async =>
+    String offerId,
+    String status, {
+    double? counteredPrice,
+    double? counteredQuantity,
+    String? counteredMessage,
+  }) async =>
       left(const ServerFailure('stub'));
   @override
   Future<AppResult<ProduceModel>> updateProduce(ProduceModel produce) async =>

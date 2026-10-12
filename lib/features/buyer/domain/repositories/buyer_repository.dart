@@ -41,6 +41,13 @@ abstract class BuyerRepository {
   /// Cancel a pending offer created by the buyer.
   Future<AppResult<OfferModel>> cancelOffer(String offerId, String buyerId);
 
+  /// Respond to a farmer counter-offer (accept or reject the counter terms).
+  Future<AppResult<OfferModel>> respondToCounterOffer(
+    String offerId,
+    String buyerId,
+    String status,
+  );
+
   /// Calculate buyer dashboard statistics.
   Future<AppResult<BuyerDashboardStats>> getBuyerDashboardStats(String buyerId);
 

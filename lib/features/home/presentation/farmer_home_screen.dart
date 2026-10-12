@@ -25,6 +25,7 @@ import 'package:farmer_market_app/core/widgets/states/shimmer_loading.dart';
 import 'package:farmer_market_app/features/auth/domain/models/user_profile.dart';
 import 'package:farmer_market_app/features/auth/presentation/controllers/auth_providers.dart';
 import 'package:farmer_market_app/features/farmer/presentation/controllers/farmer_providers.dart';
+import 'package:farmer_market_app/features/farmer/presentation/widgets/counter_offer_dialog.dart';
 import 'package:farmer_market_app/features/farmer/presentation/screens/market_prices_screen.dart';
 import 'package:farmer_market_app/features/farmer/presentation/screens/my_produce_screen.dart';
 import 'package:farmer_market_app/features/farmer/presentation/screens/offers_screen.dart';
@@ -318,9 +319,27 @@ class _FarmerHomeScreenState extends ConsumerState<FarmerHomeScreen> {
                 offers: dashboardState.recentOffers,
                 onViewAll: () => setState(() => _currentIndex = 3),
                 onRespond: (offer, status) async {
+                  double? counteredPrice;
+                  double? counteredQuantity;
+                  String? counteredMessage;
+
+                  if (status.toLowerCase() == 'countered') {
+                    final terms = await CounterOfferDialog.show(context, offer);
+                    if (terms == null || !context.mounted) return;
+                    counteredPrice = terms.offeredPrice;
+                    counteredQuantity = terms.quantity;
+                    counteredMessage = terms.message;
+                  }
+
                   final ok = await ref
                       .read(offerControllerProvider.notifier)
-                      .respondToOffer(offer.id, status);
+                      .respondToOffer(
+                        offer.id,
+                        status,
+                        counteredPrice: counteredPrice,
+                        counteredQuantity: counteredQuantity,
+                        counteredMessage: counteredMessage,
+                      );
                   if (ok) {
                     ref
                         .read(farmerDashboardNotifierProvider.notifier)
@@ -333,12 +352,18 @@ class _FarmerHomeScreenState extends ConsumerState<FarmerHomeScreen> {
                             ? context.l10n.offerAcceptedStatus
                             : normalized == 'rejected'
                                 ? context.l10n.offerRejectedStatus
-                                : normalized == 'cancelled'
-                                    ? context.l10n.cancelledStatus
-                                    : '${context.l10n.statusLabel}: ${status[0].toUpperCase()}${status.substring(1).toLowerCase()}',
+                                : 'Counter offer sent to buyer.',
                         type: SnackBarType.success,
                       );
                     }
+                  } else if (context.mounted) {
+                    final error = ref.read(offerControllerProvider).errorMessage ??
+                        'Unable to update offer.';
+                    AppSnackBar.show(
+                      context,
+                      message: error,
+                      type: SnackBarType.error,
+                    );
                   }
                 },
               ),

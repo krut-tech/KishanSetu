@@ -42,7 +42,12 @@ abstract class FarmerRepository {
 
   /// Accept, reject, or counter an offer.
   Future<AppResult<OfferModel>> updateOfferStatus(
-      String offerId, String status);
+    String offerId,
+    String status, {
+    double? counteredPrice,
+    double? counteredQuantity,
+    String? counteredMessage,
+  });
 
   /// Calculate real dashboard statistics for a farmer.
   Future<AppResult<DashboardStats>> getFarmerDashboardStats(String farmerId);

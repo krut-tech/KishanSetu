@@ -75,6 +75,22 @@ class MockBuyerRepository implements BuyerRepository {
   }
 
   @override
+  Future<AppResult<OfferModel>> respondToCounterOffer(
+      String offerId, String buyerId, String status) async {
+    if (throwError) {
+      return left(const DatabaseFailure('Counter-offer response failed'));
+    }
+    final index = offersList.indexWhere((o) =>
+        o.id == offerId && o.buyerId == buyerId && o.status == 'countered');
+    if (index == -1) {
+      return left(const DatabaseFailure('Counter-offer not found or unauthorized'));
+    }
+    final updated = offersList[index].copyWith(status: status);
+    offersList[index] = updated;
+    return right(updated);
+  }
+
+  @override
   Future<AppResult<BuyerDashboardStats>> getBuyerDashboardStats(
       String buyerId) async {
     if (throwError) return left(const DatabaseFailure('Failed to fetch stats'));
@@ -269,7 +285,12 @@ class MockFarmerRepoForBuyer implements FarmerRepository {
 
   @override
   Future<AppResult<OfferModel>> updateOfferStatus(
-          String offerId, String status) async =>
+    String offerId,
+    String status, {
+    double? counteredPrice,
+    double? counteredQuantity,
+    String? counteredMessage,
+  }) async =>
       right(OfferModel(
           id: offerId,
           produceId: 'p1',
@@ -292,6 +313,43 @@ void main() {
     setUp(() {
       buyerRepo = MockBuyerRepository();
       farmerRepo = MockFarmerRepoForBuyer();
+    });
+
+    test('sold produce keeps sold quantity separate from remaining stock', () {
+      final produce = ProduceModel.fromMap({
+        'id': 'p-sold',
+        'farmer_id': 'farmer-100',
+        'name': 'Wheat',
+        'category': 'Grains',
+        'quantity': 0,
+        'sold_quantity': 80,
+        'unit': 'quintal',
+        'expected_price': 2400,
+        'status': 'sold',
+      });
+
+      expect(produce.quantity, equals(0));
+      expect(produce.soldQuantity, equals(80));
+    });
+
+    test('buyer can accept a farmer counter-offer', () async {
+      final counterOffer = OfferModel(
+        id: 'counter-1',
+        produceId: 'p-1',
+        farmerId: 'farmer-100',
+        buyerId: 'buyer-1',
+        offeredPrice: 2500,
+        quantity: 20,
+        status: 'countered',
+      );
+      buyerRepo.offersList = [counterOffer];
+      final controller = BuyerOfferController(buyerRepo);
+
+      final accepted =
+          await controller.respondToCounterOffer('counter-1', 'buyer-1', 'accepted');
+
+      expect(accepted, isTrue);
+      expect(controller.state.offers.single.status, equals('accepted'));
     });
 
     test('1-4. Buyer Dashboard loads statistics and marketplace data',

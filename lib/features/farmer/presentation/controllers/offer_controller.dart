@@ -116,13 +116,25 @@ class OfferController extends StateNotifier<OfferState> {
     state = const OfferState();
   }
 
-  Future<bool> respondToOffer(String offerId, String newStatus) async {
+  Future<bool> respondToOffer(
+    String offerId,
+    String newStatus, {
+    double? counteredPrice,
+    double? counteredQuantity,
+    String? counteredMessage,
+  }) async {
     state = state.copyWith(
         isSubmitting: true, clearError: true, clearSuccess: true);
     AppLogger.info(
         'OfferController responding to offer $offerId with status: $newStatus');
 
-    final result = await _repository.updateOfferStatus(offerId, newStatus);
+    final result = await _repository.updateOfferStatus(
+      offerId,
+      newStatus,
+      counteredPrice: counteredPrice,
+      counteredQuantity: counteredQuantity,
+      counteredMessage: counteredMessage,
+    );
 
     if (!mounted) return false;
 

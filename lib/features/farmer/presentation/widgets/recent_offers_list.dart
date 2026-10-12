@@ -91,10 +91,15 @@ class RecentOffersList extends StatelessWidget {
                 'pending' => AppStatusType.pending,
                 'accepted' => AppStatusType.accepted,
                 'rejected' => AppStatusType.rejected,
+                'countered' => AppStatusType.pending,
+                'cancelled' => AppStatusType.cancelled,
+                'canceled' => AppStatusType.cancelled,
                 'in_transit' => AppStatusType.inTransit,
                 'completed' => AppStatusType.completed,
                 _ => AppStatusType.pending,
               };
+              final isPending = offer.status.toLowerCase() == 'pending';
+              final isCountered = offer.status.toLowerCase() == 'countered';
 
               final formattedTime = offer.createdAt != null
                   ? DateFormat('dd MMM, hh:mm a').format(offer.createdAt!)
@@ -108,11 +113,12 @@ class RecentOffersList extends StatelessWidget {
                   offerPrice: offer.offeredPrice,
                   quantity: '${offer.quantity} ${offer.produceUnit ?? "units"}',
                   status: statusBadgeType,
+                  statusLabel: isCountered ? 'Countered' : null,
                   expiresText: formattedTime,
                   location: offer.buyerLocation,
-                  onAccept: () => onRespond?.call(offer, 'accepted'),
-                  onReject: () => onRespond?.call(offer, 'rejected'),
-                  onCounter: () => onRespond?.call(offer, 'countered'),
+                  onAccept: isPending ? () => onRespond?.call(offer, 'accepted') : null,
+                  onReject: isPending ? () => onRespond?.call(offer, 'rejected') : null,
+                  onCounter: isPending ? () => onRespond?.call(offer, 'countered') : null,
                 ),
               );
             }).toList(),

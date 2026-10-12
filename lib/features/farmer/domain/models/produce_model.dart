@@ -7,6 +7,8 @@ class ProduceModel extends Equatable {
   final String name;
   final String category;
   final double quantity;
+  /// Total quantity sold through accepted offers; distinct from remaining stock.
+  final double soldQuantity;
   final String unit;
   final double expectedPrice;
   final String status; // 'active', 'pending', 'sold', 'draft', 'archived'
@@ -28,6 +30,7 @@ class ProduceModel extends Equatable {
     required this.name,
     required this.category,
     required this.quantity,
+    this.soldQuantity = 0.0,
     required this.unit,
     required this.expectedPrice,
     this.status = 'active',
@@ -60,6 +63,7 @@ class ProduceModel extends Equatable {
       name: (map['name'] as String?) ?? '',
       category: (map['category'] as String?) ?? '',
       quantity: (map['quantity'] as num?)?.toDouble() ?? 0.0,
+      soldQuantity: (map['sold_quantity'] as num?)?.toDouble() ?? 0.0,
       unit: (map['unit'] as String?) ?? 'kg',
       expectedPrice: (map['expected_price'] as num?)?.toDouble() ?? 0.0,
       status: (map['status'] as String?) ?? 'active',
@@ -101,6 +105,7 @@ class ProduceModel extends Equatable {
     String? name,
     String? category,
     double? quantity,
+    double? soldQuantity,
     String? unit,
     double? expectedPrice,
     String? status,
@@ -119,6 +124,7 @@ class ProduceModel extends Equatable {
       name: name ?? this.name,
       category: category ?? this.category,
       quantity: quantity ?? this.quantity,
+      soldQuantity: soldQuantity ?? this.soldQuantity,
       unit: unit ?? this.unit,
       expectedPrice: expectedPrice ?? this.expectedPrice,
       status: status ?? this.status,
@@ -140,6 +146,7 @@ class ProduceModel extends Equatable {
         name,
         category,
         quantity,
+        soldQuantity,
         unit,
         expectedPrice,
         status,

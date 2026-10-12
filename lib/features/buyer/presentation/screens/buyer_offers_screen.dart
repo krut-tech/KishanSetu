@@ -241,6 +241,7 @@ class _BuyerOffersScreenState extends ConsumerState<BuyerOffersScreen> {
       itemBuilder: (context, index) {
         final offer = state.offers[index];
         final isPending = offer.status.toLowerCase() == 'pending';
+        final isCountered = offer.status.toLowerCase() == 'countered';
         final farmerIdDisplay = offer.farmerId.length > 6
             ? offer.farmerId.substring(0, 6)
             : offer.farmerId;
@@ -256,10 +257,44 @@ class _BuyerOffersScreenState extends ConsumerState<BuyerOffersScreen> {
           quantity:
               '${offer.quantity} ${offer.produceUnit ?? context.l10n.unitsLabel}',
           status: statusType,
+          statusLabel: isCountered ? 'Countered' : null,
           expiresText:
               '${context.l10n.statusLabel}: ${localizedOfferStatus(context, offer.status)}',
           message: offer.message,
           history: offer.history,
+          acceptLabel: isCountered ? 'Accept Counter' : 'Accept',
+          onAccept: isCountered ? () async {
+            final user = ref.read(authNotifierProvider).state.user;
+            if (user == null) return;
+            final success = await ref
+                .read(buyerOfferControllerProvider.notifier)
+                .respondToCounterOffer(offer.id, user.id, 'accepted');
+            if (!context.mounted) return;
+            if (success) {
+              ref.read(buyerDashboardNotifierProvider.notifier).refreshDashboard();
+              _fetchOffers();
+              AppSnackBar.show(context, message: 'Counter offer accepted.', type: SnackBarType.success);
+            } else {
+              final error = ref.read(buyerOfferControllerProvider).errorMessage ?? 'Failed to accept counter offer.';
+              AppSnackBar.show(context, message: error, type: SnackBarType.error);
+            }
+          } : null,
+          onReject: isCountered ? () async {
+            final user = ref.read(authNotifierProvider).state.user;
+            if (user == null) return;
+            final success = await ref
+                .read(buyerOfferControllerProvider.notifier)
+                .respondToCounterOffer(offer.id, user.id, 'rejected');
+            if (!context.mounted) return;
+            if (success) {
+              ref.read(buyerDashboardNotifierProvider.notifier).refreshDashboard();
+              _fetchOffers();
+              AppSnackBar.show(context, message: 'Counter offer rejected.', type: SnackBarType.info);
+            } else {
+              final error = ref.read(buyerOfferControllerProvider).errorMessage ?? 'Failed to reject counter offer.';
+              AppSnackBar.show(context, message: error, type: SnackBarType.error);
+            }
+          } : null,
           onCancel: isPending ? () => _handleCancelOffer(offer) : null,
           onEdit: isPending
               ? () async {

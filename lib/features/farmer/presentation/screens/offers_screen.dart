@@ -12,6 +12,7 @@ import 'package:farmer_market_app/core/widgets/states/shimmer_loading.dart';
 import 'package:farmer_market_app/features/auth/presentation/controllers/auth_providers.dart';
 import 'package:farmer_market_app/features/farmer/presentation/controllers/farmer_providers.dart';
 import 'package:farmer_market_app/features/farmer/presentation/controllers/offer_controller.dart';
+import 'package:farmer_market_app/features/farmer/presentation/widgets/counter_offer_dialog.dart';
 import 'package:farmer_market_app/core/localization/localization_extension.dart';
 
 class OffersScreen extends ConsumerStatefulWidget {
@@ -48,7 +49,7 @@ class _OffersScreenState extends ConsumerState<OffersScreen> {
     if (user != null) {
       ref.read(offerControllerProvider.notifier).fetchOffers(
             user.id,
-            status: _selectedStatus == 'All' ? null : _selectedStatus,
+            status: _selectedStatus,
           );
     }
   }
@@ -159,12 +160,15 @@ class _OffersScreenState extends ConsumerState<OffersScreen> {
       itemCount: state.offers.length,
       itemBuilder: (context, index) {
         final offer = state.offers[index];
+        final isPending = offer.status.toLowerCase() == 'pending';
+        final isCountered = offer.status.toLowerCase() == 'countered';
 
         final statusBadgeType = switch (offer.status.toLowerCase()) {
           'pending' => AppStatusType.pending,
           'accepted' => AppStatusType.accepted,
           'rejected' => AppStatusType.rejected,
-          'cancelled' => AppStatusType.expired,
+          'countered' => AppStatusType.pending,
+          'cancelled' => AppStatusType.cancelled,
           'in_transit' => AppStatusType.inTransit,
           'completed' => AppStatusType.completed,
           _ => AppStatusType.pending,
@@ -182,11 +186,12 @@ class _OffersScreenState extends ConsumerState<OffersScreen> {
             offerPrice: offer.offeredPrice,
             quantity: '${offer.quantity} ${offer.produceUnit ?? "units"}',
             status: statusBadgeType,
+            statusLabel: isCountered ? 'Countered' : null,
             expiresText: formattedTime,
             location: offer.buyerLocation,
             message: offer.message,
             history: offer.history,
-            onAccept: () async {
+            onAccept: isPending ? () async {
               final ok = await ref
                   .read(offerControllerProvider.notifier)
                   .respondToOffer(offer.id, 'accepted');
@@ -195,9 +200,12 @@ class _OffersScreenState extends ConsumerState<OffersScreen> {
                 if (context.mounted) {
                   AppSnackBar.show(context, message: context.l10n.offerAcceptedStatus, type: SnackBarType.success);
                 }
+              } else if (context.mounted) {
+                final error = ref.read(offerControllerProvider).errorMessage ?? 'Failed to accept offer.';
+                AppSnackBar.show(context, message: error, type: SnackBarType.error);
               }
-            },
-            onReject: () async {
+            } : null,
+            onReject: isPending ? () async {
               final ok = await ref
                   .read(offerControllerProvider.notifier)
                   .respondToOffer(offer.id, 'rejected');
@@ -206,22 +214,33 @@ class _OffersScreenState extends ConsumerState<OffersScreen> {
                 if (context.mounted) {
                   AppSnackBar.show(context, message: context.l10n.offerRejectedStatus, type: SnackBarType.info);
                 }
+              } else if (context.mounted) {
+                final error = ref.read(offerControllerProvider).errorMessage ?? 'Failed to reject offer.';
+                AppSnackBar.show(context, message: error, type: SnackBarType.error);
               }
-            },
-            onCancel: () async {
+            } : null,
+            onCounter: isPending ? () async {
+              final terms = await CounterOfferDialog.show(context, offer);
+              if (terms == null || !context.mounted) return;
               final ok = await ref
                   .read(offerControllerProvider.notifier)
-                  .respondToOffer(offer.id, 'cancelled');
+                  .respondToOffer(
+                    offer.id,
+                    'countered',
+                    counteredPrice: terms.offeredPrice,
+                    counteredQuantity: terms.quantity,
+                    counteredMessage: terms.message,
+                  );
               if (ok) {
                 ref.read(farmerDashboardNotifierProvider.notifier).refreshDashboard();
                 if (context.mounted) {
-                  AppSnackBar.show(context, message: 'Offer Cancelled', type: SnackBarType.info);
+                  AppSnackBar.show(context, message: 'Counter offer sent to buyer.', type: SnackBarType.success);
                 }
+              } else if (context.mounted) {
+                final error = ref.read(offerControllerProvider).errorMessage ?? 'Failed to send counter offer.';
+                AppSnackBar.show(context, message: error, type: SnackBarType.error);
               }
-            },
-            onCounter: () async {
-              AppSnackBar.show(context, message: context.l10n.counterOfferComingSoon, type: SnackBarType.info);
-            },
+            } : null,
           ),
         );
       },

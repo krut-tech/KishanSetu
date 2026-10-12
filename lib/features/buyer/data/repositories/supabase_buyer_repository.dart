@@ -121,7 +121,7 @@ class SupabaseBuyerRepository implements BuyerRepository {
       var query = _client
           .from('offers')
           .select(
-              '*, offer_history(*), produce:produce_id(name, unit, category, expected_price, location), farmer_profile:farmer_id(full_name, district)')
+              '*, offer_history(*), produce:produce_id(name, unit, category, expected_price, location, quantity), farmer_profile:farmer_id(full_name, district)')
           .eq('buyer_id', buyerId);
 
       if (status != null &&
@@ -179,7 +179,7 @@ class SupabaseBuyerRepository implements BuyerRepository {
       final response = await _client
           .from('offers')
           .select(
-              '*, offer_history(*), produce:produce_id(name, unit, category, expected_price, location), farmer_profile:farmer_id(full_name, district)')
+              '*, offer_history(*), produce:produce_id(name, unit, category, expected_price, location, quantity), farmer_profile:farmer_id(full_name, district)')
           .eq('id', created['id'] as String)
           .single();
 
@@ -220,7 +220,7 @@ class SupabaseBuyerRepository implements BuyerRepository {
           .eq('buyer_id', currentUser.id)
           .eq('status', 'pending')
           .select(
-              '*, offer_history(*), produce:produce_id(name, unit, category, expected_price, location), farmer_profile:farmer_id(full_name, district)')
+              '*, offer_history(*), produce:produce_id(name, unit, category, expected_price, location, quantity), farmer_profile:farmer_id(full_name, district)')
           .single();
 
       return right(OfferModel.fromMap(response));
@@ -245,7 +245,7 @@ class SupabaseBuyerRepository implements BuyerRepository {
       final response = await _client
           .from('offers')
           .select(
-              '*, offer_history(*), produce:produce_id(name, unit, category, expected_price, location), farmer_profile:farmer_id(full_name, district)')
+              '*, offer_history(*), produce:produce_id(name, unit, category, expected_price, location, quantity), farmer_profile:farmer_id(full_name, district)')
           .eq('produce_id', produceId)
           .eq('buyer_id', buyerId)
           .eq('status', 'pending')
@@ -317,7 +317,7 @@ class SupabaseBuyerRepository implements BuyerRepository {
           .eq('buyer_id', buyerId)
           .eq('status', 'pending')
           .select(
-              '*, produce:produce_id(name, unit, category, expected_price, location), farmer_profile:farmer_id(full_name, district)')
+              '*, produce:produce_id(name, unit, category, expected_price, location, quantity), farmer_profile:farmer_id(full_name, district)')
           .single();
 
       return right(OfferModel.fromMap(response));
@@ -329,6 +329,51 @@ class SupabaseBuyerRepository implements BuyerRepository {
       return left(DatabaseFailure(e.message, code: e.code));
     } catch (e, stack) {
       AppLogger.error('Unknown failure cancelling offer', e, stack);
+      return left(UnknownFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<AppResult<OfferModel>> respondToCounterOffer(
+    String offerId,
+    String buyerId,
+    String status,
+  ) async {
+    try {
+      final currentUser = _client.auth.currentUser;
+      if (currentUser == null || currentUser.id != buyerId) {
+        return left(const AuthFailure(
+            'You are not authorized to respond to this counter-offer.'));
+      }
+
+      final normalizedStatus = status.toLowerCase();
+      if (!{'accepted', 'rejected'}.contains(normalizedStatus)) {
+        return left(const DatabaseFailure(
+            'Counter-offer response must be accepted or rejected.'));
+      }
+
+      final updated = await _client.rpc('respond_to_counter_offer', params: {
+        'p_offer_id': offerId,
+        'p_status': normalizedStatus,
+      }) as Map<String, dynamic>;
+
+      final response = await _client
+          .from('offers')
+          .select(
+              '*, offer_history(*), produce:produce_id(name, unit, category, expected_price, location, quantity), farmer_profile:farmer_id(full_name, district)')
+          .eq('id', updated['id'] as String)
+          .single();
+
+      return right(OfferModel.fromMap(response));
+    } on SocketException catch (e) {
+      AppLogger.error('Network error responding to counter-offer', e);
+      return left(const NetworkFailure());
+    } on PostgrestException catch (e) {
+      AppLogger.error(
+          'Database failure responding to counter-offer: ${e.message}', e);
+      return left(DatabaseFailure(e.message, code: e.code));
+    } catch (e, stack) {
+      AppLogger.error('Unknown failure responding to counter-offer', e, stack);
       return left(UnknownFailure(e.toString()));
     }
   }
