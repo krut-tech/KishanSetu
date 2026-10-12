@@ -75,6 +75,22 @@ class MockBuyerRepository implements BuyerRepository {
   }
 
   @override
+  Future<AppResult<OfferModel>> respondToCounterOffer(
+      String offerId, String buyerId, String status) async {
+    if (throwError) {
+      return left(const DatabaseFailure('Counter-offer response failed'));
+    }
+    final index = offersList.indexWhere((o) =>
+        o.id == offerId && o.buyerId == buyerId && o.status == 'countered');
+    if (index == -1) {
+      return left(const DatabaseFailure('Counter-offer not found or unauthorized'));
+    }
+    final updated = offersList[index].copyWith(status: status);
+    offersList[index] = updated;
+    return right(updated);
+  }
+
+  @override
   Future<AppResult<BuyerDashboardStats>> getBuyerDashboardStats(
       String buyerId) async {
     if (throwError) return left(const DatabaseFailure('Failed to fetch stats'));
@@ -269,7 +285,12 @@ class MockFarmerRepoForBuyer implements FarmerRepository {
 
   @override
   Future<AppResult<OfferModel>> updateOfferStatus(
-          String offerId, String status) async =>
+    String offerId,
+    String status, {
+    double? counteredPrice,
+    double? counteredQuantity,
+    String? counteredMessage,
+  }) async =>
       right(OfferModel(
           id: offerId,
           produceId: 'p1',
