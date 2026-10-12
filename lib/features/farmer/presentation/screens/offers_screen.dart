@@ -161,6 +161,7 @@ class _OffersScreenState extends ConsumerState<OffersScreen> {
       itemBuilder: (context, index) {
         final offer = state.offers[index];
         final isPending = offer.status.toLowerCase() == 'pending';
+        final isCountered = offer.status.toLowerCase() == 'countered';
 
         final statusBadgeType = switch (offer.status.toLowerCase()) {
           'pending' => AppStatusType.pending,
@@ -185,6 +186,7 @@ class _OffersScreenState extends ConsumerState<OffersScreen> {
             offerPrice: offer.offeredPrice,
             quantity: '${offer.quantity} ${offer.produceUnit ?? "units"}',
             status: statusBadgeType,
+            statusLabel: isCountered ? 'Countered' : null,
             expiresText: formattedTime,
             location: offer.buyerLocation,
             message: offer.message,
