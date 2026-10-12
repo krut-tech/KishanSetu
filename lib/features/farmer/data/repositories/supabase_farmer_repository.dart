@@ -208,7 +208,7 @@ class SupabaseFarmerRepository implements FarmerRepository {
       var query = _client
           .from('offers')
           .select(
-              '*, offer_history(*), produce:produce_id(name, unit), buyer_profile:buyer_id(full_name, company_name, district, state)')
+              '*, offer_history(*), produce:produce_id(name, unit, quantity), buyer_profile:buyer_id(full_name, company_name, district, state)')
           .eq('farmer_id', farmerId);
 
       if (status != null &&
@@ -266,7 +266,12 @@ class SupabaseFarmerRepository implements FarmerRepository {
 
   @override
   Future<AppResult<OfferModel>> updateOfferStatus(
-      String offerId, String status) async {
+    String offerId,
+    String status, {
+    double? counteredPrice,
+    double? counteredQuantity,
+    String? counteredMessage,
+  }) async {
     try {
       AppLogger.info('Updating offer status id: $offerId to $status');
       final currentUser = _client.auth.currentUser;
@@ -302,12 +307,15 @@ class SupabaseFarmerRepository implements FarmerRepository {
       final created = await _client.rpc('respond_to_offer', params: {
         'p_offer_id': offerId,
         'p_status': normalizedStatus,
+        'p_countered_price': counteredPrice,
+        'p_countered_quantity': counteredQuantity,
+        'p_countered_message': counteredMessage,
       }) as Map<String, dynamic>;
 
       final response = await _client
           .from('offers')
           .select(
-              '*, produce:produce_id(name, unit), buyer_profile:buyer_id(full_name, company_name, district, state)')
+              '*, produce:produce_id(name, unit, quantity), buyer_profile:buyer_id(full_name, company_name, district, state)')
           .eq('id', created['id'] as String)
           .single();
 
