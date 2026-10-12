@@ -132,7 +132,12 @@ class MockFarmerRepository implements FarmerRepository {
 
   @override
   Future<AppResult<OfferModel>> updateOfferStatus(
-      String offerId, String status) async {
+    String offerId,
+    String status, {
+    double? counteredPrice,
+    double? counteredQuantity,
+    String? counteredMessage,
+  }) async {
     return right(OfferModel(
       id: offerId,
       produceId: 'p1',
