@@ -212,6 +212,51 @@ class BuyerOfferController extends StateNotifier<BuyerOfferState> {
     );
   }
 
+  Future<bool> respondToCounterOffer(String offerId, String buyerId, String status) async {
+    state = state.copyWith(
+      isSubmitting: true,
+      clearError: true,
+      clearSuccess: true,
+    );
+
+    final result = await _repository.respondToCounterOffer(
+      offerId,
+      buyerId,
+      status,
+    );
+
+    if (!mounted) return false;
+
+    return result.fold(
+      (failure) {
+        state = state.copyWith(
+          isSubmitting: false,
+          errorMessage: failure.message,
+        );
+        return false;
+      },
+      (updatedOffer) {
+        final filteredStatus = state.selectedStatus.toLowerCase();
+        final updatedList = state.offers
+            .map((offer) => offer.id == updatedOffer.id ? updatedOffer : offer)
+            .toList();
+        if (!state.offers.any((offer) => offer.id == updatedOffer.id)) {
+          updatedList.insert(0, updatedOffer);
+        }
+        if (filteredStatus != 'all' &&
+            filteredStatus != updatedOffer.status.toLowerCase()) {
+          updatedList.removeWhere((offer) => offer.id == updatedOffer.id);
+        }
+        state = state.copyWith(
+          isSubmitting: false,
+          offers: updatedList,
+          successMessage: 'Counter-offer response saved.',
+        );
+        return true;
+      },
+    );
+  }
+
   @override
   void dispose() {
     _offersChannel?.unsubscribe();
