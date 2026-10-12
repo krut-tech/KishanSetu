@@ -1054,4 +1054,156 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get mapLongitudeOptional => 'Map Longitude (optional)';
+
+  @override
+  String get activeStatus => 'Active';
+
+  @override
+  String get draftStatus => 'Draft';
+
+  @override
+  String get soldStatus => 'Sold';
+
+  @override
+  String get archivedStatus => 'Archived';
+
+  @override
+  String get unverifiedStatus => 'Unverified';
+
+  @override
+  String get verifiedStatus => 'Verified';
+
+  @override
+  String get openStatus => 'Open';
+
+  @override
+  String get investigatingStatus => 'Investigating';
+
+  @override
+  String get resolvedStatus => 'Resolved';
+
+  @override
+  String get dismissedStatus => 'Dismissed';
+
+  @override
+  String get pendingPickupStatus => 'Pending Pickup';
+
+  @override
+  String get scheduledStatus => 'Scheduled';
+
+  @override
+  String get inTransitStatus => 'In Transit';
+
+  @override
+  String get deliveredStatus => 'Delivered';
+
+  @override
+  String get expiredStatus => 'Expired';
+
+  @override
+  String get counteredStatus => 'Countered';
+
+  @override
+  String get messagesTitle => 'Messages';
+
+  @override
+  String get searchChatsHint => 'Search chats...';
+
+  @override
+  String get noConversationsYet => 'No conversations yet';
+
+  @override
+  String get contactFarmerSubtitle =>
+      'Open a produce listing and contact its farmer.';
+
+  @override
+  String get noChatsMatchSearch => 'No chats match your search';
+
+  @override
+  String get clearChatTitle => 'Clear this chat?';
+
+  @override
+  String get clearChatConfirmMessage =>
+      'Messages will be cleared only for you. The other person will still have their chat history.';
+
+  @override
+  String get clearChatButton => 'Clear Chat';
+
+  @override
+  String get deleteChatTitle => 'Delete this chat?';
+
+  @override
+  String get deleteChatConfirmMessage =>
+      'This removes the conversation from your chat list only. The other person keeps their messages.';
+
+  @override
+  String get deleteChatButton => 'Delete Chat';
+
+  @override
+  String get chatClearedSuccess => 'Chat cleared for you';
+
+  @override
+  String get couldNotClearChat => 'Could not clear chat';
+
+  @override
+  String get couldNotDeleteChat => 'Could not delete chat';
+
+  @override
+  String get messageNotSent => 'Message could not be sent';
+
+  @override
+  String get yesterday => 'Yesterday';
+
+  @override
+  String get sayHelloToStart => 'Say hello to start the conversation.';
+
+  @override
+  String get messageInputHint => 'Message farmer or buyer...';
+
+  @override
+  String get send => 'Send';
+
+  @override
+  String get kisanSetuChat => 'KisanSetu Chat';
+
+  @override
+  String get chatOptions => 'Chat Options';
+
+  @override
+  String get chatsNotAvailable => 'Chats are not available yet.';
+
+  @override
+  String youPrefix(String message) {
+    return 'You: $message';
+  }
+
+  @override
+  String get translateText => 'Translate';
+
+  @override
+  String get showOriginal => 'Show Original';
+
+  @override
+  String get translating => 'Translating...';
+
+  @override
+  String get translationFailed => 'Translation failed. Showing original text.';
+
+  @override
+  String get translatedByKisanSetu => 'Translated';
+
+  @override
+  String get kycVerificationTitle => 'KYC Verification';
+
+  @override
+  String get reportDisputeTitle => 'Report Dispute';
+
+  @override
+  String get adminDashboardTitle => 'Admin Dashboard';
+
+  @override
+  String get netRealizationLabel => 'Net Realization:';
+
+  @override
+  String get editedLabel => 'Edited';
 }

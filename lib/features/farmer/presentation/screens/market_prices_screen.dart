@@ -14,6 +14,7 @@ import 'package:farmer_market_app/core/widgets/states/shimmer_loading.dart';
 import 'package:farmer_market_app/features/farmer/presentation/controllers/farmer_providers.dart';
 import 'package:farmer_market_app/features/farmer/presentation/controllers/market_price_controller.dart';
 import 'package:farmer_market_app/features/farmer/presentation/screens/market_price_details_screen.dart';
+import 'package:farmer_market_app/features/translation/presentation/widgets/translated_text_widget.dart';
 
 class MarketPricesScreen extends ConsumerStatefulWidget {
   const MarketPricesScreen({super.key});
@@ -287,8 +288,8 @@ class _MarketPricesScreenState extends ConsumerState<MarketPricesScreen> {
                       Row(
                         children: [
                           Expanded(
-                            child: Text(
-                              item.produceName,
+                            child: TranslatedTextWidget(
+                              text: item.produceName,
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
@@ -296,6 +297,7 @@ class _MarketPricesScreenState extends ConsumerState<MarketPricesScreen> {
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
+                              showToggle: false,
                             ),
                           ),
                           if (item.category != null) ...[
@@ -328,8 +330,8 @@ class _MarketPricesScreenState extends ConsumerState<MarketPricesScreen> {
                         ],
                       ),
                       const SizedBox(height: 4),
-                      Text(
-                        '${item.marketName}${item.location != null ? " • ${item.location}" : ""}',
+                      TranslatedTextWidget(
+                        text: '${item.marketName}${item.location != null ? " • ${item.location}" : ""}',
                         style: TextStyle(
                           fontSize: 13,
                           color: secondaryText,
@@ -337,6 +339,7 @@ class _MarketPricesScreenState extends ConsumerState<MarketPricesScreen> {
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
+                        showToggle: false,
                       ),
                       const SizedBox(height: 2),
                       Text(

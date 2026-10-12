@@ -1,4 +1,5 @@
-import 'dart:async';
+import 'package:farmer_market_app/core/localization/localization_extension.dart';
+import 'package:farmer_market_app/core/routing/route_names.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -38,7 +39,9 @@ class _ChatListScreenState extends State<ChatListScreen> {
 
   Future<void> _refresh() async {
     final future = widget.repository.listConversationSummaries();
-    setState(() => _conversations = future);
+    setState(() {
+      _conversations = future;
+    });
     await future;
   }
 
@@ -58,35 +61,57 @@ class _ChatListScreenState extends State<ChatListScreen> {
       final period = local.hour < 12 ? 'AM' : 'PM';
       return '$hour:${local.minute.toString().padLeft(2, '0')} $period';
     }
-    if (isYesterday) return 'Yesterday';
+    if (isYesterday) return context.l10n.yesterday;
     return '${local.day.toString().padLeft(2, '0')}/${local.month.toString().padLeft(2, '0')}/${local.year}';
   }
 
+  void _handleBack() {
+    if (Navigator.of(context).canPop()) {
+      Navigator.of(context).pop();
+    } else if (context.canPop()) {
+      context.pop();
+    } else {
+      context.go(RouteNames.farmerHome);
+    }
+  }
+
   @override
-  Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(
-          title: _searching
-              ? TextField(
-                  controller: _searchController,
-                  autofocus: true,
-                  decoration: const InputDecoration(
-                    hintText: 'Search chats...',
-                    border: InputBorder.none,
-                  ),
-                  style: Theme.of(context).appBarTheme.titleTextStyle,
-                  onChanged: (value) =>
-                      setState(() => _query = value.trim().toLowerCase()),
-                )
-              : const Text('Messages'),
+  Widget build(BuildContext context) {
+    return PopScope(
+        canPop: false,
+        onPopInvokedWithResult: (didPop, result) {
+          if (didPop) return;
+          _handleBack();
+        },
+        child: Scaffold(
+          appBar: AppBar(
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back),
+              tooltip: context.l10n.retry,
+              onPressed: _handleBack,
+            ),
+            title: _searching
+                ? TextField(
+                    controller: _searchController,
+                    autofocus: true,
+                    decoration: InputDecoration(
+                      hintText: context.l10n.searchChatsHint,
+                      border: InputBorder.none,
+                    ),
+                    style: Theme.of(context).appBarTheme.titleTextStyle,
+                    onChanged: (value) =>
+                        setState(() => _query = value.trim().toLowerCase()),
+                  )
+                : Text(context.l10n.messagesTitle),
           actions: [
             IconButton(
-              tooltip: 'Notifications',
+              tooltip: context.l10n.notificationsTitle,
               icon: const Icon(Icons.notifications_outlined),
               onPressed: () => context.push('/notifications'),
             ),
             IconButton(
               icon: Icon(_searching ? Icons.close : Icons.search),
-              tooltip: _searching ? 'Close search' : 'Search chats',
+              tooltip: _searching ? context.l10n.hideDetails : context.l10n.searchChatsHint,
               onPressed: () {
                 setState(() {
                   _searching = !_searching;
@@ -106,9 +131,9 @@ class _ChatListScreenState extends State<ChatListScreen> {
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return ListView(
-                  children: [
-                    const SizedBox(height: 180),
-                    const Center(child: CircularProgressIndicator()),
+                  children: const [
+                    SizedBox(height: 180),
+                    Center(child: CircularProgressIndicator()),
                   ],
                 );
               }
@@ -117,17 +142,17 @@ class _ChatListScreenState extends State<ChatListScreen> {
                   children: [
                     const SizedBox(height: 120),
                     const Icon(Icons.chat_bubble_outline, size: 44),
-                    const Padding(
-                      padding: EdgeInsets.all(18),
+                    Padding(
+                      padding: const EdgeInsets.all(18),
                       child: Text(
-                        'Chats are not available yet. Check the chat database migration and connection.',
+                        context.l10n.chatsNotAvailable,
                         textAlign: TextAlign.center,
                       ),
                     ),
                     Center(
                       child: OutlinedButton(
                         onPressed: _refresh,
-                        child: const Text('Retry'),
+                        child: Text(context.l10n.retry),
                       ),
                     ),
                   ],
@@ -144,15 +169,15 @@ class _ChatListScreenState extends State<ChatListScreen> {
 
               if (allItems.isEmpty) {
                 return ListView(
-                  children: const [
-                    SizedBox(height: 140),
-                    Icon(Icons.forum_outlined, size: 48),
-                    SizedBox(height: 12),
-                    Center(child: Text('No conversations yet')),
-                    SizedBox(height: 6),
+                  children: [
+                    const SizedBox(height: 140),
+                    const Icon(Icons.forum_outlined, size: 48),
+                    const SizedBox(height: 12),
+                    Center(child: Text(context.l10n.noConversationsYet)),
+                    const SizedBox(height: 6),
                     Center(
                       child: Text(
-                        'Open a produce listing and contact its farmer.',
+                        context.l10n.contactFarmerSubtitle,
                       ),
                     ),
                   ],
@@ -160,11 +185,11 @@ class _ChatListScreenState extends State<ChatListScreen> {
               }
               if (items.isEmpty) {
                 return ListView(
-                  children: const [
-                    SizedBox(height: 140),
-                    Icon(Icons.search_off, size: 48),
-                    SizedBox(height: 12),
-                    Center(child: Text('No chats match your search')),
+                  children: [
+                    const SizedBox(height: 140),
+                    const Icon(Icons.search_off, size: 48),
+                    const SizedBox(height: 12),
+                    Center(child: Text(context.l10n.noChatsMatchSearch)),
                   ],
                 );
               }
@@ -179,9 +204,9 @@ class _ChatListScreenState extends State<ChatListScreen> {
                   final isMine = chat.lastMessageSenderId != null &&
                       chat.lastMessageSenderId == uid;
                   final previewText = chat.lastMessage == null
-                      ? 'Say hello to start the conversation'
+                      ? context.l10n.sayHelloToStart
                       : (isMine
-                          ? 'You: ${chat.lastMessage}'
+                          ? context.l10n.youPrefix(chat.lastMessage!)
                           : chat.lastMessage!);
 
                   return ListTile(
@@ -250,18 +275,43 @@ class _ChatListScreenState extends State<ChatListScreen> {
                           ),
                       ],
                     ),
-                    onTap: () => Navigator.of(context)
-                        .push(
-                      MaterialPageRoute<dynamic>(
-                        builder: (_) => ChatScreen(
-                          repository: widget.repository,
-                          conversation: chat.toConversation(),
-                          otherUserId: chat.otherUserId,
-                          otherUserName: chat.otherUserName,
+                    onTap: () async {
+                      if (chat.unreadCount > 0) {
+                        setState(() {
+                          _conversations = _conversations.then((list) {
+                            return list.map((c) {
+                              if (c.conversationId == chat.conversationId) {
+                                return ChatConversationSummary(
+                                  conversationId: c.conversationId,
+                                  farmerId: c.farmerId,
+                                  buyerId: c.buyerId,
+                                  produceId: c.produceId,
+                                  otherUserId: c.otherUserId,
+                                  otherUserName: c.otherUserName,
+                                  otherUserRole: c.otherUserRole,
+                                  otherUserAvatar: c.otherUserAvatar,
+                                  otherUserDistrict: c.otherUserDistrict,
+                                  lastMessage: c.lastMessage,
+                                  lastMessageAt: c.lastMessageAt,
+                                  lastMessageSenderId: c.lastMessageSenderId,
+                                  unreadCount: 0,
+                                );
+                              }
+                              return c;
+                            }).toList();
+                          });
+                        });
+                      }
+                      final result = await Navigator.of(context).push(
+                        MaterialPageRoute<dynamic>(
+                          builder: (_) => ChatScreen(
+                            repository: widget.repository,
+                            conversation: chat.toConversation(),
+                            otherUserId: chat.otherUserId,
+                            otherUserName: chat.otherUserName,
+                          ),
                         ),
-                      ),
-                    )
-                        .then((result) {
+                      );
                       if (result == 'deleted') {
                         if (mounted) {
                           setState(() {
@@ -274,12 +324,14 @@ class _ChatListScreenState extends State<ChatListScreen> {
                       } else {
                         _refresh();
                       }
-                    }),
+                    },
                   );
                 },
               );
             },
           ),
         ),
-      );
+      ),
+    );
+  }
 }

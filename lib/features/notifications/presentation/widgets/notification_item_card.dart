@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:farmer_market_app/features/notifications/domain/models/notification_model.dart';
 import 'package:farmer_market_app/core/localization/localization_extension.dart';
+import 'package:farmer_market_app/features/translation/presentation/widgets/translated_text_widget.dart';
 
 class NotificationItemCard extends StatelessWidget {
   final NotificationModel notification;
@@ -94,20 +95,22 @@ class NotificationItemCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    notification.title,
+                  TranslatedTextWidget(
+                    text: notification.title,
                     style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: notification.isRead
                           ? FontWeight.normal
                           : FontWeight.bold,
                     ),
+                    showToggle: false,
                   ),
                   const SizedBox(height: 4),
-                  Text(
-                    notification.message,
+                  TranslatedTextWidget(
+                    text: notification.message,
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
+                    showToggle: false,
                   ),
                   const SizedBox(height: 8),
                   Text(

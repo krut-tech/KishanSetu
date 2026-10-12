@@ -259,6 +259,12 @@ class PushNotificationService {
         await initialize();
       }
 
+      if (!_isInitialized) {
+        AppLogger.warning(
+            'PushNotificationService uninitialized. Skipping token sync.');
+        return;
+      }
+
       await requestNotificationPermission();
 
       final token = await FirebaseMessaging.instance.getToken();
@@ -316,6 +322,12 @@ class PushNotificationService {
     try {
       _tokenRefreshSubscription?.cancel();
       _tokenRefreshSubscription = null;
+
+      if (!_isInitialized && _lastSyncedToken == null) {
+        AppLogger.info(
+            'PushNotificationService uninitialized. Skipping token deactivation.');
+        return;
+      }
 
       final token =
           _lastSyncedToken ?? await FirebaseMessaging.instance.getToken();

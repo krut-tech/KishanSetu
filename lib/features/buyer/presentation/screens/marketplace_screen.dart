@@ -188,7 +188,7 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      '${state.produceList.length} Produce Available',
+                      '${state.produceList.length} ${context.l10n.availableProduce}',
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,

@@ -2121,6 +2121,300 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Map Longitude (optional)'**
   String get mapLongitudeOptional;
+
+  /// No description provided for @activeStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get activeStatus;
+
+  /// No description provided for @draftStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Draft'**
+  String get draftStatus;
+
+  /// No description provided for @soldStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Sold'**
+  String get soldStatus;
+
+  /// No description provided for @archivedStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Archived'**
+  String get archivedStatus;
+
+  /// No description provided for @unverifiedStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Unverified'**
+  String get unverifiedStatus;
+
+  /// No description provided for @verifiedStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Verified'**
+  String get verifiedStatus;
+
+  /// No description provided for @openStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get openStatus;
+
+  /// No description provided for @investigatingStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Investigating'**
+  String get investigatingStatus;
+
+  /// No description provided for @resolvedStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Resolved'**
+  String get resolvedStatus;
+
+  /// No description provided for @dismissedStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Dismissed'**
+  String get dismissedStatus;
+
+  /// No description provided for @pendingPickupStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending Pickup'**
+  String get pendingPickupStatus;
+
+  /// No description provided for @scheduledStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Scheduled'**
+  String get scheduledStatus;
+
+  /// No description provided for @inTransitStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'In Transit'**
+  String get inTransitStatus;
+
+  /// No description provided for @deliveredStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivered'**
+  String get deliveredStatus;
+
+  /// No description provided for @expiredStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Expired'**
+  String get expiredStatus;
+
+  /// No description provided for @counteredStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Countered'**
+  String get counteredStatus;
+
+  /// No description provided for @messagesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Messages'**
+  String get messagesTitle;
+
+  /// No description provided for @searchChatsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search chats...'**
+  String get searchChatsHint;
+
+  /// No description provided for @noConversationsYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No conversations yet'**
+  String get noConversationsYet;
+
+  /// No description provided for @contactFarmerSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Open a produce listing and contact its farmer.'**
+  String get contactFarmerSubtitle;
+
+  /// No description provided for @noChatsMatchSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'No chats match your search'**
+  String get noChatsMatchSearch;
+
+  /// No description provided for @clearChatTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear this chat?'**
+  String get clearChatTitle;
+
+  /// No description provided for @clearChatConfirmMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Messages will be cleared only for you. The other person will still have their chat history.'**
+  String get clearChatConfirmMessage;
+
+  /// No description provided for @clearChatButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear Chat'**
+  String get clearChatButton;
+
+  /// No description provided for @deleteChatTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this chat?'**
+  String get deleteChatTitle;
+
+  /// No description provided for @deleteChatConfirmMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'This removes the conversation from your chat list only. The other person keeps their messages.'**
+  String get deleteChatConfirmMessage;
+
+  /// No description provided for @deleteChatButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Chat'**
+  String get deleteChatButton;
+
+  /// No description provided for @chatClearedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat cleared for you'**
+  String get chatClearedSuccess;
+
+  /// No description provided for @couldNotClearChat.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not clear chat'**
+  String get couldNotClearChat;
+
+  /// No description provided for @couldNotDeleteChat.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not delete chat'**
+  String get couldNotDeleteChat;
+
+  /// No description provided for @messageNotSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Message could not be sent'**
+  String get messageNotSent;
+
+  /// No description provided for @yesterday.
+  ///
+  /// In en, this message translates to:
+  /// **'Yesterday'**
+  String get yesterday;
+
+  /// No description provided for @sayHelloToStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Say hello to start the conversation.'**
+  String get sayHelloToStart;
+
+  /// No description provided for @messageInputHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Message farmer or buyer...'**
+  String get messageInputHint;
+
+  /// No description provided for @send.
+  ///
+  /// In en, this message translates to:
+  /// **'Send'**
+  String get send;
+
+  /// No description provided for @kisanSetuChat.
+  ///
+  /// In en, this message translates to:
+  /// **'KisanSetu Chat'**
+  String get kisanSetuChat;
+
+  /// No description provided for @chatOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat Options'**
+  String get chatOptions;
+
+  /// No description provided for @chatsNotAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Chats are not available yet.'**
+  String get chatsNotAvailable;
+
+  /// No description provided for @youPrefix.
+  ///
+  /// In en, this message translates to:
+  /// **'You: {message}'**
+  String youPrefix(String message);
+
+  /// No description provided for @translateText.
+  ///
+  /// In en, this message translates to:
+  /// **'Translate'**
+  String get translateText;
+
+  /// No description provided for @showOriginal.
+  ///
+  /// In en, this message translates to:
+  /// **'Show Original'**
+  String get showOriginal;
+
+  /// No description provided for @translating.
+  ///
+  /// In en, this message translates to:
+  /// **'Translating...'**
+  String get translating;
+
+  /// No description provided for @translationFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Translation failed. Showing original text.'**
+  String get translationFailed;
+
+  /// No description provided for @translatedByKisanSetu.
+  ///
+  /// In en, this message translates to:
+  /// **'Translated'**
+  String get translatedByKisanSetu;
+
+  /// No description provided for @kycVerificationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'KYC Verification'**
+  String get kycVerificationTitle;
+
+  /// No description provided for @reportDisputeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Report Dispute'**
+  String get reportDisputeTitle;
+
+  /// No description provided for @adminDashboardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Admin Dashboard'**
+  String get adminDashboardTitle;
+
+  /// No description provided for @netRealizationLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Net Realization:'**
+  String get netRealizationLabel;
+
+  /// No description provided for @editedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Edited'**
+  String get editedLabel;
 }
 
 class _AppLocalizationsDelegate

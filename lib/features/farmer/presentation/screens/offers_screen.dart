@@ -14,6 +14,7 @@ import 'package:farmer_market_app/features/farmer/presentation/controllers/farme
 import 'package:farmer_market_app/features/farmer/presentation/controllers/offer_controller.dart';
 import 'package:farmer_market_app/features/farmer/presentation/widgets/counter_offer_dialog.dart';
 import 'package:farmer_market_app/core/localization/localization_extension.dart';
+import 'package:farmer_market_app/core/localization/status_localizer.dart';
 
 class OffersScreen extends ConsumerStatefulWidget {
   const OffersScreen({super.key});
@@ -186,7 +187,7 @@ class _OffersScreenState extends ConsumerState<OffersScreen> {
             offerPrice: offer.offeredPrice,
             quantity: '${offer.quantity} ${offer.produceUnit ?? "units"}',
             status: statusBadgeType,
-            statusLabel: isCountered ? 'Countered' : null,
+            statusLabel: isCountered ? localizedOfferStatus(context, offer.status) : null,
             expiresText: formattedTime,
             location: offer.buyerLocation,
             message: offer.message,

@@ -1,7 +1,10 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:farmer_market_app/core/localization/localization_extension.dart';
+import 'package:farmer_market_app/features/translation/presentation/widgets/translated_text_widget.dart';
 import '../data/chat_repository.dart';
+import 'chat_list_screen.dart';
 
 class ChatScreen extends StatefulWidget {
   final ChatRepository repository;
@@ -31,6 +34,7 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void initState() {
     super.initState();
+    unawaited(widget.repository.markIncomingRead(widget.conversation.id));
     _load();
     _channel = widget.repository.subscribeToMessages(widget.conversation.id,
         (message) {
@@ -42,7 +46,16 @@ class _ChatScreenState extends State<ChatScreen> {
       final existingIndex = _messages.indexWhere((m) => m.id == message.id);
       if (existingIndex >= 0) {
         setState(() {
-          _messages[existingIndex] = message;
+          final existing = _messages[existingIndex];
+          final updatedReadAt = message.readAt ?? existing.readAt;
+          _messages[existingIndex] = ChatMessage(
+            id: message.id,
+            conversationId: message.conversationId,
+            senderId: message.senderId,
+            body: message.body,
+            createdAt: message.createdAt,
+            readAt: updatedReadAt,
+          );
           _sortMessages();
         });
         return;
@@ -63,8 +76,6 @@ class _ChatScreenState extends State<ChatScreen> {
           await widget.repository.loadMessages(widget.conversation.id);
       if (!mounted) return;
       setState(() {
-        // Merge the initial query with realtime events received while it was
-        // in flight. Clearing and replacing the list here could drop messages.
         final byId = <String, ChatMessage>{
           for (final message in _messages) message.id: message,
           for (final message in messages) message.id: message,
@@ -99,16 +110,15 @@ class _ChatScreenState extends State<ChatScreen> {
       final confirmed = await showDialog<bool>(
         context: context,
         builder: (dialogContext) => AlertDialog(
-          title: const Text('Clear this chat?'),
-          content: const Text(
-              'Messages will be cleared only for you. The other person will still have their chat history.'),
+          title: Text(context.l10n.clearChatTitle),
+          content: Text(context.l10n.clearChatConfirmMessage),
           actions: [
             TextButton(
                 onPressed: () => Navigator.pop(dialogContext, false),
-                child: const Text('Cancel')),
+                child: Text(context.l10n.keepOffer)),
             FilledButton(
                 onPressed: () => Navigator.pop(dialogContext, true),
-                child: const Text('Clear chat')),
+                child: Text(context.l10n.clearChatButton)),
           ],
         ),
       );
@@ -122,12 +132,12 @@ class _ChatScreenState extends State<ChatScreen> {
           _clearedAt = clearedAt;
         });
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Chat cleared for you')),
+          SnackBar(content: Text(context.l10n.chatClearedSuccess)),
         );
       } catch (error) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Could not clear chat: $error')),
+            SnackBar(content: Text('${context.l10n.couldNotClearChat}: $error')),
           );
         }
       }
@@ -135,18 +145,17 @@ class _ChatScreenState extends State<ChatScreen> {
       final confirmed = await showDialog<bool>(
         context: context,
         builder: (dialogContext) => AlertDialog(
-          title: const Text('Delete this chat?'),
-          content: const Text(
-              'This removes the conversation from your chat list only. The other person keeps their messages.'),
+          title: Text(context.l10n.deleteChatTitle),
+          content: Text(context.l10n.deleteChatConfirmMessage),
           actions: [
             TextButton(
                 onPressed: () => Navigator.pop(dialogContext, false),
-                child: const Text('Cancel')),
+                child: Text(context.l10n.keepOffer)),
             FilledButton(
               style: FilledButton.styleFrom(
                   backgroundColor: Theme.of(dialogContext).colorScheme.error),
               onPressed: () => Navigator.pop(dialogContext, true),
-              child: const Text('Delete chat'),
+              child: Text(context.l10n.deleteChatButton),
             ),
           ],
         ),
@@ -158,7 +167,7 @@ class _ChatScreenState extends State<ChatScreen> {
       } catch (error) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Could not delete chat: $error')),
+            SnackBar(content: Text('${context.l10n.couldNotDeleteChat}: $error')),
           );
         }
       }
@@ -175,7 +184,7 @@ class _ChatScreenState extends State<ChatScreen> {
     } catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Message could not be sent: $error')));
+            SnackBar(content: Text('${context.l10n.messageNotSent}: $error')));
       }
     } finally {
       if (mounted) setState(() => _sending = false);
@@ -190,20 +199,18 @@ class _ChatScreenState extends State<ChatScreen> {
     super.dispose();
   }
 
-  /// WhatsApp-style day label ("Today" / "Yesterday" / date) shown once per
-  /// day between messages.
   String _dayLabel(DateTime dt) {
     final local = dt.toLocal();
     final now = DateTime.now();
     final isToday = local.year == now.year &&
         local.month == now.month &&
         local.day == now.day;
-    if (isToday) return 'Today';
+    if (isToday) return context.l10n.today;
     final yesterday = now.subtract(const Duration(days: 1));
     final isYesterday = local.year == yesterday.year &&
         local.month == yesterday.month &&
         local.day == yesterday.day;
-    if (isYesterday) return 'Yesterday';
+    if (isYesterday) return context.l10n.yesterday;
     const months = [
       'Jan',
       'Feb',
@@ -230,174 +237,198 @@ class _ChatScreenState extends State<ChatScreen> {
         prev.day != curr.day;
   }
 
+  void _handleBack() {
+    if (Navigator.of(context).canPop()) {
+      Navigator.of(context).pop();
+    } else {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute<void>(
+          builder: (_) => ChatListScreen(
+            repository: widget.repository,
+          ),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
-    return Scaffold(
-      appBar: AppBar(
-        title: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(widget.otherUserName),
-          Text('KisanSetu chat', style: Theme.of(context).textTheme.labelSmall),
-        ]),
-        actions: [
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.more_vert),
-            tooltip: 'Chat options',
-            onSelected: _handleChatMenu,
-            itemBuilder: (context) => const [
-              PopupMenuItem(
-                  value: 'clear',
-                  child: ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    leading: Icon(Icons.cleaning_services_outlined),
-                    title: Text('Clear chat'),
-                  )),
-              PopupMenuItem(
-                  value: 'delete',
-                  child: ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    leading: Icon(Icons.delete_outline_rounded),
-                    title: Text('Delete chat'),
-                  )),
-            ],
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (bool didPop, Object? result) {
+        if (didPop) return;
+        _handleBack();
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            tooltip: context.l10n.retry,
+            onPressed: _handleBack,
           ),
-        ],
-      ),
-      body: Column(children: [
-        Expanded(
-            child: _loading
-                ? const Center(child: CircularProgressIndicator())
-                : _error != null
-                    ? Center(
-                        child: Padding(
-                            padding: const EdgeInsets.all(24),
-                            child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const Icon(Icons.wifi_off_outlined, size: 38),
-                                  const SizedBox(height: 12),
-                                  const Text(
-                                      'Could not load messages. Check your connection and the chat database migration.'),
-                                  const SizedBox(height: 12),
-                                  OutlinedButton(
-                                      onPressed: () {
-                                        setState(() {
-                                          _loading = true;
-                                          _error = null;
-                                        });
-                                        _load();
-                                      },
-                                      child: const Text('Retry')),
-                                ])))
-                    : _messages.isEmpty
-                        ? const Center(
-                            child: Text('Say hello to start the conversation.'))
-                        : ListView.builder(
-                            // Keep chronological chat layout explicit: oldest at top,
-                            // newest at bottom. This avoids a reversed list rendering
-                            // the newest messages above older history.
-                            reverse: true,
-                            controller: _scrollController,
-                            padding: const EdgeInsets.all(16),
-                            itemCount: _messages.length,
-                            itemBuilder: (context, index) {
-                              final reversedIndex =
-                                  _messages.length - 1 - index;
-                              final m = _messages[reversedIndex];
-                              final mine = m.senderId == _userId;
-                              final bubble = Align(
-                                  alignment: mine
-                                      ? Alignment.centerRight
-                                      : Alignment.centerLeft,
-                                  child: Container(
-                                    constraints: BoxConstraints(
-                                        maxWidth:
-                                            MediaQuery.sizeOf(context).width *
-                                                .78),
-                                    margin: const EdgeInsets.only(bottom: 10),
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 14, vertical: 10),
-                                    decoration: BoxDecoration(
-                                        color: mine
-                                            ? colors.primaryContainer
-                                            : colors.surfaceContainerHighest,
-                                        borderRadius:
-                                            BorderRadius.circular(16)),
-                                    child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.end,
-                                        children: [
-                                          Text(m.body,
+          title: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(widget.otherUserName),
+            Text(context.l10n.kisanSetuChat, style: Theme.of(context).textTheme.labelSmall),
+          ]),
+          actions: [
+            PopupMenuButton<String>(
+              icon: const Icon(Icons.more_vert),
+              tooltip: context.l10n.chatOptions,
+              onSelected: _handleChatMenu,
+              itemBuilder: (context) => [
+                PopupMenuItem(
+                    value: 'clear',
+                    child: ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: const Icon(Icons.cleaning_services_outlined),
+                      title: Text(context.l10n.clearChatButton),
+                    )),
+                PopupMenuItem(
+                    value: 'delete',
+                    child: ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: const Icon(Icons.delete_outline_rounded),
+                      title: Text(context.l10n.deleteChatButton),
+                    )),
+              ],
+            ),
+          ],
+        ),
+        body: Column(children: [
+          Expanded(
+              child: _loading
+                  ? const Center(child: CircularProgressIndicator())
+                  : _error != null
+                      ? Center(
+                          child: Padding(
+                              padding: const EdgeInsets.all(24),
+                              child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(Icons.wifi_off_outlined, size: 38),
+                                    const SizedBox(height: 12),
+                                    Text(context.l10n.chatsNotAvailable),
+                                    const SizedBox(height: 12),
+                                    OutlinedButton(
+                                        onPressed: () {
+                                          setState(() {
+                                            _loading = true;
+                                            _error = null;
+                                          });
+                                          _load();
+                                        },
+                                        child: Text(context.l10n.retry)),
+                                  ])))
+                      : _messages.isEmpty
+                          ? Center(
+                              child: Text(context.l10n.sayHelloToStart))
+                          : ListView.builder(
+                              reverse: true,
+                              controller: _scrollController,
+                              padding: const EdgeInsets.all(16),
+                              itemCount: _messages.length,
+                              itemBuilder: (context, index) {
+                                final reversedIndex =
+                                    _messages.length - 1 - index;
+                                final m = _messages[reversedIndex];
+                                final mine = m.senderId == _userId;
+                                final bubble = Align(
+                                    alignment: mine
+                                        ? Alignment.centerRight
+                                        : Alignment.centerLeft,
+                                    child: Container(
+                                      constraints: BoxConstraints(
+                                          maxWidth:
+                                              MediaQuery.sizeOf(context).width *
+                                                  .78),
+                                      margin: const EdgeInsets.only(bottom: 10),
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 14, vertical: 10),
+                                      decoration: BoxDecoration(
+                                          color: mine
+                                              ? colors.primaryContainer
+                                              : colors.surfaceContainerHighest,
+                                          borderRadius:
+                                              BorderRadius.circular(16)),
+                                      child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.end,
+                                          children: [
+                                            TranslatedTextWidget(
+                                              text: m.body,
                                               style: TextStyle(
                                                   color: mine
-                                                      ? colors
-                                                          .onPrimaryContainer
-                                                      : colors.onSurface)),
-                                          const SizedBox(height: 4),
-                                          Text(
-                                              '${m.createdAt.toLocal().hour.toString().padLeft(2, '0')}:${m.createdAt.toLocal().minute.toString().padLeft(2, '0')}${mine && m.readAt != null ? '  ✓✓' : ''}',
+                                                      ? colors.onPrimaryContainer
+                                                      : colors.onSurface),
+                                              showToggle: !mine,
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                                '${m.createdAt.toLocal().hour.toString().padLeft(2, '0')}:${m.createdAt.toLocal().minute.toString().padLeft(2, '0')}${mine && m.readAt != null ? '  ✓✓' : ''}',
+                                                style: Theme.of(context)
+                                                    .textTheme
+                                                    .labelSmall),
+                                          ]),
+                                    ));
+
+                                if (!_isNewDay(reversedIndex)) return bubble;
+
+                                return Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.stretch,
+                                    children: [
+                                      Center(
+                                        child: Container(
+                                          margin:
+                                              const EdgeInsets.only(bottom: 10),
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 12, vertical: 4),
+                                          decoration: BoxDecoration(
+                                              color:
+                                                  colors.surfaceContainerHighest,
+                                              borderRadius:
+                                                  BorderRadius.circular(10)),
+                                          child: Text(_dayLabel(m.createdAt),
                                               style: Theme.of(context)
                                                   .textTheme
                                                   .labelSmall),
-                                        ]),
-                                  ));
-
-                              if (!_isNewDay(reversedIndex)) return bubble;
-
-                              return Column(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.stretch,
-                                  children: [
-                                    Center(
-                                      child: Container(
-                                        margin:
-                                            const EdgeInsets.only(bottom: 10),
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 12, vertical: 4),
-                                        decoration: BoxDecoration(
-                                            color:
-                                                colors.surfaceContainerHighest,
-                                            borderRadius:
-                                                BorderRadius.circular(10)),
-                                        child: Text(_dayLabel(m.createdAt),
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .labelSmall),
+                                        ),
                                       ),
-                                    ),
-                                    bubble,
-                                  ]);
-                            })),
-        SafeArea(
-            top: false,
-            child: Padding(
-                padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
-                child:
-                    Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
-                  Expanded(
-                      child: TextField(
-                          controller: _textController,
-                          minLines: 1,
-                          maxLines: 5,
-                          maxLength: 4000,
-                          textCapitalization: TextCapitalization.sentences,
-                          decoration: const InputDecoration(
-                              hintText: 'Message farmer or buyer...',
-                              border: OutlineInputBorder(),
-                              counterText: ''),
-                          onSubmitted: (_) => _send())),
-                  const SizedBox(width: 8),
-                  IconButton.filled(
-                      onPressed: _sending ? null : _send,
-                      tooltip: 'Send message',
-                      icon: _sending
-                          ? const SizedBox(
-                              width: 18,
-                              height: 18,
-                              child: CircularProgressIndicator(strokeWidth: 2))
-                          : const Icon(Icons.send_rounded)),
-                ]))),
-      ]),
+                                      bubble,
+                                    ]);
+                              })),
+          SafeArea(
+              top: false,
+              child: Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+                  child:
+                      Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
+                    Expanded(
+                        child: TextField(
+                            controller: _textController,
+                            minLines: 1,
+                            maxLines: 5,
+                            maxLength: 4000,
+                            textCapitalization: TextCapitalization.sentences,
+                            decoration: InputDecoration(
+                                hintText: context.l10n.messageInputHint,
+                                border: const OutlineInputBorder(),
+                                counterText: ''),
+                            onSubmitted: (_) => _send())),
+                    const SizedBox(width: 8),
+                    IconButton.filled(
+                        onPressed: _sending ? null : _send,
+                        tooltip: context.l10n.send,
+                        icon: _sending
+                            ? const SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(strokeWidth: 2))
+                            : const Icon(Icons.send_rounded)),
+                  ]))),
+        ]),
+      ),
     );
   }
 }

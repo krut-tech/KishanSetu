@@ -250,14 +250,13 @@ class _BuyerOffersScreenState extends ConsumerState<BuyerOffersScreen> {
 
         return OfferCard(
           cropName: offer.produceName ?? context.l10n.produceListingLabel,
-          buyerName: offer.farmerName != null
-              ? '${context.l10n.farmerLabel}: ${offer.farmerName}'
-              : '${context.l10n.farmerLabel} ID: $farmerIdDisplay',
+          buyerName: offer.farmerName ?? 'ID: $farmerIdDisplay',
+          partyLabel: context.l10n.farmerLabel,
           offerPrice: offer.offeredPrice,
           quantity:
               '${offer.quantity} ${offer.produceUnit ?? context.l10n.unitsLabel}',
           status: statusType,
-          statusLabel: isCountered ? 'Countered' : null,
+          statusLabel: isCountered ? localizedOfferStatus(context, offer.status) : null,
           expiresText:
               '${context.l10n.statusLabel}: ${localizedOfferStatus(context, offer.status)}',
           message: offer.message,

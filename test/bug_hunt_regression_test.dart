@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:farmer_market_app/l10n/generated/app_localizations.dart';
 import 'package:farmer_market_app/core/widgets/badges/app_status_badge.dart';
 import 'package:farmer_market_app/core/widgets/cards/offer_card.dart';
 import 'package:farmer_market_app/core/widgets/cards/produce_card.dart';
@@ -71,6 +73,13 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [Locale('en')],
           home: Scaffold(
             body: ProduceCard(
               cropName: 'Sharbati Wheat',
@@ -135,6 +144,13 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [Locale('en')],
           home: Scaffold(
             body: SingleChildScrollView(
               child: OfferCard(
@@ -162,6 +178,38 @@ void main() {
       expect(find.text('v2'), findsOneWidget);
       expect(find.text('v3'), findsOneWidget);
       expect(find.text('₹2350.00 / 10.0 units (Current)'), findsOneWidget);
+    });
+
+    testWidgets(
+        'OfferCard displays partyLabel correctly without duplicating Buyer/Farmer prefix',
+        (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [Locale('en')],
+          home: const Scaffold(
+            body: SingleChildScrollView(
+              child: OfferCard(
+                cropName: 'Organic Wheat',
+                buyerName: 'Ramesh Patel',
+                partyLabel: 'Farmer',
+                offerPrice: 2400.0,
+                quantity: '50 quintals',
+                status: AppStatusType.pending,
+                expiresText: 'Status: PENDING',
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(find.textContaining('Farmer: Ramesh Patel'), findsOneWidget);
+      expect(find.textContaining('Buyer: Farmer:'), findsNothing);
     });
   });
 

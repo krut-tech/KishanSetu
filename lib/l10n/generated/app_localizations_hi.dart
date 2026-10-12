@@ -1054,4 +1054,155 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get mapLongitudeOptional => 'मैप देशांतर (वैकल्पिक)';
+
+  @override
+  String get activeStatus => 'सक्रिय';
+
+  @override
+  String get draftStatus => 'मसौदा';
+
+  @override
+  String get soldStatus => 'बेचा गया';
+
+  @override
+  String get archivedStatus => 'संग्रहीत';
+
+  @override
+  String get unverifiedStatus => 'असत्यापित';
+
+  @override
+  String get verifiedStatus => 'सत्यापित';
+
+  @override
+  String get openStatus => 'खुला';
+
+  @override
+  String get investigatingStatus => 'जांच के अधीन';
+
+  @override
+  String get resolvedStatus => 'हल हो गया';
+
+  @override
+  String get dismissedStatus => 'खारिज';
+
+  @override
+  String get pendingPickupStatus => 'पिकअप लंबित';
+
+  @override
+  String get scheduledStatus => 'अनुसूचित';
+
+  @override
+  String get inTransitStatus => 'मार्ग में';
+
+  @override
+  String get deliveredStatus => 'वितरित';
+
+  @override
+  String get expiredStatus => 'समाप्त';
+
+  @override
+  String get counteredStatus => 'प्रति-प्रस्तावित';
+
+  @override
+  String get messagesTitle => 'संदेश';
+
+  @override
+  String get searchChatsHint => 'चैट खोजें...';
+
+  @override
+  String get noConversationsYet => 'अभी तक कोई बातचीत नहीं';
+
+  @override
+  String get contactFarmerSubtitle => 'उपज सूची खोलें और किसान से संपर्क करें।';
+
+  @override
+  String get noChatsMatchSearch => 'आपकी खोज से कोई चैट मेल नहीं खाती';
+
+  @override
+  String get clearChatTitle => 'यह चैट साफ़ करें?';
+
+  @override
+  String get clearChatConfirmMessage =>
+      'संदेश केवल आपके लिए साफ़ किए जाएंगे। दूसरे व्यक्ति के पास उनका चैट इतिहास रहेगा।';
+
+  @override
+  String get clearChatButton => 'चैट साफ़ करें';
+
+  @override
+  String get deleteChatTitle => 'यह चैट हटाएं?';
+
+  @override
+  String get deleteChatConfirmMessage =>
+      'यह केवल आपकी चैट सूची से बातचीत हटाता है। दूसरा व्यक्ति अपने संदेश रखता है।';
+
+  @override
+  String get deleteChatButton => 'चैट हटाएं';
+
+  @override
+  String get chatClearedSuccess => 'आपके लिए चैट साफ़ कर दी गई';
+
+  @override
+  String get couldNotClearChat => 'चैट साफ़ नहीं हो सकी';
+
+  @override
+  String get couldNotDeleteChat => 'चैट हटाई नहीं जा सकी';
+
+  @override
+  String get messageNotSent => 'संदेश नहीं भेजा जा सका';
+
+  @override
+  String get yesterday => 'कल';
+
+  @override
+  String get sayHelloToStart => 'बातचीत शुरू करने के लिए हैलो कहें।';
+
+  @override
+  String get messageInputHint => 'किसान या खरीदार को संदेश भेजें...';
+
+  @override
+  String get send => 'भेजें';
+
+  @override
+  String get kisanSetuChat => 'किसानसेतु चैट';
+
+  @override
+  String get chatOptions => 'चैट विकल्प';
+
+  @override
+  String get chatsNotAvailable => 'चैट अभी उपलब्ध नहीं हैं।';
+
+  @override
+  String youPrefix(String message) {
+    return 'आप: $message';
+  }
+
+  @override
+  String get translateText => 'अनुवाद करें';
+
+  @override
+  String get showOriginal => 'मूल दिखाएं';
+
+  @override
+  String get translating => 'अनुवाद हो रहा है...';
+
+  @override
+  String get translationFailed => 'अनुवाद विफल रहा। मूल पाठ दिखाया जा रहा है।';
+
+  @override
+  String get translatedByKisanSetu => 'अनुवादित';
+
+  @override
+  String get kycVerificationTitle => 'केवाईसी सत्यापन';
+
+  @override
+  String get reportDisputeTitle => 'विवाद की रिपोर्ट करें';
+
+  @override
+  String get adminDashboardTitle => 'प्रशासक डैशबोर्ड';
+
+  @override
+  String get netRealizationLabel => 'शुद्ध मूल्य:';
+
+  @override
+  String get editedLabel => 'संशोधित';
 }

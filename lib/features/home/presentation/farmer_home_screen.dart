@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:farmer_market_app/core/animations/staggered_reveal.dart';
@@ -48,6 +49,30 @@ class FarmerHomeScreen extends ConsumerStatefulWidget {
 
 class _FarmerHomeScreenState extends ConsumerState<FarmerHomeScreen> {
   int _currentIndex = 0;
+  DateTime? _lastBackPressTime;
+
+  void _handleBackPress(bool didPop) {
+    if (didPop) return;
+
+    if (_currentIndex != 0) {
+      setState(() => _currentIndex = 0);
+      return;
+    }
+
+    final now = DateTime.now();
+    if (_lastBackPressTime == null ||
+        now.difference(_lastBackPressTime!) > const Duration(seconds: 2)) {
+      _lastBackPressTime = now;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Press back again to exit'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    } else {
+      SystemNavigator.pop();
+    }
+  }
 
   @override
   void initState() {
@@ -92,112 +117,118 @@ class _FarmerHomeScreenState extends ConsumerState<FarmerHomeScreen> {
       _buildProfileTab(context, profile),
     ];
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(context.l10n.farmerHomeTitle),
-        actions: [
-          if (profile?.isAdmin == true)
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        _handleBackPress(didPop);
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(context.l10n.farmerHomeTitle),
+          actions: [
+            if (profile?.isAdmin == true)
+              IconButton(
+                tooltip: 'Admin Panel',
+                icon: const Icon(Icons.admin_panel_settings_outlined),
+                onPressed: () => context.push(RouteNames.adminPanel),
+              ),
             IconButton(
-              tooltip: 'Admin Panel',
-              icon: const Icon(Icons.admin_panel_settings_outlined),
-              onPressed: () => context.push(RouteNames.adminPanel),
-            ),
-          IconButton(
-            tooltip: 'Messages',
-            icon: const Icon(Icons.forum_outlined),
-            onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute<void>(
-                builder: (_) => ChatListScreen(
-                  repository: ChatRepository(Supabase.instance.client),
+              tooltip: 'Messages',
+              icon: const Icon(Icons.forum_outlined),
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => ChatListScreen(
+                    repository: ChatRepository(Supabase.instance.client),
+                  ),
                 ),
               ),
             ),
-          ),
-          const NotificationBadgeIcon(),
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.language),
-            tooltip: context.l10n.selectLanguage,
-            onSelected: (code) {
-              ref.read(localeControllerProvider.notifier).setLocale(code);
-            },
-            itemBuilder: (context) => [
-              PopupMenuItem(
-                value: AppConstants.localeEnglish,
-                child: Row(
-                  children: [
-                    if (currentLocale.languageCode ==
-                        AppConstants.localeEnglish)
-                      Icon(Icons.check, size: 18, color: colorScheme.primary),
-                    const SizedBox(width: 8),
-                    Text(context.l10n.english),
-                  ],
+            const NotificationBadgeIcon(),
+            PopupMenuButton<String>(
+              icon: const Icon(Icons.language),
+              tooltip: context.l10n.selectLanguage,
+              onSelected: (code) {
+                ref.read(localeControllerProvider.notifier).setLocale(code);
+              },
+              itemBuilder: (context) => [
+                PopupMenuItem(
+                  value: AppConstants.localeEnglish,
+                  child: Row(
+                    children: [
+                      if (currentLocale.languageCode ==
+                          AppConstants.localeEnglish)
+                        Icon(Icons.check, size: 18, color: colorScheme.primary),
+                      const SizedBox(width: 8),
+                      Text(context.l10n.english),
+                    ],
+                  ),
                 ),
-              ),
-              PopupMenuItem(
-                value: AppConstants.localeHindi,
-                child: Row(
-                  children: [
-                    if (currentLocale.languageCode == AppConstants.localeHindi)
-                      Icon(Icons.check, size: 18, color: colorScheme.primary),
-                    const SizedBox(width: 8),
-                    Text(context.l10n.hindi),
-                  ],
+                PopupMenuItem(
+                  value: AppConstants.localeHindi,
+                  child: Row(
+                    children: [
+                      if (currentLocale.languageCode == AppConstants.localeHindi)
+                        Icon(Icons.check, size: 18, color: colorScheme.primary),
+                      const SizedBox(width: 8),
+                      Text(context.l10n.hindi),
+                    ],
+                  ),
                 ),
-              ),
-              PopupMenuItem(
-                value: AppConstants.localeGujarati,
-                child: Row(
-                  children: [
-                    if (currentLocale.languageCode ==
-                        AppConstants.localeGujarati)
-                      Icon(Icons.check, size: 18, color: colorScheme.primary),
-                    const SizedBox(width: 8),
-                    Text(context.l10n.gujarati),
-                  ],
+                PopupMenuItem(
+                  value: AppConstants.localeGujarati,
+                  child: Row(
+                    children: [
+                      if (currentLocale.languageCode ==
+                          AppConstants.localeGujarati)
+                        Icon(Icons.check, size: 18, color: colorScheme.primary),
+                      const SizedBox(width: 8),
+                      Text(context.l10n.gujarati),
+                    ],
+                  ),
                 ),
-              ),
-            ],
-          ),
-        ],
-      ),
-      body: SafeArea(
-        top: false,
-        bottom: false,
-        child: FadeIndexedStack(
-          index: _currentIndex,
-          children: pages,
+              ],
+            ),
+          ],
         ),
-      ),
-      bottomNavigationBar: AppBottomNavigationBar(
-        selectedIndex: _currentIndex,
-        onDestinationSelected: (index) => setState(() => _currentIndex = index),
-        items: [
-          AppBottomNavItem(
-            icon: Icons.home_outlined,
-            activeIcon: Icons.home_rounded,
-            label: context.l10n.home,
+        body: SafeArea(
+          top: false,
+          bottom: false,
+          child: FadeIndexedStack(
+            index: _currentIndex,
+            children: pages,
           ),
-          AppBottomNavItem(
-            icon: Icons.trending_up_outlined,
-            activeIcon: Icons.trending_up_rounded,
-            label: context.l10n.marketPrices,
-          ),
-          AppBottomNavItem(
-            icon: Icons.eco_outlined,
-            activeIcon: Icons.eco_rounded,
-            label: context.l10n.myProduce,
-          ),
-          AppBottomNavItem(
-            icon: Icons.local_offer_outlined,
-            activeIcon: Icons.local_offer_rounded,
-            label: context.l10n.offers,
-          ),
-          AppBottomNavItem(
-            icon: Icons.person_outline_rounded,
-            activeIcon: Icons.person_rounded,
-            label: context.l10n.profile,
-          ),
-        ],
+        ),
+        bottomNavigationBar: AppBottomNavigationBar(
+          selectedIndex: _currentIndex,
+          onDestinationSelected: (index) => setState(() => _currentIndex = index),
+          items: [
+            AppBottomNavItem(
+              icon: Icons.home_outlined,
+              activeIcon: Icons.home_rounded,
+              label: context.l10n.home,
+            ),
+            AppBottomNavItem(
+              icon: Icons.trending_up_outlined,
+              activeIcon: Icons.trending_up_rounded,
+              label: context.l10n.marketPrices,
+            ),
+            AppBottomNavItem(
+              icon: Icons.eco_outlined,
+              activeIcon: Icons.eco_rounded,
+              label: context.l10n.myProduce,
+            ),
+            AppBottomNavItem(
+              icon: Icons.local_offer_outlined,
+              activeIcon: Icons.local_offer_rounded,
+              label: context.l10n.offers,
+            ),
+            AppBottomNavItem(
+              icon: Icons.person_outline_rounded,
+              activeIcon: Icons.person_rounded,
+              label: context.l10n.profile,
+            ),
+          ],
+        ),
       ),
     );
   }

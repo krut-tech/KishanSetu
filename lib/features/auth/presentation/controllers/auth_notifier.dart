@@ -19,6 +19,12 @@ class AuthNotifier extends ChangeNotifier {
   AuthState _state = const AuthState();
   AuthState get state => _state;
 
+  @visibleForTesting
+  void setTestState(AuthState testState) {
+    _state = testState;
+    notifyListeners();
+  }
+
   UserProfile? get profile => _state.profile;
   User? get user => _state.user;
   bool get isLoading => _state.isLoading;

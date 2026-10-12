@@ -20,6 +20,7 @@ import 'package:farmer_market_app/features/farmer/domain/models/produce_model.da
 
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:farmer_market_app/core/localization/localization_extension.dart';
+import 'package:farmer_market_app/features/translation/presentation/widgets/translated_text_widget.dart';
 
 /// Screen displaying complete details for a farmer's produce listing.
 class ProduceDetailsScreen extends ConsumerStatefulWidget {
@@ -227,13 +228,14 @@ class _ProduceDetailsScreenState extends ConsumerState<ProduceDetailsScreen> {
                             ],
                           ),
                           const SizedBox(height: AppSpacing.sm),
-                          Text(
-                            produce.name,
+                          TranslatedTextWidget(
+                            text: produce.name,
                             style: TextStyle(
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
                               color: colorScheme.onSurface,
                             ),
+                            showToggle: false,
                           ),
                           const SizedBox(height: AppSpacing.xs),
                           Wrap(
@@ -244,11 +246,12 @@ class _ProduceDetailsScreenState extends ConsumerState<ProduceDetailsScreen> {
                               Icon(Icons.location_on_outlined,
                                   size: 16,
                                   color: colorScheme.onSurfaceVariant),
-                              Text(
-                                locationText,
+                              TranslatedTextWidget(
+                                text: locationText,
                                 style: TextStyle(
                                     fontSize: 14,
                                     color: colorScheme.onSurfaceVariant),
+                                showToggle: false,
                               ),
                               Text(' • ',
                                   style: TextStyle(
@@ -427,8 +430,8 @@ class _ProduceDetailsScreenState extends ConsumerState<ProduceDetailsScreen> {
                                   color: colorScheme.onSurface),
                             ),
                             const Divider(),
-                            Text(
-                              produce.description!,
+                            TranslatedTextWidget(
+                              text: produce.description!,
                               style: TextStyle(
                                   fontSize: 14,
                                   height: 1.4,

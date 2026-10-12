@@ -7,6 +7,7 @@ import 'package:farmer_market_app/core/widgets/badges/app_status_badge.dart';
 import 'package:farmer_market_app/core/widgets/cards/offer_card.dart';
 import 'package:farmer_market_app/features/farmer/domain/models/offer_model.dart';
 import 'package:farmer_market_app/core/localization/localization_extension.dart';
+import 'package:farmer_market_app/core/localization/status_localizer.dart';
 
 class RecentOffersList extends StatelessWidget {
   final List<OfferModel> offers;
@@ -113,7 +114,7 @@ class RecentOffersList extends StatelessWidget {
                   offerPrice: offer.offeredPrice,
                   quantity: '${offer.quantity} ${offer.produceUnit ?? "units"}',
                   status: statusBadgeType,
-                  statusLabel: isCountered ? 'Countered' : null,
+                  statusLabel: isCountered ? localizedOfferStatus(context, offer.status) : null,
                   expiresText: formattedTime,
                   location: offer.buyerLocation,
                   onAccept: isPending ? () => onRespond?.call(offer, 'accepted') : null,

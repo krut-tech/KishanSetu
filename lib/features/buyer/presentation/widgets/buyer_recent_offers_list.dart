@@ -103,9 +103,8 @@ class BuyerRecentOffersList extends StatelessWidget {
                   : offer.farmerId;
               return OfferCard(
                 cropName: offer.produceName ?? context.l10n.produceLabel,
-                buyerName: offer.farmerName != null
-                    ? '${context.l10n.farmerLabel}: ${offer.farmerName}'
-                    : '${context.l10n.farmerLabel} ID: $farmerIdDisplay',
+                buyerName: offer.farmerName ?? 'ID: $farmerIdDisplay',
+                partyLabel: context.l10n.farmerLabel,
                 offerPrice: offer.offeredPrice,
                 quantity:
                     '${offer.quantity} ${offer.produceUnit ?? context.l10n.unitsLabel}',

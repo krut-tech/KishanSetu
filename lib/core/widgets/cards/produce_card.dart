@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:farmer_market_app/core/constants/app_colors.dart';
 import 'package:farmer_market_app/core/constants/app_radius.dart';
 import 'package:farmer_market_app/core/constants/app_spacing.dart';
+import 'package:farmer_market_app/core/localization/localization_extension.dart';
 import 'package:farmer_market_app/core/widgets/app_card.dart';
 import 'package:farmer_market_app/core/widgets/price/app_price_text.dart';
+import 'package:farmer_market_app/features/translation/presentation/widgets/translated_text_widget.dart';
 
 /// Reusable Produce Listing Card displaying crop details, Net Realization, and seller location.
 class ProduceCard extends StatelessWidget {
@@ -68,8 +70,8 @@ class ProduceCard extends StatelessWidget {
                     Row(
                       children: [
                         Expanded(
-                          child: Text(
-                            cropName,
+                          child: TranslatedTextWidget(
+                            text: cropName,
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
@@ -77,6 +79,7 @@ class ProduceCard extends StatelessWidget {
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
+                            showToggle: false,
                           ),
                         ),
                         const SizedBox(width: AppSpacing.xs),
@@ -111,7 +114,7 @@ class ProduceCard extends StatelessWidget {
                                 color: AppColors.error, size: 20),
                             constraints: const BoxConstraints(),
                             padding: const EdgeInsets.all(4),
-                            tooltip: 'Delete Produce',
+                            tooltip: context.l10n.deleteLabel,
                             onPressed: onDelete,
                           ),
                         ],
@@ -124,12 +127,26 @@ class ProduceCard extends StatelessWidget {
                             size: 14, color: secondaryText),
                         const SizedBox(width: 2),
                         Expanded(
-                          child: Text(
-                            '$location • $farmerName',
-                            style:
-                                TextStyle(fontSize: 13, color: secondaryText),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                          child: Row(
+                            children: [
+                              Flexible(
+                                child: TranslatedTextWidget(
+                                  text: location,
+                                  style: TextStyle(
+                                      fontSize: 13, color: secondaryText),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  showToggle: false,
+                                ),
+                              ),
+                              Text(
+                                ' • $farmerName',
+                                style: TextStyle(
+                                    fontSize: 13, color: secondaryText),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
                           ),
                         ),
                       ],
@@ -150,7 +167,7 @@ class ProduceCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Quantity',
+                      context.l10n.offerQuantity,
                       style: TextStyle(fontSize: 12, color: secondaryText),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -174,7 +191,7 @@ class ProduceCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Text(
-                      'Asking Price',
+                      context.l10n.askingPrice,
                       style: TextStyle(fontSize: 12, color: secondaryText),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -210,7 +227,7 @@ class ProduceCard extends StatelessWidget {
                 const SizedBox(width: AppSpacing.sm),
                 Expanded(
                   child: Text(
-                    'Net Realization:',
+                    context.l10n.netRealizationLabel,
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
