@@ -56,7 +56,7 @@ class _MyProduceScreenState extends ConsumerState<MyProduceScreen> {
     if (user != null) {
       ref.read(produceControllerProvider.notifier).fetchProduce(
             user.id,
-            status: _selectedStatus == 'All' ? null : _selectedStatus,
+            status: _selectedStatus,
             query: _searchController.text,
           );
     }
@@ -194,7 +194,7 @@ class _MyProduceScreenState extends ConsumerState<MyProduceScreen> {
           child: ProduceCard(
             cropName: item.name,
             grade: item.category,
-            quantity: '${item.quantity} ${item.unit}',
+            quantity: '${item.status.toLowerCase() == 'sold' ? item.soldQuantity : item.quantity} ${item.unit}',
             askingPrice: item.expectedPrice,
             netRealizationPrice: netRealization,
             location: item.location ?? context.l10n.locationNotSpecified,
