@@ -263,7 +263,12 @@ class MockFarmerRepository implements FarmerRepository {
 
   @override
   Future<AppResult<OfferModel>> updateOfferStatus(
-      String offerId, String status) async {
+    String offerId,
+    String status, {
+    double? counteredPrice,
+    double? counteredQuantity,
+    String? counteredMessage,
+  }) async {
     return right(OfferModel(
       id: offerId,
       produceId: 'p1',
@@ -292,6 +297,20 @@ class MockBuyerRepository implements BuyerRepository {
         offeredPrice: 100,
         quantity: 10,
         status: 'cancelled'));
+  }
+
+  @override
+  Future<AppResult<OfferModel>> respondToCounterOffer(
+      String offerId, String buyerId, String status) async {
+    return right(OfferModel(
+      id: offerId,
+      produceId: 'p1',
+      farmerId: 'f1',
+      buyerId: buyerId,
+      offeredPrice: 100,
+      quantity: 10,
+      status: status,
+    ));
   }
 
   @override
