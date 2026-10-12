@@ -286,24 +286,11 @@ class SupabaseFarmerRepository implements FarmerRepository {
       }
 
       // Accept/reject/counter is delegated to the respond_to_offer()
-      // Postgres RPC (see
-      // supabase/migrations/20260922235959_create_core_schema_and_rls.sql).
-      // Previously this method updated offers.status directly with no
-      // awareness of produce inventory, so two different offers on the same
-      // listing could each be accepted for more quantity than actually
-      // existed. The RPC locks the produce row and re-validates/decrements
-      // remaining quantity atomically when accepting. Direct updates to
-      // offers by the farmer are no longer permitted by RLS -- this RPC is
-      // the only way to accept/reject/counter.
-      //
-      // NOTE: this method's signature only carries a status change, so a
-      // 'countered' transition here still can't send a revised price or
-      // quantity to the RPC (p_countered_price/p_countered_quantity are
-      // passed as null, i.e. the counter keeps the original terms). If
-      // countering with new terms is meant to be supported, this interface
-      // and its screen/controller callers need to be extended to collect
-      // and pass those values -- that's outside what a repository-only
-      // change can safely do without touching the UI layer.
+      // Postgres RPC in
+      // supabase/migrations/20261012000000_fix_offer_negotiation_and_sold_quantity.sql.
+      // The RPC locks the produce row and validates/decrements available
+      // inventory atomically when an offer is accepted. Counter transitions
+      // include the revised price, quantity, and message in the same request.
       final created = await _client.rpc('respond_to_offer', params: {
         'p_offer_id': offerId,
         'p_status': normalizedStatus,
