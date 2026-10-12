@@ -315,6 +315,23 @@ void main() {
       farmerRepo = MockFarmerRepoForBuyer();
     });
 
+    test('sold produce keeps sold quantity separate from remaining stock', () {
+      final produce = ProduceModel.fromMap({
+        'id': 'p-sold',
+        'farmer_id': 'farmer-100',
+        'name': 'Wheat',
+        'category': 'Grains',
+        'quantity': 0,
+        'sold_quantity': 80,
+        'unit': 'quintal',
+        'expected_price': 2400,
+        'status': 'sold',
+      });
+
+      expect(produce.quantity, equals(0));
+      expect(produce.soldQuantity, equals(80));
+    });
+
     test('buyer can accept a farmer counter-offer', () async {
       final counterOffer = OfferModel(
         id: 'counter-1',
