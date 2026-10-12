@@ -269,7 +269,7 @@ class _BuyerOffersScreenState extends ConsumerState<BuyerOffersScreen> {
             final success = await ref
                 .read(buyerOfferControllerProvider.notifier)
                 .respondToCounterOffer(offer.id, user.id, 'accepted');
-            if (!mounted) return;
+            if (!context.mounted) return;
             if (success) {
               ref.read(buyerDashboardNotifierProvider.notifier).refreshDashboard();
               _fetchOffers();
@@ -285,7 +285,7 @@ class _BuyerOffersScreenState extends ConsumerState<BuyerOffersScreen> {
             final success = await ref
                 .read(buyerOfferControllerProvider.notifier)
                 .respondToCounterOffer(offer.id, user.id, 'rejected');
-            if (!mounted) return;
+            if (!context.mounted) return;
             if (success) {
               ref.read(buyerDashboardNotifierProvider.notifier).refreshDashboard();
               _fetchOffers();
