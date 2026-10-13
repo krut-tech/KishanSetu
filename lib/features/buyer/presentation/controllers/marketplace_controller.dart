@@ -72,6 +72,7 @@ class MarketplaceState extends Equatable {
 class MarketplaceController extends StateNotifier<MarketplaceState> {
   final BuyerRepository _repository;
   RealtimeChannel? _marketplaceChannel;
+  int _fetchGeneration = 0;
 
   MarketplaceController(this._repository) : super(const MarketplaceState());
 
@@ -83,6 +84,7 @@ class MarketplaceController extends StateNotifier<MarketplaceState> {
     double? maxPrice,
     String? sortBy,
   }) async {
+    final generation = ++_fetchGeneration;
     state = state.copyWith(
       isLoading: true,
       searchQuery: query ?? state.searchQuery,
@@ -102,6 +104,9 @@ class MarketplaceController extends StateNotifier<MarketplaceState> {
       maxPrice: state.maxPrice,
       sortBy: state.sortBy,
     );
+
+    // Ignore stale responses when a newer search/filter request has started.
+    if (!mounted || generation != _fetchGeneration) return;
 
     result.fold(
       (failure) {
@@ -140,6 +145,7 @@ class MarketplaceController extends StateNotifier<MarketplaceState> {
   }
 
   void reset() {
+    _fetchGeneration++;
     _marketplaceChannel?.unsubscribe();
     _marketplaceChannel = null;
     state = const MarketplaceState();
@@ -147,6 +153,7 @@ class MarketplaceController extends StateNotifier<MarketplaceState> {
 
   @override
   void dispose() {
+    _fetchGeneration++;
     _marketplaceChannel?.unsubscribe();
     super.dispose();
   }
