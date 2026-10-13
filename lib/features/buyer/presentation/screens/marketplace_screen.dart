@@ -25,7 +25,8 @@ class MarketplaceScreen extends ConsumerStatefulWidget {
 
 class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
   final TextEditingController _searchController = TextEditingController();
-  List<OfferModel> _acceptedOffers = const [];
+  List<OfferModel> _statusOffers = const [];
+  String _selectedOfferStatus = 'accepted';
   RealtimeChannel? _acceptedOffersChannel;
   String? _acceptedBuyerId;
 
@@ -74,7 +75,7 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
         ref.read(marketplaceControllerProvider.notifier).fetchProduce();
       }
       final buyer = ref.read(authNotifierProvider).state.user;
-      if (buyer != null) _watchAcceptedOffers(buyer.id);
+      if (buyer != null) _watchBuyerOffers(buyer.id);
     });
   }
 
@@ -85,7 +86,7 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
     super.dispose();
   }
 
-  void _watchAcceptedOffers(String buyerId) {
+  void _watchBuyerOffers(String buyerId) {
     _acceptedBuyerId = buyerId;
     _acceptedOffersChannel?.unsubscribe();
     _acceptedOffersChannel = ref
@@ -93,20 +94,20 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
         .subscribeToBuyerOffers(buyerId, (_) {
       final currentBuyerId = _acceptedBuyerId;
       if (mounted && currentBuyerId != null) {
-        _fetchAcceptedOffers(currentBuyerId);
+        _fetchStatusOffers(currentBuyerId);
       }
     });
     _fetchAcceptedOffers(buyerId);
   }
 
-  Future<void> _fetchAcceptedOffers(String buyerId) async {
+  Future<void> _fetchStatusOffers(String buyerId) async {
     final result = await ref
         .read(buyerRepositoryProvider)
-        .getBuyerOffers(buyerId, status: 'accepted');
+        .getBuyerOffers(buyerId, status: _selectedOfferStatus);
     if (!mounted) return;
     result.fold(
       (_) {},
-      (offers) => setState(() => _acceptedOffers = offers),
+      (offers) => setState(() => _statusOffers = offers),
     );
   }
 
@@ -259,8 +260,40 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
     );
   }
 
+  Widget _buildOfferStatusFilters() {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Wrap(
+        spacing: AppSpacing.sm,
+        children: [
+          for (final status in const ['accepted', 'rejected'])
+            FilterChip(
+              label: Text(status == 'accepted' ? 'Accepted' : 'Rejected'),
+              avatar: Icon(
+                status == 'accepted' ? Icons.check_circle_outline : Icons.cancel_outlined,
+                size: 18,
+              ),
+              selected: _selectedOfferStatus == status,
+              onSelected: (selected) {
+                if (!selected || _selectedOfferStatus == status) return;
+                final buyerId = _acceptedBuyerId;
+                if (buyerId == null) return;
+                setState(() {
+                  _selectedOfferStatus = status;
+                  _statusOffers = const [];
+                });
+                _fetchStatusOffers(buyerId);
+              },
+              selectedColor: colorScheme.primaryContainer,
+            ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildAcceptedOffersSection() {
-    if (_acceptedOffers.isEmpty) return const SizedBox.shrink();
+    if (_statusOffers.isEmpty) return const SizedBox.shrink();
 
     final colorScheme = Theme.of(context).colorScheme;
     final formatter = DateFormat('dd MMM yyyy, hh:mm a');
@@ -275,7 +308,7 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
               Icon(Icons.check_circle_outline_rounded, color: colorScheme.primary),
               const SizedBox(width: AppSpacing.xs),
               Text(
-                'Accepted Offers',
+                _selectedOfferStatus == 'accepted' ? 'Accepted Offers' : 'Rejected Offers',
                 style: TextStyle(
                   fontSize: 17,
                   fontWeight: FontWeight.bold,
@@ -285,7 +318,7 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
             ],
           ),
         ),
-        ..._acceptedOffers.map((offer) {
+        ..._statusOffers.map((offer) {
           final unit = offer.produceUnit ?? 'units';
           final createdText = offer.createdAt == null
               ? '—'
@@ -316,9 +349,14 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
                           ),
                         ),
                         const SizedBox(width: AppSpacing.xs),
-                        const Chip(
-                          avatar: Icon(Icons.check_circle, size: 16),
-                          label: Text('Accepted'),
+                        Chip(
+                          avatar: Icon(
+                            _selectedOfferStatus == 'accepted'
+                                ? Icons.check_circle
+                                : Icons.cancel,
+                            size: 16,
+                          ),
+                          label: Text(_selectedOfferStatus == 'accepted' ? 'Accepted' : 'Rejected'),
                           visualDensity: VisualDensity.compact,
                         ),
                       ],
@@ -351,7 +389,11 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
   Widget _buildBody(MarketplaceState state) {
     final children = <Widget>[];
 
-    if (_acceptedOffers.isNotEmpty) {
+    if (_acceptedBuyerId != null) {
+      children.add(_buildOfferStatusFilters());
+      children.add(const SizedBox(height: AppSpacing.md));
+    }
+    if (_statusOffers.isNotEmpty) {
       children.add(_buildAcceptedOffersSection());
       children.add(const SizedBox(height: AppSpacing.md));
     }
@@ -391,7 +433,7 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
         ),
       ));
     } else {
-      if (_acceptedOffers.isNotEmpty) {
+      if (_statusOffers.isNotEmpty) {
         children.add(Padding(
           padding: const EdgeInsets.only(bottom: AppSpacing.sm),
           child: Text(
