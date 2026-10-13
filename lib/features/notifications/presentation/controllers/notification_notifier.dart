@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -103,8 +102,11 @@ class NotificationNotifier extends StateNotifier<NotificationState> with Widgets
 
     _streamSubscription = _repository.getNotificationStream(userId).listen(
       (data) {
-        if (!mounted || generation != _streamGeneration ||
-            _currentUserId != userId) return;
+        if (!mounted ||
+            generation != _streamGeneration ||
+            _currentUserId != userId) {
+          return;
+        }
         _retryDelaySeconds = 3;
         final notifications =
             data.map((json) => NotificationModel.fromJson(json)).toList();
@@ -115,8 +117,11 @@ class NotificationNotifier extends StateNotifier<NotificationState> with Widgets
         );
       },
       onError: (error) {
-        if (!mounted || generation != _streamGeneration ||
-            _currentUserId != userId) return;
+        if (!mounted ||
+            generation != _streamGeneration ||
+            _currentUserId != userId) {
+          return;
+        }
         AppLogger.error('Notification stream error; scheduling reconnect', error);
         _streamSubscription = null;
         state = state.copyWith(
@@ -126,8 +131,11 @@ class NotificationNotifier extends StateNotifier<NotificationState> with Widgets
         _scheduleReconnect(userId);
       },
       onDone: () {
-        if (!mounted || generation != _streamGeneration ||
-            _currentUserId != userId) return;
+        if (!mounted ||
+            generation != _streamGeneration ||
+            _currentUserId != userId) {
+          return;
+        }
         _streamSubscription = null;
         _scheduleReconnect(userId);
       },
@@ -152,9 +160,8 @@ class NotificationNotifier extends StateNotifier<NotificationState> with Widgets
   }
 
   @override
-  void didChangeAppLifecycleState(AppLifecycleState lifecycleState) {
-    if (lifecycleState == AppLifecycleState.resumed &&
-        _currentUserId != null) {
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && _currentUserId != null) {
       // Renew the stream after Android suspends the WebSocket in the background.
       _setupStream(_currentUserId!);
     }
