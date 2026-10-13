@@ -109,6 +109,7 @@ class BuyerRecentOffersList extends StatelessWidget {
                 quantity:
                     '${offer.quantity} ${offer.produceUnit ?? context.l10n.unitsLabel}',
                 status: _mapStatus(offer.status),
+                location: offer.produceLocation,
                 expiresText:
                     '${context.l10n.statusLabel}: ${localizedOfferStatus(context, offer.status)}',
                 onCancel: offer.status == 'pending'
