@@ -359,7 +359,7 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> with Widg
     final formatter = DateFormat('dd MMM yyyy, hh:mm a');
     final visibleOffers = _visibleBuyerOffers;
     final statusCounts =
-        'Total ${_buyerOffers.length}  •  Accepted ${_offerCount('accepted')}  •  Rejected ${_offerCount('rejected')}';
+        'Total ${_offerCount('all')}  •  Pending ${_offerCount('pending')}  •  Accepted ${_offerCount('accepted')}  •  Rejected ${_offerCount('rejected')}  •  Countered ${_offerCount('countered')}  •  Cancelled ${_offerCount('cancelled')}';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
