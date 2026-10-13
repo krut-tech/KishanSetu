@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -34,9 +36,17 @@ class AppBootstrapListenable extends ChangeNotifier {
 }
 
 /// Manages application initialization sequence (env config, backend services, session restore).
+///
+/// Startup is deliberately fast and bounded:
+///  * Env + Supabase (local session restore) are the only hard requirements.
+///  * Push (Firebase) setup and session/profile restore run **in parallel**,
+///    each with its own timeout, so a slow network can never freeze the splash.
 class AppBootstrapNotifier extends StateNotifier<AppBootstrapState> {
   final Ref _ref;
   final AppBootstrapListenable bootstrapListenable = AppBootstrapListenable();
+
+  static const Duration _pushTimeout = Duration(seconds: 6);
+  static const Duration _sessionTimeout = Duration(seconds: 14);
 
   AppBootstrapNotifier(this._ref) : super(const AppBootstrapState()) {
     AppLogger.info('AppBootstrapNotifier constructed -> starting initialize()');
@@ -47,6 +57,31 @@ class AppBootstrapNotifier extends StateNotifier<AppBootstrapState> {
   set state(AppBootstrapState value) {
     super.state = value;
     bootstrapListenable.notify();
+  }
+
+  Future<void> _initPush() async {
+    try {
+      await PushNotificationService().initialize().timeout(_pushTimeout);
+    } catch (pushErr, stackTrace) {
+      // Push is optional: the app keeps working with in-app notifications.
+      AppLogger.error(
+          'PushNotificationService init skipped during bootstrap: $pushErr',
+          pushErr,
+          stackTrace);
+    }
+  }
+
+  Future<void> _initSession() async {
+    try {
+      await _ref
+          .read(authNotifierProvider)
+          .initSession()
+          .timeout(_sessionTimeout);
+    } on TimeoutException catch (e) {
+      // The auth notifier keeps working in the background. If the profile
+      // eventually fails to load the router shows the retry screen.
+      AppLogger.warning('Session restore is taking long, continuing: $e');
+    }
   }
 
   Future<void> initialize() async {
@@ -61,18 +96,9 @@ class AppBootstrapNotifier extends StateNotifier<AppBootstrapState> {
       // Refresh Riverpod network providers with initialized Supabase client
       _ref.invalidate(supabaseClientProvider);
 
-      AppLogger.info('App bootstrap: Initializing PushNotificationService...');
-      try {
-        await PushNotificationService().initialize();
-      } catch (pushErr, stackTrace) {
-        AppLogger.error(
-            'Failed to initialize PushNotificationService during bootstrap: $pushErr',
-            pushErr,
-            stackTrace);
-      }
-
-      AppLogger.info('App bootstrap: Initializing AuthNotifier session...');
-      await _ref.read(authNotifierProvider).initSession();
+      AppLogger.info(
+          'App bootstrap: Initializing Push + restoring session in parallel...');
+      await Future.wait<void>([_initPush(), _initSession()]);
 
       AppLogger.info('App bootstrap completed successfully.');
       state = const AppBootstrapState(
