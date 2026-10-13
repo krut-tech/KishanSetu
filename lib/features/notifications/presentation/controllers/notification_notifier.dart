@@ -121,8 +121,8 @@ class NotificationNotifier extends StateNotifier<NotificationState> with Widgets
     }
     _reconnectTimer = Timer(delay, () {
       if (mounted && _currentUserId == userId) {
+        // Supabase's stream performs the initial fetch as it subscribes.
         _setupStream(userId);
-        refresh();
       }
     });
   }
