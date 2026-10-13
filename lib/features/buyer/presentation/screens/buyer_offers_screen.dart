@@ -256,6 +256,7 @@ class _BuyerOffersScreenState extends ConsumerState<BuyerOffersScreen> {
           quantity:
               '${offer.quantity} ${offer.produceUnit ?? context.l10n.unitsLabel}',
           status: statusType,
+          location: offer.produceLocation,
           statusLabel: isCountered ? localizedOfferStatus(context, offer.status) : null,
           expiresText:
               '${context.l10n.statusLabel}: ${localizedOfferStatus(context, offer.status)}',
