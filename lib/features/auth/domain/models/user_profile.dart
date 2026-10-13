@@ -115,6 +115,17 @@ class UserProfile extends Equatable {
         'longitude': longitude,
       };
 
+  /// Full snapshot used by the local profile cache. Unlike [toMap] this also
+  /// carries read-only server fields so a cached profile round-trips through
+  /// [UserProfile.fromMap]. It is never written back to the database.
+  Map<String, dynamic> toCacheMap() => {
+        ...toMap(),
+        'created_at': createdAt?.toIso8601String(),
+        'is_admin': isAdmin,
+        'account_status': accountStatus,
+        'kyc_status': kycStatus,
+      };
+
   UserProfile copyWith({
     String? id,
     UserRole? role,
