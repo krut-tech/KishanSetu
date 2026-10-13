@@ -29,13 +29,13 @@ class MarketplaceScreen extends ConsumerStatefulWidget {
 class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> with WidgetsBindingObserver {
   final TextEditingController _searchController = TextEditingController();
   static const List<String> _offerStatuses = [
-    'All', 'Pending', 'Accepted', 'Rejected', 'Countered', 'Cancelled',
+    'Pending', 'Accepted', 'Rejected', 'Countered', 'Cancelled',
   ];
 
   List<OfferModel> _buyerOffers = const [];
   RealtimeChannel? _buyerOffersChannel;
   String? _buyerId;
-  String _selectedOfferStatus = 'All';
+  String _selectedOfferStatus = 'Pending';
   bool _hasLoadedBuyerOffers = false;
   String? _offersLoadError;
   int _offerFetchGeneration = 0;
@@ -168,7 +168,6 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> with Widg
   }
 
   String _offerStatusLabel(String status) {
-    if (status == 'All') return 'All Offers';
     switch (status.toLowerCase()) {
       case 'pending':
         return context.l10n.pendingOffers;
@@ -207,7 +206,7 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> with Widg
         _buyerOffers = const [];
         _hasLoadedBuyerOffers = false;
         _offersLoadError = null;
-        _selectedOfferStatus = 'All';
+        _selectedOfferStatus = 'Pending';
         if (mounted) setState(() {});
       }
     });
@@ -362,9 +361,6 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> with Widg
     final colorScheme = Theme.of(context).colorScheme;
     final formatter = DateFormat('dd MMM yyyy, hh:mm a');
     final visibleOffers = _visibleBuyerOffers;
-    final statusCounts =
-        'Total ${_offerCount('all')}  •  Pending ${_offerCount('pending')}  •  Accepted ${_offerCount('accepted')}  •  Rejected ${_offerCount('rejected')}  •  Countered ${_offerCount('countered')}  •  Cancelled ${_offerCount('cancelled')}';
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -383,15 +379,6 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> with Widg
                 fontSize: 12,
               )),
             ],
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-          child: Align(
-            alignment: Alignment.centerLeft,
-            child: Text(statusCounts, style: TextStyle(
-              fontSize: 12, color: colorScheme.onSurfaceVariant,
-            )),
           ),
         ),
         SizedBox(
