@@ -4,12 +4,22 @@ import 'package:supabase_flutter/supabase_flutter.dart' hide AuthState;
 import 'package:farmer_market_app/core/logging/app_logger.dart';
 import 'package:farmer_market_app/core/network/supabase_client_provider.dart';
 import 'package:farmer_market_app/core/notifications/push_notification_service.dart';
+import 'package:farmer_market_app/features/auth/data/profile_cache.dart';
 import 'package:farmer_market_app/features/auth/domain/models/user_profile.dart';
 import 'package:farmer_market_app/features/auth/domain/models/user_role.dart';
 import 'package:farmer_market_app/features/auth/domain/repositories/auth_repository.dart';
 import 'package:farmer_market_app/features/auth/presentation/controllers/auth_state.dart';
 
 /// Central AuthNotifier managing authentication session, profile updates, and GoRouter refresh events.
+///
+/// Startup strategy (fast + offline safe):
+///  1. A cached copy of the user's profile (if any) is applied immediately so
+///     the router can send a returning user straight to their home screen.
+///  2. The fresh profile is then fetched in the background and replaces the
+///     cached copy.
+///  3. If the fetch fails and nothing is cached, [AuthState.profileLoadFailed]
+///     is raised. The router shows a retry screen instead of wrongly sending a
+///     registered user to "Complete Your Profile".
 class AuthNotifier extends ChangeNotifier {
   final AuthRepository _repository;
   final VoidCallback? onSignOutCallback;
@@ -34,8 +44,15 @@ class AuthNotifier extends ChangeNotifier {
   String? _subscribedUserId;
 
   bool _isSignUpInProgress = false;
+
+  // Outer de-duplication: one "load profile" sequence per user at a time.
   String? _inFlightFetchUserId;
   Future<bool>? _inFlightFetchFuture;
+
+  // Inner de-duplication: one network request per user at a time (also covers
+  // the background refresh that continues after a cached profile was applied).
+  String? _networkFetchUserId;
+  Future<bool>? _networkFetchFuture;
 
   Listenable get authRoutingListenable => _routingNotifier;
 
@@ -74,7 +91,8 @@ class AuthNotifier extends ChangeNotifier {
         _state.user?.id != newState.user?.id ||
         _state.profile?.role != newState.profile?.role ||
         _state.profile?.isProfileComplete !=
-            newState.profile?.isProfileComplete;
+            newState.profile?.isProfileComplete ||
+        _state.profileLoadFailed != newState.profileLoadFailed;
 
     _state = newState;
     notifyListeners();
@@ -85,6 +103,18 @@ class AuthNotifier extends ChangeNotifier {
 
   Future<void> initSession() async {
     await _init();
+  }
+
+  /// Re-attempts loading the profile for the current session. Used by the
+  /// "Retry" button on the splash/recovery screen.
+  Future<void> retryProfileLoad() async {
+    final currentUser = _state.user ?? _repository.currentUser;
+    if (currentUser == null) {
+      await _init();
+      return;
+    }
+    _updateState(_state.copyWith(isLoading: true, user: currentUser));
+    await _fetchProfileForUser(currentUser);
   }
 
   void _setupProfileRealtime(String userId) {
@@ -101,12 +131,17 @@ class AuthNotifier extends ChangeNotifier {
         if (_state.user?.id == userId) {
           if (updatedProfile == null) {
             AppLogger.warning('Profile deleted for active user $userId');
+            unawaited(ProfileCache.clear(userId));
             _updateState(_state.copyWith(
               clearProfile: true,
               errorMessage: 'Your profile has been deleted.',
             ));
           } else {
-            _updateState(_state.copyWith(profile: updatedProfile));
+            unawaited(ProfileCache.write(updatedProfile));
+            _updateState(_state.copyWith(
+              profile: updatedProfile,
+              profileLoadFailed: false,
+            ));
           }
         }
       });
@@ -141,15 +176,16 @@ class AuthNotifier extends ChangeNotifier {
               _state.status == AuthStatus.authenticated &&
                   _state.profile != null;
           if (!isSameUser || !isAlreadyAuthenticated) {
-            await _fetchProfileForUser(user);
+            await _fetchProfileForUser(user, useCache: true);
           }
         } else {
           _cleanupProfileRealtime();
           _updateState(_state.copyWith(
             status: AuthStatus.unauthenticated,
-            user: null,
-            profile: null,
+            clearUser: true,
+            clearProfile: true,
             isLoading: false,
+            profileLoadFailed: false,
           ));
           onSignOutCallback?.call();
         }
@@ -165,7 +201,7 @@ class AuthNotifier extends ChangeNotifier {
               _state.status == AuthStatus.authenticated &&
                   _state.profile != null;
           if (!isSameUser || !isAlreadyAuthenticated) {
-            await _fetchProfileForUser(currentUser);
+            await _fetchProfileForUser(currentUser, useCache: true);
           }
         }
       } else if (_state.user == null) {
@@ -187,12 +223,12 @@ class AuthNotifier extends ChangeNotifier {
     }
   }
 
-  Future<bool> _fetchProfileForUser(User user) {
+  Future<bool> _fetchProfileForUser(User user, {bool useCache = false}) {
     if (_inFlightFetchUserId == user.id && _inFlightFetchFuture != null) {
       return _inFlightFetchFuture!;
     }
     _inFlightFetchUserId = user.id;
-    final future = _doFetchProfileForUser(user);
+    final future = _doFetchProfileForUser(user, useCache: useCache);
     _inFlightFetchFuture = future;
     future.whenComplete(() {
       if (_inFlightFetchUserId == user.id) {
@@ -203,36 +239,100 @@ class AuthNotifier extends ChangeNotifier {
     return future;
   }
 
-  Future<bool> _doFetchProfileForUser(User user) async {
-    _updateState(_state.copyWith(isLoading: true, user: user));
-    final result = await _repository.getUserProfile(user.id);
-    return result.fold(
-      (failure) {
-        AppLogger.error('Failed to fetch profile: ${failure.message}');
-        final fallbackProfile = _state.profile ??
-            UserProfile(
-              id: user.id,
-              fullName: user.userMetadata?['full_name'] as String? ??
-                  user.userMetadata?['name'] as String? ??
-                  'User',
-            );
+  Future<bool> _doFetchProfileForUser(User user,
+      {bool useCache = false}) async {
+    final hasLiveProfile = _state.user?.id == user.id && _state.profile != null;
 
+    // Fast path: show the cached profile immediately and refresh in background.
+    if (useCache && !hasLiveProfile) {
+      final cached = await ProfileCache.read(user.id);
+      final activeUserId = _state.user?.id;
+      final switchedUser = activeUserId != null && activeUserId != user.id;
+      if (cached != null && !switchedUser) {
         _updateState(_state.copyWith(
           status: AuthStatus.authenticated,
           user: user,
-          profile: fallbackProfile,
+          profile: cached,
+          isLoading: false,
+          clearError: true,
+          profileLoadFailed: false,
+        ));
+        _setupProfileRealtime(user.id);
+        unawaited(_loadProfileFromNetwork(user));
+        return true;
+      }
+    }
+
+    _updateState(_state.copyWith(isLoading: true, user: user));
+    return _loadProfileFromNetwork(user);
+  }
+
+  Future<bool> _loadProfileFromNetwork(User user) {
+    if (_networkFetchUserId == user.id && _networkFetchFuture != null) {
+      return _networkFetchFuture!;
+    }
+    _networkFetchUserId = user.id;
+    final future = _doNetworkFetch(user);
+    _networkFetchFuture = future;
+    future.whenComplete(() {
+      if (_networkFetchUserId == user.id) {
+        _networkFetchUserId = null;
+        _networkFetchFuture = null;
+      }
+    });
+    return future;
+  }
+
+  Future<bool> _doNetworkFetch(User user) async {
+    final result = await _repository.getUserProfile(user.id);
+
+    // The session changed (sign-out / account switch) while we were waiting.
+    if (_state.user?.id != user.id) {
+      AppLogger.info(
+          'Discarding profile response for ${user.id}: session changed.');
+      return false;
+    }
+
+    return result.fold(
+      (failure) {
+        AppLogger.error('Failed to fetch profile: ${failure.message}');
+        final existing = _state.profile;
+
+        if (existing != null) {
+          // Keep the cached / last-known profile. A temporary backend or
+          // network failure must never bounce a registered user around.
+          _updateState(_state.copyWith(
+            status: AuthStatus.authenticated,
+            user: user,
+            isLoading: false,
+            clearError: true,
+            profileLoadFailed: false,
+          ));
+          _setupProfileRealtime(user.id);
+          return true;
+        }
+
+        // Nothing to show: surface a recoverable error state (not an
+        // "incomplete profile").
+        _updateState(_state.copyWith(
+          status: AuthStatus.authenticated,
+          user: user,
+          clearProfile: true,
           isLoading: false,
           errorMessage: failure.message,
+          profileLoadFailed: true,
         ));
         return false;
       },
       (profile) {
+        unawaited(ProfileCache.write(profile));
         _updateState(_state.copyWith(
           status: AuthStatus.authenticated,
           user: user,
           profile: profile,
           isLoading: false,
           clearError: true,
+          profileLoadFailed: false,
         ));
         _setupProfileRealtime(user.id);
         _syncPushToken(profile.id);
@@ -337,12 +437,14 @@ class AuthNotifier extends ChangeNotifier {
                 return false;
               },
               (savedProfile) {
+                unawaited(ProfileCache.write(savedProfile));
                 _updateState(_state.copyWith(
                   status: AuthStatus.authenticated,
                   user: authResponse.user,
                   profile: savedProfile,
                   isLoading: false,
                   clearError: true,
+                  profileLoadFailed: false,
                 ));
                 _setupProfileRealtime(authResponse.user!.id);
                 _syncPushToken(savedProfile.id);
@@ -372,6 +474,7 @@ class AuthNotifier extends ChangeNotifier {
         return false;
       },
       (savedProfile) {
+        unawaited(ProfileCache.write(savedProfile));
         _updateState(_state.copyWith(isLoading: false, profile: savedProfile));
         return true;
       },
@@ -389,7 +492,12 @@ class AuthNotifier extends ChangeNotifier {
         return false;
       },
       (savedProfile) {
-        _updateState(_state.copyWith(isLoading: false, profile: savedProfile));
+        unawaited(ProfileCache.write(savedProfile));
+        _updateState(_state.copyWith(
+          isLoading: false,
+          profile: savedProfile,
+          profileLoadFailed: false,
+        ));
         return true;
       },
     );
@@ -433,6 +541,7 @@ class AuthNotifier extends ChangeNotifier {
     _cleanupProfileRealtime();
     if (userId != null) {
       await _deactivatePushToken(userId);
+      await ProfileCache.clear(userId);
     }
     await _repository.signOut();
     _updateState(const AuthState(status: AuthStatus.unauthenticated));
