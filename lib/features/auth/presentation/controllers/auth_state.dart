@@ -16,12 +16,21 @@ class AuthState extends Equatable {
   final bool isLoading;
   final String? errorMessage;
 
+  /// True when the user has a valid session but their profile could not be
+  /// loaded (offline / backend error) and no cached copy exists.
+  ///
+  /// This must never be confused with an *incomplete* profile: the router keeps
+  /// the user on a recoverable "retry" screen instead of sending a fully
+  /// registered user back to "Complete Your Profile".
+  final bool profileLoadFailed;
+
   const AuthState({
     this.status = AuthStatus.initial,
     this.user,
     this.profile,
     this.isLoading = false,
     this.errorMessage,
+    this.profileLoadFailed = false,
   });
 
   bool get isAuthenticated =>
@@ -32,21 +41,25 @@ class AuthState extends Equatable {
   AuthState copyWith({
     AuthStatus? status,
     User? user,
+    bool clearUser = false,
     UserProfile? profile,
     bool clearProfile = false,
     bool? isLoading,
     String? errorMessage,
     bool clearError = false,
+    bool? profileLoadFailed,
   }) {
     return AuthState(
       status: status ?? this.status,
-      user: user ?? this.user,
+      user: clearUser ? null : (user ?? this.user),
       profile: clearProfile ? null : (profile ?? this.profile),
       isLoading: isLoading ?? this.isLoading,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
+      profileLoadFailed: profileLoadFailed ?? this.profileLoadFailed,
     );
   }
 
   @override
-  List<Object?> get props => [status, user, profile, isLoading, errorMessage];
+  List<Object?> get props =>
+      [status, user, profile, isLoading, errorMessage, profileLoadFailed];
 }
