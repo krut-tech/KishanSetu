@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/widgets.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -38,15 +39,18 @@ class NotificationState extends Equatable {
   List<Object?> get props => [isLoading, notifications, errorMessage];
 }
 
-class NotificationNotifier extends StateNotifier<NotificationState> {
+class NotificationNotifier extends StateNotifier<NotificationState> with WidgetsBindingObserver {
   final NotificationRepository _repository;
   final SupabaseClient? _supabaseClient;
   StreamSubscription<List<Map<String, dynamic>>>? _streamSubscription;
   StreamSubscription<AuthState>? _authSubscription;
   String? _currentUserId;
+  Timer? _reconnectTimer;
+  int _retryDelaySeconds = 3;
 
   NotificationNotifier(this._repository, this._supabaseClient)
       : super(const NotificationState()) {
+    WidgetsBinding.instance.addObserver(this);
     _init();
   }
 
@@ -75,28 +79,61 @@ class NotificationNotifier extends StateNotifier<NotificationState> {
   }
 
   void _setupStream(String userId) {
+    _reconnectTimer?.cancel();
     _streamSubscription?.cancel();
-
     state = state.copyWith(isLoading: true, clearError: true);
 
     _streamSubscription = _repository.getNotificationStream(userId).listen(
       (data) {
+        _retryDelaySeconds = 3;
         final notifications =
             data.map((json) => NotificationModel.fromJson(json)).toList();
-
         state = state.copyWith(
           isLoading: false,
           notifications: notifications,
+          clearError: true,
         );
       },
       onError: (error) {
-        AppLogger.error('Notification stream error', error);
+        AppLogger.error('Notification stream error; scheduling reconnect', error);
+        _streamSubscription = null;
         state = state.copyWith(
           isLoading: false,
-          errorMessage: 'Failed to load notifications in real-time',
+          errorMessage: 'Notification live sync interrupted; reconnecting…',
         );
+        _scheduleReconnect(userId);
       },
+      onDone: () {
+        _streamSubscription = null;
+        _scheduleReconnect(userId);
+      },
+      cancelOnError: true,
     );
+  }
+
+  void _scheduleReconnect(String userId) {
+    if (!mounted || _currentUserId != userId) return;
+    _reconnectTimer?.cancel();
+    final delay = Duration(seconds: _retryDelaySeconds);
+    if (_retryDelaySeconds < 30) {
+      _retryDelaySeconds *= 2;
+      if (_retryDelaySeconds > 30) _retryDelaySeconds = 30;
+    }
+    _reconnectTimer = Timer(delay, () {
+      if (mounted && _currentUserId == userId) {
+        _setupStream(userId);
+        refresh();
+      }
+    });
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState lifecycleState) {
+    if (lifecycleState == AppLifecycleState.resumed &&
+        _currentUserId != null) {
+      // Renew the stream after Android suspends the WebSocket in the background.
+      _setupStream(_currentUserId!);
+    }
   }
 
   Future<void> refresh() async {
@@ -105,6 +142,7 @@ class NotificationNotifier extends StateNotifier<NotificationState> {
     state = state.copyWith(isLoading: true, clearError: true);
     final result = await _repository.getNotifications();
 
+    if (!mounted) return;
     result.fold(
       (failure) {
         state = state.copyWith(
@@ -116,6 +154,7 @@ class NotificationNotifier extends StateNotifier<NotificationState> {
         state = state.copyWith(
           isLoading: false,
           notifications: notifications,
+          clearError: true,
         );
       },
     );
@@ -156,6 +195,7 @@ class NotificationNotifier extends StateNotifier<NotificationState> {
   }
 
   void reset() {
+    _reconnectTimer?.cancel();
     _streamSubscription?.cancel();
     _streamSubscription = null;
     _currentUserId = null;
@@ -164,6 +204,8 @@ class NotificationNotifier extends StateNotifier<NotificationState> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _reconnectTimer?.cancel();
     _streamSubscription?.cancel();
     _authSubscription?.cancel();
     super.dispose();
