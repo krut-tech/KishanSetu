@@ -13,6 +13,10 @@ import 'package:farmer_market_app/features/auth/domain/repositories/auth_reposit
 class SupabaseAuthRepository implements AuthRepository {
   final SupabaseClient? _client;
 
+  /// Upper bound for a single profile request. A hung request must never keep
+  /// the user staring at the splash screen.
+  static const Duration _profileTimeout = Duration(seconds: 12);
+
   SupabaseAuthRepository(this._client);
 
   SupabaseClient get _effectiveClient {
@@ -202,8 +206,12 @@ class SupabaseAuthRepository implements AuthRepository {
   Future<AppResult<UserProfile>> getUserProfile(String userId) async {
     try {
       final client = _effectiveClient;
-      final data =
-          await client.from('profiles').select().eq('id', userId).maybeSingle();
+      final data = await client
+          .from('profiles')
+          .select()
+          .eq('id', userId)
+          .maybeSingle()
+          .timeout(_profileTimeout);
 
       final user = currentUser;
       final userMeta = user?.userMetadata;
@@ -213,6 +221,7 @@ class SupabaseAuthRepository implements AuthRepository {
           userMeta?['avatar_url'] as String? ?? userMeta?['picture'] as String?;
       final roleStr = userMeta?['role'] as String?;
       final phoneStr = userMeta?['phone'] as String?;
+      final metaRole = roleStr != null ? UserRole.fromString(roleStr) : null;
 
       if (data == null) {
         final newProfile = UserProfile(
@@ -220,7 +229,7 @@ class SupabaseAuthRepository implements AuthRepository {
           fullName: googleName ?? 'User',
           avatarUrl: googleAvatar,
           phone: phoneStr,
-          role: roleStr != null ? UserRole.fromString(roleStr) : null,
+          role: metaRole,
         );
         return right(newProfile);
       }
@@ -235,6 +244,13 @@ class SupabaseAuthRepository implements AuthRepository {
           googleAvatar != null &&
           googleAvatar.isNotEmpty) {
         profile = profile.copyWith(avatarUrl: googleAvatar);
+      }
+      // The role the user picked on the register screen is stored in auth
+      // metadata. If the profile row has no role yet (e.g. the account was
+      // created before email confirmation) adopt it instead of asking the
+      // user to pick their account type a second time.
+      if (profile.role == null && metaRole != null) {
+        profile = profile.copyWith(role: metaRole);
       }
 
       return right(profile);
