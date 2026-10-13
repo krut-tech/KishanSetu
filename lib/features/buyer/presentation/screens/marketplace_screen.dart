@@ -97,7 +97,7 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
         _fetchStatusOffers(currentBuyerId);
       }
     });
-    _fetchAcceptedOffers(buyerId);
+    _fetchStatusOffers(buyerId);
   }
 
   Future<void> _fetchStatusOffers(String buyerId) async {
@@ -305,7 +305,14 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
           padding: const EdgeInsets.only(bottom: AppSpacing.sm),
           child: Row(
             children: [
-              Icon(Icons.check_circle_outline_rounded, color: colorScheme.primary),
+              Icon(
+                _selectedOfferStatus == 'accepted'
+                    ? Icons.check_circle_outline_rounded
+                    : Icons.cancel_outlined,
+                color: _selectedOfferStatus == 'accepted'
+                    ? colorScheme.primary
+                    : colorScheme.error,
+              ),
               const SizedBox(width: AppSpacing.xs),
               Text(
                 _selectedOfferStatus == 'accepted' ? 'Accepted Offers' : 'Rejected Offers',
