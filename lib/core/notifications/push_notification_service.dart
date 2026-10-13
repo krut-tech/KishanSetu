@@ -33,6 +33,8 @@ class PushNotificationService {
   String? _lastSyncedToken;
   String? _lastSyncedUserId;
   StreamSubscription<String>? _tokenRefreshSubscription;
+  StreamSubscription<RemoteMessage>? _foregroundMessageSubscription;
+  StreamSubscription<RemoteMessage>? _openedMessageSubscription;
 
   /// Holds a pending route to navigate to if app was launched via notification from terminated state.
   static String? pendingInitialRoute;
@@ -117,13 +119,15 @@ class PushNotificationService {
       );
 
       // Listen for foreground FCM messages
-      FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      _foregroundMessageSubscription ??=
+          FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
         AppLogger.info('Received FCM foreground message: ${message.messageId}');
-        _showForegroundLocalNotification(message);
+        await _showForegroundLocalNotification(message);
       });
 
       // Listen for notification taps when app was in background
-      FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+      _openedMessageSubscription ??=
+          FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
         AppLogger.info(
             'App opened from background via FCM notification tap: ${message.data}');
         final route = resolveRouteFromData(message.data);
@@ -153,10 +157,9 @@ class PushNotificationService {
   }
 
   /// Display a local heads-up notification when app is in foreground.
-  void _showForegroundLocalNotification(RemoteMessage message) {
+  Future<void> _showForegroundLocalNotification(RemoteMessage message) async {
     final notification = message.notification;
     final data = message.data;
-
     final title =
         notification?.title ?? data['title'] ?? 'KisanSetu Notification';
     final body = notification?.body ?? data['body'] ?? '';
@@ -173,19 +176,22 @@ class PushNotificationService {
       icon: '@mipmap/ic_launcher',
     );
     const notificationDetails = NotificationDetails(android: androidDetails);
-
     final notificationId = (data['notification_id'] ??
             data['id'] ??
             DateTime.now().millisecondsSinceEpoch.toString())
         .hashCode;
 
-    _localNotificationsPlugin.show(
-      notificationId,
-      title,
-      body,
-      notificationDetails,
-      payload: route,
-    );
+    try {
+      await _localNotificationsPlugin.show(
+        notificationId,
+        title,
+        body,
+        notificationDetails,
+        payload: route,
+      );
+    } catch (e, stack) {
+      AppLogger.error('Failed to show foreground notification', e, stack);
+    }
   }
 
   /// Resolves target route from FCM payload data.
