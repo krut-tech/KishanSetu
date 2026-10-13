@@ -59,22 +59,33 @@ class BuyerOfferController extends StateNotifier<BuyerOfferState> {
   final BuyerRepository _repository;
   RealtimeChannel? _offersChannel;
   String? _currentBuyerId;
+  int _fetchGeneration = 0;
 
   BuyerOfferController(this._repository) : super(const BuyerOfferState());
 
   Future<void> fetchOffers(String buyerId, {String? status}) async {
     _currentBuyerId = buyerId;
+    final generation = ++_fetchGeneration;
+    final requestedStatus = status ?? state.selectedStatus;
     state = state.copyWith(
       isLoading: true,
-      selectedStatus: status ?? state.selectedStatus,
+      selectedStatus: requestedStatus,
       clearError: true,
       clearSuccess: true,
     );
 
     final result = await _repository.getBuyerOffers(
       buyerId,
-      status: state.selectedStatus == 'All' ? null : state.selectedStatus,
+      status: requestedStatus == 'All' ? null : requestedStatus,
     );
+
+    // Rapid filter changes can finish out of order; only the newest request
+    // may update the selected filter's visible results.
+    if (!mounted ||
+        generation != _fetchGeneration ||
+        _currentBuyerId != buyerId) {
+      return;
+    }
 
     result.fold(
       (failure) {
@@ -112,6 +123,7 @@ class BuyerOfferController extends StateNotifier<BuyerOfferState> {
   }
 
   void reset() {
+    _fetchGeneration++;
     _offersChannel?.unsubscribe();
     _offersChannel = null;
     _currentBuyerId = null;
@@ -259,6 +271,7 @@ class BuyerOfferController extends StateNotifier<BuyerOfferState> {
 
   @override
   void dispose() {
+    _fetchGeneration++;
     _offersChannel?.unsubscribe();
     super.dispose();
   }
