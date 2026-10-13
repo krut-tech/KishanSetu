@@ -72,6 +72,7 @@ class MarketplaceState extends Equatable {
 class MarketplaceController extends StateNotifier<MarketplaceState> {
   final BuyerRepository _repository;
   RealtimeChannel? _marketplaceChannel;
+  int _requestVersion = 0;
 
   MarketplaceController(this._repository) : super(const MarketplaceState());
 
@@ -83,25 +84,37 @@ class MarketplaceController extends StateNotifier<MarketplaceState> {
     double? maxPrice,
     String? sortBy,
   }) async {
+    final requestVersion = ++_requestVersion;
+    final nextSearchQuery = query ?? state.searchQuery;
+    final nextCategory = category ?? state.selectedCategory;
+    final nextLocation = location ?? state.selectedLocation;
+    final nextMinPrice = minPrice ?? state.minPrice;
+    final nextMaxPrice = maxPrice ?? state.maxPrice;
+    final nextSortBy = sortBy ?? state.sortBy;
+
     state = state.copyWith(
       isLoading: true,
-      searchQuery: query ?? state.searchQuery,
-      selectedCategory: category ?? state.selectedCategory,
-      selectedLocation: location ?? state.selectedLocation,
-      minPrice: minPrice,
-      maxPrice: maxPrice,
-      sortBy: sortBy ?? state.sortBy,
+      searchQuery: nextSearchQuery,
+      selectedCategory: nextCategory,
+      selectedLocation: nextLocation,
+      minPrice: nextMinPrice,
+      maxPrice: nextMaxPrice,
+      sortBy: nextSortBy,
       clearError: true,
     );
 
     final result = await _repository.getMarketplaceProduce(
-      searchQuery: state.searchQuery,
-      category: state.selectedCategory == 'All' ? null : state.selectedCategory,
-      location: state.selectedLocation,
-      minPrice: state.minPrice,
-      maxPrice: state.maxPrice,
-      sortBy: state.sortBy,
+      searchQuery: nextSearchQuery,
+      category: nextCategory.toLowerCase() == 'all' ? null : nextCategory,
+      location: nextLocation,
+      minPrice: nextMinPrice,
+      maxPrice: nextMaxPrice,
+      sortBy: nextSortBy,
     );
+
+    // Rapid search/category taps can complete network calls out of order.
+    // Ignore stale responses so an older query cannot overwrite the latest UI.
+    if (!mounted || requestVersion != _requestVersion) return;
 
     result.fold(
       (failure) {
@@ -140,6 +153,7 @@ class MarketplaceController extends StateNotifier<MarketplaceState> {
   }
 
   void reset() {
+    _requestVersion++;
     _marketplaceChannel?.unsubscribe();
     _marketplaceChannel = null;
     state = const MarketplaceState();
