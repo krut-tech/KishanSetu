@@ -72,7 +72,9 @@ class NotificationNotifier extends StateNotifier<NotificationState> with Widgets
         _setupStream(userId);
       } else if (userId == null) {
         _currentUserId = null;
+        _reconnectTimer?.cancel();
         _streamSubscription?.cancel();
+        _streamSubscription = null;
         state = const NotificationState();
       }
     });
@@ -162,6 +164,7 @@ class NotificationNotifier extends StateNotifier<NotificationState> with Widgets
 
   Future<void> markAsRead(String id) async {
     final result = await _repository.markAsRead(id);
+    if (!mounted) return;
     result.fold(
       (failure) {
         AppLogger.error(
@@ -181,6 +184,7 @@ class NotificationNotifier extends StateNotifier<NotificationState> with Widgets
 
   Future<void> markAllAsRead() async {
     final result = await _repository.markAllAsRead();
+    if (!mounted) return;
     result.fold(
       (failure) {
         AppLogger.error('Failed to mark all as read: ${failure.message}');
