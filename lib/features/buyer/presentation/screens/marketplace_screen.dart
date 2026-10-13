@@ -345,6 +345,10 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> with Widg
                 await ref
                     .read(marketplaceControllerProvider.notifier)
                     .fetchProduce();
+                final buyerId = _buyerId;
+                if (buyerId != null) {
+                  await _fetchBuyerOffers(buyerId);
+                }
               },
               child: _buildBody(state),
             ),
