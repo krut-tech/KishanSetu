@@ -47,6 +47,7 @@ class NotificationNotifier extends StateNotifier<NotificationState> with Widgets
   String? _currentUserId;
   Timer? _reconnectTimer;
   int _retryDelaySeconds = 3;
+  int _streamGeneration = 0;
 
   NotificationNotifier(this._repository, this._supabaseClient)
       : super(const NotificationState()) {
@@ -72,6 +73,7 @@ class NotificationNotifier extends StateNotifier<NotificationState> with Widgets
         _setupStream(userId);
       } else if (userId == null) {
         _currentUserId = null;
+        _streamGeneration++;
         _reconnectTimer?.cancel();
         _streamSubscription?.cancel();
         _streamSubscription = null;
@@ -81,12 +83,15 @@ class NotificationNotifier extends StateNotifier<NotificationState> with Widgets
   }
 
   void _setupStream(String userId) {
+    final generation = ++_streamGeneration;
     _reconnectTimer?.cancel();
     _streamSubscription?.cancel();
     state = state.copyWith(isLoading: true, clearError: true);
 
     _streamSubscription = _repository.getNotificationStream(userId).listen(
       (data) {
+        if (!mounted || generation != _streamGeneration ||
+            _currentUserId != userId) return;
         _retryDelaySeconds = 3;
         final notifications =
             data.map((json) => NotificationModel.fromJson(json)).toList();
@@ -97,6 +102,8 @@ class NotificationNotifier extends StateNotifier<NotificationState> with Widgets
         );
       },
       onError: (error) {
+        if (!mounted || generation != _streamGeneration ||
+            _currentUserId != userId) return;
         AppLogger.error('Notification stream error; scheduling reconnect', error);
         _streamSubscription = null;
         state = state.copyWith(
@@ -106,6 +113,8 @@ class NotificationNotifier extends StateNotifier<NotificationState> with Widgets
         _scheduleReconnect(userId);
       },
       onDone: () {
+        if (!mounted || generation != _streamGeneration ||
+            _currentUserId != userId) return;
         _streamSubscription = null;
         _scheduleReconnect(userId);
       },
@@ -199,6 +208,7 @@ class NotificationNotifier extends StateNotifier<NotificationState> with Widgets
   }
 
   void reset() {
+    _streamGeneration++;
     _reconnectTimer?.cancel();
     _streamSubscription?.cancel();
     _streamSubscription = null;
@@ -208,6 +218,7 @@ class NotificationNotifier extends StateNotifier<NotificationState> with Widgets
 
   @override
   void dispose() {
+    _streamGeneration++;
     WidgetsBinding.instance.removeObserver(this);
     _reconnectTimer?.cancel();
     _streamSubscription?.cancel();
