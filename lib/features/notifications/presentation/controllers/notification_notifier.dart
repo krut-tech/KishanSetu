@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -48,11 +49,23 @@ class NotificationNotifier extends StateNotifier<NotificationState> with Widgets
   Timer? _reconnectTimer;
   int _retryDelaySeconds = 3;
   int _streamGeneration = 0;
+  bool _lifecycleObserverRegistered = false;
 
   NotificationNotifier(this._repository, this._supabaseClient)
       : super(const NotificationState()) {
-    WidgetsBinding.instance.addObserver(this);
+    _registerLifecycleObserver();
     _init();
+  }
+
+  void _registerLifecycleObserver() {
+    // Unit tests may construct this notifier without a widget binding.
+    // The app path always has a binding once the root widget is running.
+    try {
+      WidgetsBinding.instance.addObserver(this);
+      _lifecycleObserverRegistered = true;
+    } on FlutterError {
+      _lifecycleObserverRegistered = false;
+    }
   }
 
   void _init() {
@@ -219,7 +232,10 @@ class NotificationNotifier extends StateNotifier<NotificationState> with Widgets
   @override
   void dispose() {
     _streamGeneration++;
-    WidgetsBinding.instance.removeObserver(this);
+    if (_lifecycleObserverRegistered) {
+      WidgetsBinding.instance.removeObserver(this);
+      _lifecycleObserverRegistered = false;
+    }
     _reconnectTimer?.cancel();
     _streamSubscription?.cancel();
     _authSubscription?.cancel();
