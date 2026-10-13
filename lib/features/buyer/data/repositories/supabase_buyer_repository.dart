@@ -36,7 +36,21 @@ class SupabaseBuyerRepository implements BuyerRepository {
       if (category != null &&
           category.trim().isNotEmpty &&
           category.toLowerCase() != 'all') {
-        query = query.eq('category', category.trim());
+        // Category labels and stored values can differ by case or singular /
+        // plural form (e.g. Vegetable vs Vegetables). Use a normalized
+        // category stem with a wildcard match, independent of UI localization.
+        final normalizedCategory = category.trim().toLowerCase();
+        final categoryStem = switch (normalizedCategory) {
+          'grains' || 'grain' => 'grain',
+          'vegetables' || 'vegetable' || 'veg' => 'vegetable',
+          'fruits' || 'fruit' => 'fruit',
+          'pulses' || 'pulse' || 'legumes' => 'pulse',
+          'spices' || 'spice' => 'spice',
+          'oilseeds' || 'oilseed' || 'oil seeds' => 'oilseed',
+          'commercial crops' || 'commercial crop' => 'commercial crop',
+          _ => normalizedCategory,
+        };
+        query = query.ilike('category', '%$categoryStem%');
       }
 
       if (location != null && location.trim().isNotEmpty) {

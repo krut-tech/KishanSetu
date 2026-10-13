@@ -1,18 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:farmer_market_app/core/constants/app_spacing.dart';
 import 'package:farmer_market_app/core/widgets/cards/produce_card.dart';
 import 'package:farmer_market_app/core/widgets/empty_state_widget.dart';
 import 'package:farmer_market_app/core/widgets/error_state_widget.dart';
 import 'package:farmer_market_app/core/widgets/inputs/app_search_field.dart';
 import 'package:farmer_market_app/core/widgets/states/shimmer_loading.dart';
-import 'package:farmer_market_app/features/auth/presentation/controllers/auth_providers.dart';
-import 'package:farmer_market_app/features/buyer/presentation/controllers/buyer_providers.dart';
 import 'package:farmer_market_app/features/buyer/presentation/controllers/marketplace_controller.dart';
 import 'package:farmer_market_app/features/buyer/presentation/screens/produce_details_screen.dart';
-import 'package:farmer_market_app/features/farmer/domain/models/offer_model.dart';
 import 'package:farmer_market_app/core/localization/localization_extension.dart';
 
 /// Full Marketplace Screen for Buyers to browse, search, filter, and sort active farmer produce.
@@ -25,9 +20,6 @@ class MarketplaceScreen extends ConsumerStatefulWidget {
 
 class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
   final TextEditingController _searchController = TextEditingController();
-  List<OfferModel> _acceptedOffers = const [];
-  RealtimeChannel? _acceptedOffersChannel;
-  String? _acceptedBuyerId;
 
   /// Display label for a category chip. The English [cat] string stays the
   /// value sent to the marketplace filter; only the label is localized.
@@ -73,41 +65,13 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
       if (ref.read(marketplaceControllerProvider).produceList.isEmpty) {
         ref.read(marketplaceControllerProvider.notifier).fetchProduce();
       }
-      final buyer = ref.read(authNotifierProvider).state.user;
-      if (buyer != null) _watchAcceptedOffers(buyer.id);
     });
   }
 
   @override
   void dispose() {
-    _acceptedOffersChannel?.unsubscribe();
     _searchController.dispose();
     super.dispose();
-  }
-
-  void _watchAcceptedOffers(String buyerId) {
-    _acceptedBuyerId = buyerId;
-    _acceptedOffersChannel?.unsubscribe();
-    _acceptedOffersChannel = ref
-        .read(buyerRepositoryProvider)
-        .subscribeToBuyerOffers(buyerId, (_) {
-      final currentBuyerId = _acceptedBuyerId;
-      if (mounted && currentBuyerId != null) {
-        _fetchAcceptedOffers(currentBuyerId);
-      }
-    });
-    _fetchAcceptedOffers(buyerId);
-  }
-
-  Future<void> _fetchAcceptedOffers(String buyerId) async {
-    final result = await ref
-        .read(buyerRepositoryProvider)
-        .getBuyerOffers(buyerId, status: 'accepted');
-    if (!mounted) return;
-    result.fold(
-      (_) {},
-      (offers) => setState(() => _acceptedOffers = offers),
-    );
   }
 
   void _onSearchChanged(String query) {
@@ -259,102 +223,8 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
     );
   }
 
-  Widget _buildAcceptedOffersSection() {
-    if (_acceptedOffers.isEmpty) return const SizedBox.shrink();
-
-    final colorScheme = Theme.of(context).colorScheme;
-    final formatter = DateFormat('dd MMM yyyy, hh:mm a');
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-          child: Row(
-            children: [
-              Icon(Icons.check_circle_outline_rounded, color: colorScheme.primary),
-              const SizedBox(width: AppSpacing.xs),
-              Text(
-                'Accepted Offers',
-                style: TextStyle(
-                  fontSize: 17,
-                  fontWeight: FontWeight.bold,
-                  color: colorScheme.onSurface,
-                ),
-              ),
-            ],
-          ),
-        ),
-        ..._acceptedOffers.map((offer) {
-          final unit = offer.produceUnit ?? 'units';
-          final createdText = offer.createdAt == null
-              ? '—'
-              : formatter.format(offer.createdAt!.toLocal());
-          final acceptedText = offer.updatedAt == null
-              ? '—'
-              : formatter.format(offer.updatedAt!.toLocal());
-
-          return Padding(
-            padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-            child: Card(
-              margin: EdgeInsets.zero,
-              child: Padding(
-                padding: const EdgeInsets.all(AppSpacing.md),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            offer.produceName ?? context.l10n.produceListingLabel,
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: colorScheme.onSurface,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: AppSpacing.xs),
-                        const Chip(
-                          avatar: Icon(Icons.check_circle, size: 16),
-                          label: Text('Accepted'),
-                          visualDensity: VisualDensity.compact,
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: AppSpacing.xs),
-                    Text('${context.l10n.farmerLabel}: ${offer.farmerName ?? context.l10n.farmerLabel}'),
-                    Text('Agreed price: ₹${offer.offeredPrice.toStringAsFixed(2)} / $unit'),
-                    Text('Accepted quantity: ${offer.quantity} $unit'),
-                    const Divider(height: AppSpacing.lg),
-                    Text('Offer created: $createdText'),
-                    Text('Offer accepted: $acceptedText'),
-                    if (offer.message != null && offer.message!.trim().isNotEmpty)
-                      Padding(
-                        padding: const EdgeInsets.only(top: AppSpacing.xs),
-                        child: Text(
-                          'Message: ${offer.message}',
-                          style: TextStyle(color: colorScheme.onSurfaceVariant),
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-            ),
-          );
-        }),
-      ],
-    );
-  }
-
   Widget _buildBody(MarketplaceState state) {
     final children = <Widget>[];
-
-    if (_acceptedOffers.isNotEmpty) {
-      children.add(_buildAcceptedOffersSection());
-      children.add(const SizedBox(height: AppSpacing.md));
-    }
 
     if (state.isLoading) {
       children.addAll(List<Widget>.generate(
@@ -391,20 +261,6 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
         ),
       ));
     } else {
-      if (_acceptedOffers.isNotEmpty) {
-        children.add(Padding(
-          padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-          child: Text(
-            'Available Produce',
-            style: TextStyle(
-              fontSize: 17,
-              fontWeight: FontWeight.bold,
-              color: Theme.of(context).colorScheme.onSurface,
-            ),
-          ),
-        ));
-      }
-
       for (final produce in state.produceList) {
         children.add(Padding(
           padding: const EdgeInsets.only(bottom: AppSpacing.md),
