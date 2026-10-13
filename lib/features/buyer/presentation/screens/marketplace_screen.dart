@@ -14,6 +14,7 @@ import 'package:farmer_market_app/features/auth/presentation/controllers/auth_pr
 import 'package:farmer_market_app/features/buyer/presentation/controllers/buyer_providers.dart';
 import 'package:farmer_market_app/features/buyer/presentation/controllers/marketplace_controller.dart';
 import 'package:farmer_market_app/features/buyer/presentation/screens/produce_details_screen.dart';
+import 'package:farmer_market_app/features/buyer/presentation/screens/buyer_offers_screen.dart';
 import 'package:farmer_market_app/features/farmer/domain/models/offer_model.dart';
 import 'package:farmer_market_app/core/localization/localization_extension.dart';
 
@@ -195,6 +196,21 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> with Widg
 
   @override
   Widget build(BuildContext context) {
+    ref.listen(authNotifierProvider.select((auth) => auth.state.user?.id),
+        (previousBuyerId, nextBuyerId) {
+      if (nextBuyerId != null && nextBuyerId != _buyerId) {
+        _watchBuyerOffers(nextBuyerId);
+      } else if (nextBuyerId == null && _buyerId != null) {
+        _buyerOffersChannel?.unsubscribe();
+        _buyerOffersChannel = null;
+        _buyerId = null;
+        _buyerOffers = const [];
+        _hasLoadedBuyerOffers = false;
+        _offersLoadError = null;
+        _selectedOfferStatus = 'All';
+        if (mounted) setState(() {});
+      }
+    });
     final state = ref.watch(marketplaceControllerProvider);
     final colorScheme = Theme.of(context).colorScheme;
 
@@ -417,7 +433,7 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> with Widg
               style: TextStyle(color: colorScheme.onSurfaceVariant),
             ),
           ),
-        ...visibleOffers.map((offer) {
+        ...visibleOffers.take(5).map((offer) {
           final unit = offer.produceUnit ?? 'units';
           final createdText = offer.createdAt == null ? '—' : formatter.format(offer.createdAt!.toLocal());
           final updatedText = offer.updatedAt == null ? '—' : formatter.format(offer.updatedAt!.toLocal());
@@ -471,6 +487,20 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> with Widg
             ),
           );
         }),
+        if (visibleOffers.length > 5)
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton(
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const BuyerOffersScreen(),
+                  ),
+                );
+              },
+              child: Text('View all offers (${visibleOffers.length})'),
+            ),
+          ),
       ],
     );
   }
