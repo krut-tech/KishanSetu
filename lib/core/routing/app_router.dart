@@ -66,6 +66,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         return location == RouteNames.splash ? null : RouteNames.splash;
       }
 
+      // If the user is signed in but profile loading failed, do not mistake
+      // a temporary backend/network failure for a genuinely incomplete profile.
+      // Keep them on the recoverable splash/error screen so they can retry.
+      if (authState.isAuthenticated &&
+          authState.errorMessage != null &&
+          !authState.isProfileComplete) {
+        return location == RouteNames.splash ? null : RouteNames.splash;
+      }
+
       // Unauthenticated User Guard
       if (!authState.isAuthenticated) {
         final isAuthRoute = location == RouteNames.login ||

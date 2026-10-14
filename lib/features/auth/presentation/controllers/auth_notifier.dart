@@ -139,7 +139,8 @@ class AuthNotifier extends ChangeNotifier {
           final isSameUser = _state.user?.id == user.id;
           final isAlreadyAuthenticated =
               _state.status == AuthStatus.authenticated &&
-                  _state.profile != null;
+                  _state.profile != null &&
+                  _state.errorMessage == null;
           if (!isSameUser || !isAlreadyAuthenticated) {
             await _fetchProfileForUser(user);
           }
@@ -163,7 +164,8 @@ class AuthNotifier extends ChangeNotifier {
           final isSameUser = _state.user?.id == currentUser.id;
           final isAlreadyAuthenticated =
               _state.status == AuthStatus.authenticated &&
-                  _state.profile != null;
+                  _state.profile != null &&
+                  _state.errorMessage == null;
           if (!isSameUser || !isAlreadyAuthenticated) {
             await _fetchProfileForUser(currentUser);
           }

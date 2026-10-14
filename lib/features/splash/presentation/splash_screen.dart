@@ -63,7 +63,12 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
       tagline = 'Direct Farm-to-Buyer Marketplace & Real-time Prices';
     }
 
-    final hasError = bootstrapState.hasError;
+    final authState = ref.watch(authNotifierProvider).state;
+    final profileLoadError = authState.isAuthenticated &&
+        authState.errorMessage != null &&
+        !authState.isProfileComplete;
+    final hasError = bootstrapState.hasError ||
+        (profileLoadError && !bootstrapState.isLoading && !authState.isLoading);
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -170,7 +175,9 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                         const SizedBox(height: AppConstants.paddingSmall),
                         Text(
                           bootstrapState.errorMessage ??
-                              context.l10n.serviceInitializationFailed,
+                              (profileLoadError
+                                  ? 'Could not load your account profile. Check your connection and retry.'
+                                  : context.l10n.serviceInitializationFailed),
                           textAlign: TextAlign.center,
                           style: textTheme.bodyMedium?.copyWith(
                             color: cs.onSurfaceVariant,

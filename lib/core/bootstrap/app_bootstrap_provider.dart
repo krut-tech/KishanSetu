@@ -63,7 +63,9 @@ class AppBootstrapNotifier extends StateNotifier<AppBootstrapState> {
 
       AppLogger.info('App bootstrap: Initializing PushNotificationService...');
       try {
-        await PushNotificationService().initialize();
+        await PushNotificationService()
+            .initialize()
+            .timeout(const Duration(seconds: 8));
       } catch (pushErr, stackTrace) {
         AppLogger.error(
             'Failed to initialize PushNotificationService during bootstrap: $pushErr',
@@ -72,7 +74,10 @@ class AppBootstrapNotifier extends StateNotifier<AppBootstrapState> {
       }
 
       AppLogger.info('App bootstrap: Initializing AuthNotifier session...');
-      await _ref.read(authNotifierProvider).initSession();
+      await _ref
+          .read(authNotifierProvider)
+          .initSession()
+          .timeout(const Duration(seconds: 12));
 
       AppLogger.info('App bootstrap completed successfully.');
       state = const AppBootstrapState(
