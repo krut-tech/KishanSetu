@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:farmer_market_app/core/routing/route_names.dart';
+import 'package:farmer_market_app/features/auth/domain/models/user_role.dart';
+import 'package:farmer_market_app/features/auth/presentation/controllers/auth_providers.dart';
+import 'package:farmer_market_app/features/notifications/domain/models/notification_model.dart';
 import 'package:farmer_market_app/features/notifications/presentation/controllers/notification_notifier.dart';
 import 'package:farmer_market_app/features/notifications/presentation/widgets/notification_item_card.dart';
 import 'package:farmer_market_app/core/localization/localization_extension.dart';
@@ -33,6 +38,73 @@ class NotificationScreen extends ConsumerWidget {
       ),
       body: _buildBody(context, ref, state),
     );
+  }
+
+  void _navigateToNotificationTarget(
+      BuildContext context, WidgetRef ref, NotificationModel notification) {
+    final relatedId = notification.relatedId;
+    final type = notification.type;
+    final role = ref.read(authNotifierProvider).profile?.role;
+
+    if (type == NotificationType.newMessage) {
+      context.push(RouteNames.messages);
+      return;
+    }
+
+    if (type == NotificationType.marketPriceUpdate) {
+      context.push(RouteNames.marketPrices);
+      return;
+    }
+
+    if (type == NotificationType.produceInterest) {
+      if (relatedId != null && relatedId.isNotEmpty) {
+        context.push('/my-produce?produceId=$relatedId');
+      } else {
+        context.push(RouteNames.myProduce);
+      }
+      return;
+    }
+
+    // Offer-related notifications: offerRejected, offerAccepted, newOffer, counterOffer, offerCancelled
+    if (type == NotificationType.offerRejected ||
+        type == NotificationType.offerAccepted ||
+        type == NotificationType.newOffer ||
+        type == NotificationType.counterOffer ||
+        type == NotificationType.offerCancelled ||
+        notification.relatedType == 'offer') {
+      final String targetStatus;
+      switch (type) {
+        case NotificationType.offerRejected:
+          targetStatus = 'rejected';
+          break;
+        case NotificationType.offerAccepted:
+          targetStatus = 'accepted';
+          break;
+        case NotificationType.counterOffer:
+          targetStatus = 'countered';
+          break;
+        case NotificationType.offerCancelled:
+          targetStatus = 'cancelled';
+          break;
+        default:
+          targetStatus = 'pending';
+      }
+
+      final routePath = (role == UserRole.buyer)
+          ? RouteNames.buyerOffers
+          : RouteNames.offers;
+
+      final queryStr = relatedId != null && relatedId.isNotEmpty
+          ? '$routePath?offerId=$relatedId&status=$targetStatus'
+          : '$routePath?status=$targetStatus';
+
+      context.push(queryStr);
+      return;
+    }
+
+    if (Navigator.of(context).canPop()) {
+      Navigator.of(context).pop();
+    }
   }
 
   Widget _buildBody(
@@ -102,10 +174,7 @@ class NotificationScreen extends ConsumerWidget {
                     .read(notificationNotifierProvider.notifier)
                     .markAsRead(notification.id);
               }
-              // Navigate back or to home tab based on relatedType
-              if (Navigator.of(context).canPop()) {
-                Navigator.of(context).pop();
-              }
+              _navigateToNotificationTarget(context, ref, notification);
             },
           );
         },

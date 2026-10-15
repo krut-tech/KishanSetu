@@ -32,7 +32,7 @@ void main() {
       };
 
       final route = PushNotificationService.resolveRouteFromData(data);
-      expect(route, equals('/offers'));
+      expect(route, equals('/offers?offerId=offer-2&status=pending'));
     });
 
     test(
@@ -45,15 +45,15 @@ void main() {
       final dataCancelled = {'type': 'offer_cancelled'};
 
       expect(PushNotificationService.resolveRouteFromData(dataAccepted),
-          equals('/offers'));
+          equals('/offers?status=accepted'));
       expect(PushNotificationService.resolveRouteFromData(dataRejected),
-          equals('/offers'));
+          equals('/offers?status=rejected'));
       expect(PushNotificationService.resolveRouteFromData(dataCounter),
-          equals('/offers'));
+          equals('/offers?status=countered'));
       expect(PushNotificationService.resolveRouteFromData(dataUpdated),
-          equals('/offers'));
+          equals('/offers?status=pending'));
       expect(PushNotificationService.resolveRouteFromData(dataCancelled),
-          equals('/offers'));
+          equals('/offers?status=cancelled'));
     });
 
     test('4. Resolves /my-produce for produce and produce_interest types', () {

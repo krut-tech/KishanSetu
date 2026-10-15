@@ -10,7 +10,7 @@ class BuyerOfferState extends Equatable {
   final bool isLoading;
   final bool isSubmitting;
   final String
-      selectedStatus; // 'All', 'pending', 'accepted', 'rejected', 'cancelled'
+      selectedStatus; // 'Pending', 'Accepted', 'Rejected', 'Countered', 'Cancelled'
   final String? errorMessage;
   final String? successMessage;
 
@@ -18,7 +18,7 @@ class BuyerOfferState extends Equatable {
     this.offers = const [],
     this.isLoading = false,
     this.isSubmitting = false,
-    this.selectedStatus = 'All',
+    this.selectedStatus = 'Pending',
     this.errorMessage,
     this.successMessage,
   });
@@ -76,7 +76,7 @@ class BuyerOfferController extends StateNotifier<BuyerOfferState> {
 
     final result = await _repository.getBuyerOffers(
       buyerId,
-      status: requestedStatus == 'All' ? null : requestedStatus,
+      status: requestedStatus.toLowerCase() == 'all' ? null : requestedStatus,
     );
 
     // Rapid filter changes can finish out of order; only the newest request

@@ -53,9 +53,22 @@ android {
             if (releaseSigning?.storeFile?.exists() == true) {
                 signingConfig = releaseSigning
             } else {
-                signingConfig = signingConfigs.getByName("debug")
+                // NEVER silently fall back to debug signing for a release build.
+                // Leaving signingConfig null prevents debug signing for release.
+                signingConfig = null
             }
         }
+    }
+}
+
+gradle.taskGraph.whenReady {
+    val isReleaseTask = allTasks.any { it.name.contains("Release", ignoreCase = true) }
+    val keystoreFile = project.extensions.getByType(com.android.build.api.dsl.ApplicationExtension::class.java).signingConfigs.findByName("release")?.storeFile
+    if (isReleaseTask && (keystoreFile == null || !keystoreFile.exists())) {
+        throw GradleException(
+            "Release signing keystore is not configured or storeFile does not exist. " +
+            "Set ANDROID_KEYSTORE_PATH, ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS, and ANDROID_KEY_PASSWORD environment variables to build a release APK."
+        )
     }
 }
 

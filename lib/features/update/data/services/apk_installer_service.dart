@@ -1,5 +1,38 @@
+import 'package:equatable/equatable.dart';
 import 'package:flutter/services.dart';
 import 'package:farmer_market_app/core/logging/app_logger.dart';
+
+/// Represents the result of an APK compatibility, integrity, and signature verification.
+class ApkValidationResult extends Equatable {
+  final bool isValid;
+  final String errorCode;
+  final String? errorMessage;
+  final int? installedVersionCode;
+  final int? apkVersionCode;
+  final String? installedCertSha256;
+  final String? apkCertSha256;
+
+  const ApkValidationResult({
+    required this.isValid,
+    required this.errorCode,
+    this.errorMessage,
+    this.installedVersionCode,
+    this.apkVersionCode,
+    this.installedCertSha256,
+    this.apkCertSha256,
+  });
+
+  @override
+  List<Object?> get props => [
+        isValid,
+        errorCode,
+        errorMessage,
+        installedVersionCode,
+        apkVersionCode,
+        installedCertSha256,
+        apkCertSha256,
+      ];
+}
 
 /// Wraps native Android MethodChannel calls for package installation & permissions.
 class ApkInstallerService {
@@ -27,6 +60,38 @@ class ApkInstallerService {
     } catch (e) {
       AppLogger.error('Failed to open install permission settings: $e');
       return false;
+    }
+  }
+
+  /// Verifies APK compatibility, integrity, package name, version, and signing certificate match.
+  Future<ApkValidationResult> verifyApk(String filePath) async {
+    try {
+      final Map<dynamic, dynamic>? result =
+          await _channel.invokeMethod('verifyApk', {'filePath': filePath});
+      if (result == null) {
+        return const ApkValidationResult(
+          isValid: false,
+          errorCode: 'VERIFICATION_NULL',
+          errorMessage: 'Native APK verification returned null.',
+        );
+      }
+
+      return ApkValidationResult(
+        isValid: result['valid'] == true,
+        errorCode: result['errorCode'] as String? ?? 'UNKNOWN',
+        errorMessage: result['errorMessage'] as String?,
+        installedVersionCode: (result['installedVersionCode'] as num?)?.toInt(),
+        apkVersionCode: (result['apkVersionCode'] as num?)?.toInt(),
+        installedCertSha256: result['installedCertSha256'] as String?,
+        apkCertSha256: result['apkCertSha256'] as String?,
+      );
+    } catch (e) {
+      AppLogger.error('Failed to verify APK natively: $e');
+      return ApkValidationResult(
+        isValid: false,
+        errorCode: 'VERIFICATION_ERROR',
+        errorMessage: 'Failed to verify APK: $e',
+      );
     }
   }
 

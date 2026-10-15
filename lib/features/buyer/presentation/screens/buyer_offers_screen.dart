@@ -19,7 +19,14 @@ import 'package:farmer_market_app/core/localization/status_localizer.dart';
 
 /// Screen displaying submitted offers created by the authenticated buyer.
 class BuyerOffersScreen extends ConsumerStatefulWidget {
-  const BuyerOffersScreen({super.key});
+  final String? targetOfferId;
+  final String? initialStatus;
+
+  const BuyerOffersScreen({
+    super.key,
+    this.targetOfferId,
+    this.initialStatus,
+  });
 
   @override
   ConsumerState<BuyerOffersScreen> createState() => _BuyerOffersScreenState();
@@ -27,7 +34,6 @@ class BuyerOffersScreen extends ConsumerStatefulWidget {
 
 class _BuyerOffersScreenState extends ConsumerState<BuyerOffersScreen> {
   static const List<String> _statuses = [
-    'All',
     'Pending',
     'Accepted',
     'Rejected',
@@ -38,7 +44,6 @@ class _BuyerOffersScreenState extends ConsumerState<BuyerOffersScreen> {
   /// Display label for a status filter chip. The English [status] string
   /// stays the value sent to the offers filter; only the label is localized.
   String _statusLabel(String status) {
-    if (status == 'All') return context.l10n.allLabel;
     return localizedOfferStatus(context, status);
   }
 
@@ -46,8 +51,21 @@ class _BuyerOffersScreenState extends ConsumerState<BuyerOffersScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (ref.read(buyerOfferControllerProvider).offers.isEmpty) {
-        _fetchOffers();
+      final requestedInitial = widget.initialStatus;
+      String filterStatus = 'Pending';
+      if (requestedInitial != null && requestedInitial.trim().isNotEmpty) {
+        filterStatus = _statuses.firstWhere(
+          (s) => s.toLowerCase() == requestedInitial.trim().toLowerCase(),
+          orElse: () => 'Pending',
+        );
+      }
+
+      final currentState = ref.read(buyerOfferControllerProvider);
+      if (currentState.offers.isEmpty ||
+          currentState.selectedStatus.toLowerCase() !=
+              filterStatus.toLowerCase() ||
+          widget.targetOfferId != null) {
+        _fetchOffers(status: filterStatus);
       }
     });
   }
@@ -247,8 +265,11 @@ class _BuyerOffersScreenState extends ConsumerState<BuyerOffersScreen> {
             : offer.farmerId;
 
         final statusType = _mapStatus(offer.status);
+        final isTargetOffer = widget.targetOfferId != null &&
+            offer.id == widget.targetOfferId;
 
         return OfferCard(
+          isHighlighted: isTargetOffer,
           cropName: offer.produceName ?? context.l10n.produceListingLabel,
           buyerName: offer.farmerName ?? 'ID: $farmerIdDisplay',
           partyLabel: context.l10n.farmerLabel,

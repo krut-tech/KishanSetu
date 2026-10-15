@@ -17,7 +17,14 @@ import 'package:farmer_market_app/core/localization/localization_extension.dart'
 import 'package:farmer_market_app/core/localization/status_localizer.dart';
 
 class OffersScreen extends ConsumerStatefulWidget {
-  const OffersScreen({super.key});
+  final String? targetOfferId;
+  final String? initialStatus;
+
+  const OffersScreen({
+    super.key,
+    this.targetOfferId,
+    this.initialStatus,
+  });
 
   @override
   ConsumerState<OffersScreen> createState() => _OffersScreenState();
@@ -38,8 +45,20 @@ class _OffersScreenState extends ConsumerState<OffersScreen> {
   @override
   void initState() {
     super.initState();
+    final requestedInitial = widget.initialStatus;
+    if (requestedInitial != null && requestedInitial.trim().isNotEmpty) {
+      final match = _statusFilters.firstWhere(
+        (s) => s.toLowerCase() == requestedInitial.trim().toLowerCase(),
+        orElse: () => 'All',
+      );
+      _selectedStatus = match;
+    }
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (ref.read(offerControllerProvider).offers.isEmpty) {
+      final state = ref.read(offerControllerProvider);
+      if (state.offers.isEmpty ||
+          state.selectedStatus.toLowerCase() !=
+              _selectedStatus.toLowerCase() ||
+          widget.targetOfferId != null) {
         _fetchOffers();
       }
     });
@@ -179,9 +198,13 @@ class _OffersScreenState extends ConsumerState<OffersScreen> {
             ? DateFormat('dd MMM yyyy, hh:mm a').format(offer.createdAt!)
             : context.l10n.recentLabel;
 
+        final isTargetOffer = widget.targetOfferId != null &&
+            offer.id == widget.targetOfferId;
+
         return Padding(
           padding: const EdgeInsets.only(bottom: AppSpacing.md),
           child: OfferCard(
+            isHighlighted: isTargetOffer,
             cropName: offer.produceName ?? context.l10n.cropProduceListing,
             buyerName: offer.buyerName ?? offer.buyerCompany ?? context.l10n.interestedBuyer,
             offerPrice: offer.offeredPrice,

@@ -17,6 +17,7 @@ import 'package:farmer_market_app/features/buyer/presentation/screens/produce_de
 import 'package:farmer_market_app/features/buyer/presentation/screens/buyer_offers_screen.dart';
 import 'package:farmer_market_app/features/farmer/domain/models/offer_model.dart';
 import 'package:farmer_market_app/core/localization/localization_extension.dart';
+import 'package:farmer_market_app/core/localization/status_localizer.dart';
 
 /// Full Marketplace Screen for Buyers to browse, search, filter, and sort active farmer produce.
 class MarketplaceScreen extends ConsumerStatefulWidget {
@@ -29,13 +30,13 @@ class MarketplaceScreen extends ConsumerStatefulWidget {
 class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> with WidgetsBindingObserver {
   final TextEditingController _searchController = TextEditingController();
   static const List<String> _offerStatuses = [
-    'All', 'Pending', 'Accepted', 'Rejected', 'Countered', 'Cancelled',
+    'Pending', 'Accepted', 'Rejected', 'Countered', 'Cancelled',
   ];
 
   List<OfferModel> _buyerOffers = const [];
   RealtimeChannel? _buyerOffersChannel;
   String? _buyerId;
-  String _selectedOfferStatus = 'All';
+  String _selectedOfferStatus = 'Pending';
   bool _hasLoadedBuyerOffers = false;
   String? _offersLoadError;
   int _offerFetchGeneration = 0;
@@ -168,21 +169,7 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> with Widg
   }
 
   String _offerStatusLabel(String status) {
-    if (status == 'All') return 'All Offers';
-    switch (status.toLowerCase()) {
-      case 'pending':
-        return context.l10n.pendingOffers;
-      case 'accepted':
-        return context.l10n.acceptedOffers;
-      case 'rejected':
-        return 'Rejected';
-      case 'countered':
-        return 'Countered';
-      case 'cancelled':
-        return 'Cancelled';
-      default:
-        return status;
-    }
+    return localizedOfferStatus(context, status);
   }
 
   void _onSearchChanged(String query) {

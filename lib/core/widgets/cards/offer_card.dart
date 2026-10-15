@@ -41,6 +41,9 @@ class OfferCard extends StatefulWidget {
   /// "View on Map" row is shown under the title.
   final String? location;
 
+  /// Whether this offer card is highlighted (e.g., opened via direct notification tap).
+  final bool isHighlighted;
+
   const OfferCard({
     super.key,
     required this.cropName,
@@ -63,6 +66,7 @@ class OfferCard extends StatefulWidget {
     this.onEdit,
     this.cancelLabel,
     this.location,
+    this.isHighlighted = false,
   });
 
   @override
@@ -103,6 +107,10 @@ class _OfferCardState extends State<OfferCard> {
     }
 
     return AppCard(
+      backgroundColor: widget.isHighlighted
+          ? colorScheme.primaryContainer.withValues(alpha: 0.25)
+          : null,
+      borderColor: widget.isHighlighted ? colorScheme.primary : null,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

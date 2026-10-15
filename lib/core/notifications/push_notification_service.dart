@@ -202,6 +202,11 @@ class PushNotificationService {
     }
 
     final type = (data['type'] as String?)?.toLowerCase() ?? '';
+    final relatedId = data['related_id'] ?? data['relatedId'] ?? data['offer_id'] ?? data['offerId'];
+    final relatedIdStr = relatedId != null && relatedId.toString().trim().isNotEmpty
+        ? relatedId.toString().trim()
+        : null;
+
     switch (type) {
       case 'new_offer':
       case 'offer_accepted':
@@ -209,9 +214,24 @@ class PushNotificationService {
       case 'counter_offer':
       case 'offer_updated':
       case 'offer_cancelled':
+        final targetStatus = type == 'offer_rejected'
+            ? 'rejected'
+            : type == 'offer_accepted'
+                ? 'accepted'
+                : type == 'counter_offer'
+                    ? 'countered'
+                    : type == 'offer_cancelled'
+                        ? 'cancelled'
+                        : 'pending';
+        if (relatedIdStr != null) {
+          return '/offers?offerId=$relatedIdStr&status=$targetStatus';
+        }
         return '/offers';
       case 'produce':
       case 'produce_interest':
+        if (relatedIdStr != null) {
+          return '/my-produce?produceId=$relatedIdStr';
+        }
         return '/my-produce';
       case 'market_price':
       case 'market_price_update':

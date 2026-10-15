@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:equatable/equatable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:farmer_market_app/core/logging/app_logger.dart';
 import 'package:farmer_market_app/features/update/data/services/apk_installer_service.dart';
 import 'package:farmer_market_app/features/update/data/services/update_service.dart';
@@ -45,15 +46,20 @@ class UpdateState extends Equatable {
     AppUpdateInfo? updateInfo,
     double? downloadProgress,
     String? downloadedApkPath,
+    bool clearDownloadedApkPath = false,
     String? errorMessage,
+    bool clearErrorMessage = false,
     bool? hasShownPopup,
   }) {
     return UpdateState(
       status: status ?? this.status,
       updateInfo: updateInfo ?? this.updateInfo,
       downloadProgress: downloadProgress ?? this.downloadProgress,
-      downloadedApkPath: downloadedApkPath ?? this.downloadedApkPath,
-      errorMessage: errorMessage ?? this.errorMessage,
+      downloadedApkPath: clearDownloadedApkPath
+          ? null
+          : (downloadedApkPath ?? this.downloadedApkPath),
+      errorMessage:
+          clearErrorMessage ? null : (errorMessage ?? this.errorMessage),
       hasShownPopup: hasShownPopup ?? this.hasShownPopup,
     );
   }
@@ -73,12 +79,15 @@ class UpdateNotifier extends StateNotifier<UpdateState>
     with WidgetsBindingObserver {
   final UpdateService _updateService;
   final ApkInstallerService _installerService;
+  final Future<PackageInfo> Function() _getPackageInfo;
 
   UpdateNotifier({
     UpdateService? updateService,
     ApkInstallerService? installerService,
+    Future<PackageInfo> Function()? getPackageInfo,
   })  : _updateService = updateService ?? UpdateService(),
         _installerService = installerService ?? ApkInstallerService(),
+        _getPackageInfo = getPackageInfo ?? PackageInfo.fromPlatform,
         super(const UpdateState()) {
     try {
       WidgetsBinding.instance.addObserver(this);
@@ -100,13 +109,97 @@ class UpdateNotifier extends StateNotifier<UpdateState>
     }
   }
 
-  /// Rechecks installation permissions when app resumes from Android Settings.
+  /// Handles app resume events:
+  /// 1. Rechecks install permissions if permission was requested.
+  /// 2. Verifies installed package version after returning from system package installer.
   Future<void> onAppResumed() async {
     if (state.status == UpdateStatus.permissionRequired) {
       AppLogger.info(
         'App resumed while permission required. Rechecking install permission...',
       );
       await recheckPermissionAndInstall();
+    } else if (state.status == UpdateStatus.installing ||
+        state.status == UpdateStatus.downloaded) {
+      AppLogger.info(
+        'App resumed after package installer attempt. Verifying installed package version...',
+      );
+      await verifyInstalledVersionAndHandleResult();
+    }
+  }
+
+  /// Verifies whether the update was successfully installed after returning from installer.
+  Future<void> verifyInstalledVersionAndHandleResult() async {
+    final info = state.updateInfo;
+    if (info == null) return;
+
+    try {
+      final packageInfo = await _getPackageInfo();
+      final installedVersionStr =
+          '${packageInfo.version}+${packageInfo.buildNumber}';
+
+      final targetVersion = info.latestVersion;
+      final isStillNewer =
+          UpdateService.isVersionNewer(targetVersion, installedVersionStr);
+
+      if (!isStillNewer) {
+        AppLogger.info(
+          'Update verification success! Installed version ($installedVersionStr) is up to date with target $targetVersion.',
+        );
+
+        final apkPath = state.downloadedApkPath;
+        if (apkPath != null && apkPath.isNotEmpty) {
+          try {
+            final file = File(apkPath);
+            if (await file.exists()) {
+              await file.delete();
+            }
+          } catch (e) {
+            AppLogger.warning('Failed to delete downloaded APK after update: $e');
+          }
+        }
+
+        state = state.copyWith(
+          status: UpdateStatus.idle,
+          clearDownloadedApkPath: true,
+          clearErrorMessage: true,
+        );
+      } else {
+        AppLogger.warning(
+          'Update verification: installed version ($installedVersionStr) is still older than target $targetVersion.',
+        );
+
+        final path = state.downloadedApkPath;
+        if (path != null && path.isNotEmpty) {
+          final file = File(path);
+          if (await file.exists()) {
+            final validation = await _installerService.verifyApk(path);
+            if (!validation.isValid &&
+                validation.errorCode == 'SIGNATURE_MISMATCH') {
+              state = state.copyWith(
+                status: UpdateStatus.error,
+                errorMessage:
+                    'Signing key mismatch: The downloaded update is signed with the KisanSetu Release key, which does not match this installed build (e.g. local Debug build). Please uninstall the current app or install a matching release build.',
+              );
+              return;
+            } else if (!validation.isValid) {
+              state = state.copyWith(
+                status: UpdateStatus.error,
+                errorMessage: validation.errorMessage ??
+                    'Downloaded APK file is invalid or corrupted. Please redownload.',
+              );
+              return;
+            }
+          }
+        }
+
+        state = state.copyWith(
+          status: UpdateStatus.downloaded,
+          errorMessage:
+              'Installation was not completed. Tap Retry to launch the installer again.',
+        );
+      }
+    } catch (e) {
+      AppLogger.error('Failed to verify installed package version on resume: $e');
     }
   }
 
@@ -134,7 +227,7 @@ class UpdateNotifier extends StateNotifier<UpdateState>
       );
       state = state.copyWith(
         status: UpdateStatus.downloaded,
-        errorMessage: null,
+        clearErrorMessage: true,
       );
       await triggerInstall();
     }
@@ -146,7 +239,7 @@ class UpdateNotifier extends StateNotifier<UpdateState>
 
     state = state.copyWith(
       status: UpdateStatus.checking,
-      errorMessage: null,
+      clearErrorMessage: true,
     );
 
     final updateInfo = await _updateService.checkForUpdate();
@@ -193,7 +286,7 @@ class UpdateNotifier extends StateNotifier<UpdateState>
           state = state.copyWith(
             status: UpdateStatus.downloaded,
             downloadProgress: 1.0,
-            errorMessage: null,
+            clearErrorMessage: true,
           );
           await triggerInstall();
           return;
@@ -204,7 +297,7 @@ class UpdateNotifier extends StateNotifier<UpdateState>
     state = state.copyWith(
       status: UpdateStatus.downloading,
       downloadProgress: 0.0,
-      errorMessage: null,
+      clearErrorMessage: true,
     );
 
     try {
@@ -272,7 +365,7 @@ class UpdateNotifier extends StateNotifier<UpdateState>
         status: UpdateStatus.downloaded,
         downloadProgress: 1.0,
         downloadedApkPath: apkFile.path,
-        errorMessage: null,
+        clearErrorMessage: true,
       );
 
       await triggerInstall();
@@ -337,19 +430,68 @@ class UpdateNotifier extends StateNotifier<UpdateState>
       return;
     }
 
+    // Pre-verify APK compatibility & signing certificate natively
+    final validation = await _installerService.verifyApk(path);
+    AppLogger.info(
+      'APK validation result: isValid=${validation.isValid}, code=${validation.errorCode}, '
+      'installedVersionCode=${validation.installedVersionCode}, apkVersionCode=${validation.apkVersionCode}, '
+      'installedCert=${validation.installedCertSha256}, apkCert=${validation.apkCertSha256}',
+    );
+
+    if (!validation.isValid) {
+      final String userMsg;
+      switch (validation.errorCode) {
+        case 'SIGNATURE_MISMATCH':
+          userMsg =
+              'Signing key mismatch: The downloaded update is signed with the KisanSetu Release key, which does not match this installed build (e.g. local Debug build). Please uninstall the current app or install a matching release build.';
+          break;
+        case 'CORRUPTED_APK':
+          userMsg =
+              'Download corrupted: The downloaded file is not a valid Android package. Please redownload.';
+          break;
+        case 'PACKAGE_NAME_MISMATCH':
+          userMsg =
+              'Invalid update package: The downloaded APK is not for KisanSetu. Please redownload.';
+          break;
+        case 'VERSION_DOWNGRADE':
+          userMsg =
+              'Version mismatch: The downloaded update version is not newer than the currently installed version.';
+          break;
+        case 'INSUFFICIENT_STORAGE':
+          userMsg =
+              'Insufficient storage: Not enough free space to install the update. Free up space and try again.';
+          break;
+        case 'PERMISSION_DENIED':
+          state = state.copyWith(
+            status: UpdateStatus.permissionRequired,
+            clearErrorMessage: true,
+          );
+          return;
+        default:
+          userMsg = validation.errorMessage ??
+              'APK validation failed (${validation.errorCode}). Please redownload.';
+      }
+
+      state = state.copyWith(
+        status: UpdateStatus.error,
+        errorMessage: userMsg,
+      );
+      return;
+    }
+
     final canInstall = await _installerService.canRequestPackageInstalls();
     if (!canInstall) {
       AppLogger.info('REQUEST_INSTALL_PACKAGES permission not granted yet');
       state = state.copyWith(
         status: UpdateStatus.permissionRequired,
-        errorMessage: null,
+        clearErrorMessage: true,
       );
       return;
     }
 
     state = state.copyWith(
       status: UpdateStatus.installing,
-      errorMessage: null,
+      clearErrorMessage: true,
     );
 
     try {
@@ -360,22 +502,16 @@ class UpdateNotifier extends StateNotifier<UpdateState>
           status: UpdateStatus.error,
           errorMessage: 'Failed to open package installer.',
         );
-      } else {
-        // Revert to downloaded state after launching installer so user can retry if cancelled
-        Future.delayed(const Duration(seconds: 2), () {
-          if (mounted && state.status == UpdateStatus.installing) {
-            state = state.copyWith(
-              status: UpdateStatus.downloaded,
-              errorMessage: null,
-            );
-          }
-        });
       }
     } on PlatformException catch (e) {
-      AppLogger.error('PlatformException launching installer: ${e.message}');
+      AppLogger.error(
+          'PlatformException launching installer: ${e.code} - ${e.message}');
+      final String msg = (e.code == 'SIGNATURE_MISMATCH')
+          ? 'Signing key mismatch: The downloaded update is signed with the KisanSetu Release key, which does not match this installed build (e.g. local Debug build). Please uninstall the current app or install a matching release build.'
+          : (e.message ?? 'Failed to open package installer.');
       state = state.copyWith(
         status: UpdateStatus.error,
-        errorMessage: e.message ?? 'Failed to open package installer.',
+        errorMessage: msg,
       );
     } catch (e) {
       AppLogger.error('Error launching installer: $e');

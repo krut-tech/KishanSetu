@@ -21,6 +21,14 @@ class UpdateDialog extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.listen<UpdateState>(updateNotifierProvider, (previous, next) {
+      if (next.status == UpdateStatus.idle) {
+        if (context.mounted && Navigator.of(context).canPop()) {
+          Navigator.of(context).pop();
+        }
+      }
+    });
+
     final updateState = ref.watch(updateNotifierProvider);
     final updateNotifier = ref.read(updateNotifierProvider.notifier);
     final info = updateState.updateInfo;
@@ -401,7 +409,7 @@ class UpdateDialog extends ConsumerWidget {
                           ],
                           Expanded(
                             child: AppButton(
-                              label: (isPermissionRequired || isError)
+                              label: (isPermissionRequired || isError || updateState.status == UpdateStatus.downloaded)
                                   ? context.l10n.retry
                                   : context.l10n.updateNow,
                               isLoading: isDownloading || isInstalling,
@@ -409,9 +417,14 @@ class UpdateDialog extends ConsumerWidget {
                                   ? null
                                   : () {
                                       if (isPermissionRequired ||
-                                          updateState.status ==
-                                              UpdateStatus.downloaded) {
-                                        updateNotifier.triggerInstall();
+                                          updateState.status == UpdateStatus.downloaded ||
+                                          isError) {
+                                        if (updateState.downloadedApkPath != null &&
+                                            updateState.downloadedApkPath!.isNotEmpty) {
+                                          updateNotifier.triggerInstall();
+                                        } else {
+                                          updateNotifier.downloadAndInstallApk();
+                                        }
                                       } else {
                                         updateNotifier.downloadAndInstallApk();
                                       }

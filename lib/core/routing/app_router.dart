@@ -262,19 +262,36 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: RouteNames.offers,
         name: 'offers',
-        builder: (context, state) => Consumer(
-          builder: (context, ref, _) {
-            final role = ref.watch(authNotifierProvider).profile?.role;
-            return role == UserRole.buyer
-                ? const BuyerOffersScreen()
-                : const OffersScreen();
-          },
-        ),
+        builder: (context, state) {
+          final offerId = state.uri.queryParameters['offerId'];
+          final status = state.uri.queryParameters['status'];
+          return Consumer(
+            builder: (context, ref, _) {
+              final role = ref.watch(authNotifierProvider).profile?.role;
+              return role == UserRole.buyer
+                  ? BuyerOffersScreen(
+                      targetOfferId: offerId,
+                      initialStatus: status,
+                    )
+                  : OffersScreen(
+                      targetOfferId: offerId,
+                      initialStatus: status,
+                    );
+            },
+          );
+        },
       ),
       GoRoute(
         path: RouteNames.buyerOffers,
         name: 'buyerOffers',
-        builder: (context, state) => const BuyerOffersScreen(),
+        builder: (context, state) {
+          final offerId = state.uri.queryParameters['offerId'];
+          final status = state.uri.queryParameters['status'];
+          return BuyerOffersScreen(
+            targetOfferId: offerId,
+            initialStatus: status,
+          );
+        },
       ),
       GoRoute(
         path: RouteNames.myProduce,
